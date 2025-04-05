@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  email         String    @unique
+  password      String
+  status        UserStatus @default(OFFLINE)
+  lastSeen      DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  participatedRooms RoomParticipant[]
+  ownedRooms    Room[]    @relation("RoomOwner")
+}
+
+model Room {
+  id           Int       @id @default(autoincrement())
+  name         String?
+  type         RoomType  @default(DIRECT)
+  ownerId      Int
+  owner        User      @relation("RoomOwner", fields: [ownerId], references: [id])
+  participants RoomParticipant[]
+  messages     Message[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastMessageAt DateTime @default(now())
+}
+
+model RoomParticipant {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  roomId    Int
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+  room      Room      @relation(fields: [roomId], references: [id])
+  status    ParticipantStatus @default(ACTIVE)
+
+  @@unique([userId, roomId])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  content    String   @db.Text
+  type       MessageType @default(TEXT)
+  status     MessageStatus @default(SENT)
+  roomId     Int
+  senderId   Int
+  receiverId Int?
+  room       Room     @relation(fields: [roomId], references: [id])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User?    @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  readAt     DateTime?
+}
+
+enum UserStatus {
+  ONLINE
+  OFFLINE
+  AWAY
+}
+
+enum RoomType {
+  DIRECT
+  GROUP
+}
+
+enum ParticipantStatus {
+  ACTIVE
+  LEFT
+  REMOVED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
