@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password      String?   // Nullable for OAuth users
+  role          Role      @default(STUDENT)
+  isVerified    Boolean   @default(false)
+  otp           String?   // OTP for email verification
+  otpExpiresAt  DateTime? // OTP expiry time
+  provider      String?   // OAuth provider (e.g., "google", "github")
+  oauthId       String?   // OAuth user ID
+  profileImage  String?   // URL to profile image
+  phoneNumber   String?   // Contact number
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+}
+
+model StudentProfile {
+  id              Int      @id @default(autoincrement())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int      @unique
+  educationLevel  String   // Current education level
+  institution     String   // Current institution
+  guardianName    String
+  guardianPhone   String
+  guardianEmail   String?
+  dateOfBirth     DateTime?
+  address         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model TeacherProfile {
+  id              Int      @id @default(autoincrement())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int      @unique
+  education       String   // Highest education level
+  specialization  String   // Subject specialization
+  experience      Int      // Years of experience
+  institution     String?  // Current institution
+  certifications  String?  // List of certifications (JSON string)
+  bio            String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
