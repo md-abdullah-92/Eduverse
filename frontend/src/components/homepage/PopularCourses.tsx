@@ -45,7 +45,7 @@ export default function PopularCourses() {
   return (
     <motion.section
           id="courses"
-          className="bg-gradient-to-r from-blue-50 to-sky-100 py-20"
+          className="bg-[#F9FAFC] py-20"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}

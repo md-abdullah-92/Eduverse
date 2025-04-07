@@ -1,5 +1,6 @@
 'use client';
-
+import { jaro,poppins } from '@/utils/font';
+import { poltawskiNowy } from '@/utils/font';
 import Link from 'next/link';
 //import { UserAvatar } from '@/components/ui/UserAvatar';
 
@@ -19,12 +20,15 @@ const Header = () => {
       <div className="flex items-center space-x-2">
         <Link href="/" className="flex items-center gap-2">
           <img src="/logo.svg" alt="EduVerse Logo" className="h-10 w-auto" />
-          <span className="text-2xl font-bold text-sky-900 tracking-wide">Edu Verse</span>
+          <span className={`text-3xl font-bold text-sky-900 tracking-wide ${jaro.className}`}>
+          EduVerse</span>
+
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="hidden md:flex items-center space-x-6 text-base text-gray-700 font-medium">
+     
+      <nav className={`hidden md:flex items-center space-x-6 text-[18px] font-medium text-[#6A6B6C] ${poltawskiNowy.className}`}>
         <Link href="/" className="hover:text-sky-800 transition-colors">Home</Link>
         <Link href="/courses" className="hover:text-sky-800 transition-colors">Course</Link>
         <Link href="/monitors" className="hover:text-sky-800 transition-colors">Monitors</Link>
@@ -43,20 +47,21 @@ const Header = () => {
             </Link>
           </>
         ) : (
-          <>
-            <Link
-              href="/auth/login"
-              className="bg-sky-900 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-sky-800 transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/auth/register"
-              className="bg-sky-700 text-white px-4 py-2 rounded-full font-semibold text-sm hover:bg-sky-600 transition-colors"
-            >
-              Get Started
-            </Link>
-          </>
+        <>
+        <Link
+        href="/auth/login"
+        className={`bg-[#1A5B6D] text-white px-6 py-2 rounded-xl font-semibold text-base hover:bg-[#154C5B] transition-colors ${poppins.className}`}
+        >
+         Login
+        </Link>
+
+        <Link
+        href="/auth/register"
+        className={`bg-[#1A5B6D] text-white px-6 py-2 rounded-xl font-semibold text-base hover:bg-[#154C5B] transition-colors ${poppins.className}`}
+        >
+        Get Started
+        </Link>
+        </>
         )}
       </div>
     </header>

@@ -16,7 +16,7 @@ import StatsSection from '@/components/homepage/StatsSection';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-r from-blue-50 to-sky-100 py-20">
+    <main className="min-h-screen bg-[#F9FAFC]">
       {/* Hero Section */}
       <HeroSection/>
       {/* Stats Section */}

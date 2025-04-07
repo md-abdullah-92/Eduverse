@@ -1,4 +1,8 @@
 import { motion } from 'framer-motion';
+import { inriaSerif,  reemKufi, poppins } from '@/utils/font';
+import Link from 'next/link';
+
+
 
 export default function HeroSection() {
     return (
@@ -9,7 +13,7 @@ export default function HeroSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
               >
-                <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
+              <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between">
                   {/* Left Text */}
                   <motion.div
                     className="md:w-1/2 mb-12 md:mb-0 pl-16"
@@ -17,12 +21,22 @@ export default function HeroSection() {
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
                   >
-                    <h1 className="text-5xl font-semibold text-[#0f172a] leading-snug mb-6">
-                      Scale your<br />Learning with<br />the power of AI
-                    </h1>
-                    <p className="text-xl text-[#374151] font-semibold">
-                      JOIN US <span className="font-bold text-black">FOR FREE</span>
-                    </p>
+              <h1 className={`text-5xl font-bold text-[#0f172a] leading-snug mb-6 ${inriaSerif.className}`}>
+                   Scale your<br />Learning with<br />the power of AI
+              </h1>
+
+              <p className={`text-xl text-[#374151] font-semibold ${reemKufi.className}`}>
+                 JOIN US FOR FREE
+              </p>
+             { /* need some space between button */}
+             <span className="block h-4"></span>
+
+              <Link
+        href="/auth/register"
+        className={`bg-[#1A5B6D] text-white px-6 py-2 rounded-xl font-semibold text-base hover:bg-[#154C5B] transition-colors ${poppins.className}`}
+        >
+              Start Learning
+            </Link>
                   </motion.div>
         
                   {/* Right Visual Grid */}
