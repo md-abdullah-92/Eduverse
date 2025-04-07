@@ -64,7 +64,7 @@ export default function HeroSection() {
                       whileHover={{ scale: 1.05 }}
                       className="w-40 h-40 bg-yellow-300 rounded-lg transition-transform"
                     />
-        
+                      
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       className="w-40 h-40 bg-gray-300 rounded-br-[80px] rounded-tr-[80px] transition-transform"

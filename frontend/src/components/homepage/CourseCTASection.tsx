@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 import Image from 'next/image';
+import { robotoSlab,poppins } from '@/utils/font'
 
 export default function CourseCTASection() {
   return (
@@ -38,12 +39,12 @@ export default function CourseCTASection() {
    
              {/* Right side - text content */}
              <div className="w-full md:w-1/2 text-center md:text-left">
-               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-                 We are Always Ensure<br />Best Course for your learning
-               </h2>
-               <p className="text-gray-600 mb-6">
-                 Lorem Ipsum is simply dummy text of the printing and IT typesetting industry. Lorem Ipsum has been the
-               </p>
+             <h2 className={`text-3xl md:text-4xl font-bold text-slate-900 mb-4 ${robotoSlab.className}`}>
+  We are Always Ensure<br />Best Course for your learning
+</h2>
+<p className={`text-gray-600 mb-6 ${poppins.className}`}>
+  Lorem Ipsum is simply dummy text of the printing and IT typesetting industry. Lorem Ipsum has been the
+</p>
                <button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 px-6 rounded-full transition duration-300">
                  Join Us Free
                </button>

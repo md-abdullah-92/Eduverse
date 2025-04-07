@@ -19,7 +19,7 @@ const Header = () => {
       {/* Logo */}
       <div className="flex items-center space-x-2">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.svg" alt="EduVerse Logo" className="h-10 w-auto" />
+          <img src="/logo.png" alt="EduVerse Logo" className="h-10 w-auto" />
           <span className={`text-3xl font-bold text-sky-900 tracking-wide ${jaro.className}`}>
           EduVerse</span>
 

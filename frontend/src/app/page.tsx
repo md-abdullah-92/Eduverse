@@ -14,6 +14,7 @@ import StatsSection from '@/components/homepage/StatsSection';
 
 
 
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#F9FAFC]">
