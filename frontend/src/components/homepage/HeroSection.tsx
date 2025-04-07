@@ -32,9 +32,9 @@ export default function HeroSection() {
              <span className="block h-4"></span>
 
               <Link
-        href="/auth/register"
-        className={`bg-[#1A5B6D] text-white px-6 py-2 rounded-xl font-semibold text-base hover:bg-[#154C5B] transition-colors ${poppins.className}`}
-        >
+              href="/auth/login?tab=register"
+              className={`bg-[#1A5B6D] text-white px-6 py-2 rounded-xl font-semibold text-base hover:bg-[#154C5B] transition-colors ${poppins.className}`}
+              >
               Start Learning
             </Link>
                   </motion.div>
