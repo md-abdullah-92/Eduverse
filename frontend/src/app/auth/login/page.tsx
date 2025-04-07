@@ -1,23 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-//import { useRouter, useSearchParams } from "next/navigation";
-import {  useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { raleway, jaro } from "@/utils/font"; // Make sure Raleway font is properly imported from Google Fonts
+import { raleway, jaro } from "@/utils/font";
 
 export default function LoginRegister() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
-  //const router = useRouter();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
-  // Handle query string tab switching
+  // Update tab from URL
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "register") setActiveTab("register");
     else setActiveTab("login");
   }, [searchParams]);
+
+  // Sync tab click with URL
+  const handleTabChange = (tab: "login" | "register") => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", tab);
+    router.push(`?${params.toString()}`);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: Handle login/register logic
+    console.log("Submitted form for:", activeTab);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0F4C5C] px-4">
@@ -29,7 +42,9 @@ export default function LoginRegister() {
             alt="EduVerse Logo"
             className="w-56 h-56 object-contain mb-6"
           />
-          <h1 className={`text-7xl font-extrabold tracking-wider ${jaro.className}`}>EduVerse</h1>
+          <h1 className={`text-7xl font-extrabold tracking-wider ${jaro.className}`}>
+            EduVerse
+          </h1>
         </div>
 
         {/* Auth Section */}
@@ -37,7 +52,7 @@ export default function LoginRegister() {
           {/* Tabs */}
           <div className="flex space-x-8 mb-8 border-b border-white/20 pb-2">
             <button
-              onClick={() => setActiveTab("login")}
+              onClick={() => handleTabChange("login")}
               className={`text-sm pb-1 transition border-b-2 ${
                 activeTab === "login"
                   ? "text-white border-orange-400"
@@ -47,7 +62,7 @@ export default function LoginRegister() {
               Login
             </button>
             <button
-              onClick={() => setActiveTab("register")}
+              onClick={() => handleTabChange("register")}
               className={`text-sm pb-1 transition border-b-2 ${
                 activeTab === "register"
                   ? "text-white border-orange-400"
@@ -60,22 +75,26 @@ export default function LoginRegister() {
 
           {/* Greeting */}
           <div className={`mb-6 ${raleway.className}`}>
-            <h2 className="text-2xl font-semibold">
-              Welcome to EduVerse
-            </h2>
+            <h2 className="text-2xl font-semibold">Welcome to EduVerse</h2>
             <p className="text-sm text-gray-300">
-              {activeTab === "login" ? "Thank you for coming back!" : "Thank you for Joining us!"}
+              {activeTab === "login"
+                ? "Thank you for coming back!"
+                : "Thank you for joining us!"}
             </p>
           </div>
 
           {/* Form */}
-          <form className={`space-y-5 ${raleway.className}`}>
+          <form onSubmit={handleSubmit} className={`space-y-5 ${raleway.className}`}>
             {activeTab === "register" && (
               <div>
-                <label className="block text-sm mb-1">Full Name</label>
+                <label htmlFor="fullname" className="block text-sm mb-1">
+                  Full Name
+                </label>
                 <input
+                  id="fullname"
                   type="text"
                   placeholder="Your Full Name"
+                  autoComplete="name"
                   className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
                   defaultValue="Techy Ahad"
                 />
@@ -83,20 +102,28 @@ export default function LoginRegister() {
             )}
 
             <div>
-              <label className="block text-sm mb-1">Your Email</label>
+              <label htmlFor="email" className="block text-sm mb-1">
+                Your Email
+              </label>
               <input
+                id="email"
                 type="email"
                 placeholder="you@example.com"
+                autoComplete="email"
                 className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
                 defaultValue="techyahadpersonal@gmail.com"
               />
             </div>
 
             <div className="relative">
-              <label className="block text-sm mb-1">Password</label>
+              <label htmlFor="password" className="block text-sm mb-1">
+                Password
+              </label>
               <input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="********"
+                autoComplete={activeTab === "login" ? "current-password" : "new-password"}
                 className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
                 defaultValue="password123"
               />
