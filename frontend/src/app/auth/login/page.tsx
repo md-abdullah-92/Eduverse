@@ -3,39 +3,93 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { raleway, jaro } from "@/utils/font";
+import { raleway, jaro } from "@/utils/font"; // Assuming these are font imports
 
 export default function LoginRegister() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
+  const [isTutor, setIsTutor] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Update tab from URL
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "register") setActiveTab("register");
-    else setActiveTab("login");
+    setActiveTab(tab === "register" ? "register" : "login");
   }, [searchParams]);
 
-  // Sync tab click with URL
   const handleTabChange = (tab: "login" | "register") => {
+    setMessage("");
     setActiveTab(tab);
     const params = new URLSearchParams(searchParams);
     params.set("tab", tab);
     router.push(`?${params.toString()}`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Handle login/register logic
-    console.log("Submitted form for:", activeTab);
+    setLoading(true);
+    setMessage("");
+
+    const payload = { email, password };
+
+    try {
+      if (activeTab === "login") {
+        const res = await fetch("http://localhost:5000/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Login failed");
+
+        console.log("✅ Logged in:", data);
+        setMessage("Successfully logged in!");
+        // router.push("/dashboard"); // Or save token
+      } else {
+        const registrationPayload = {
+          name,
+          email,
+          password,
+          role: isTutor ? "TEACHER" : "STUDENT",
+        };
+
+        const res = await fetch("http://localhost:5000/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(registrationPayload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Registration failed");
+
+        console.log("✅ Registered:", data);
+        //tomcastro
+        setMessage("OTP sent to your email!");
+         router.push("/auth/otp");
+      }
+    } catch (err: any) {
+      console.error("❌ Error:", err.message);
+      setMessage(err.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0F4C5C] px-4">
       <div className="flex w-full max-w-6xl transition-all duration-500 rounded-2xl shadow-2xl overflow-hidden bg-[#0F4C5C] text-white scale-100 hover:scale-[1.02]">
-        {/* Branding Section */}
+        {/* Branding */}
         <div className="w-1/2 p-10 flex flex-col justify-center items-center border-r border-white/20">
           <img
             src="/images/logo_w.png"
@@ -47,8 +101,8 @@ export default function LoginRegister() {
           </h1>
         </div>
 
-        {/* Auth Section */}
-        <div className="w-1/2 p-10 bg-[#0F4C5C] transition-all duration-300 ease-in-out">
+        {/* Auth Panel */}
+        <div className="w-1/2 p-10">
           {/* Tabs */}
           <div className="flex space-x-8 mb-8 border-b border-white/20 pb-2">
             <button
@@ -83,6 +137,13 @@ export default function LoginRegister() {
             </p>
           </div>
 
+          {/* Message */}
+          {message && (
+            <div className="mb-4 text-sm text-center px-4 py-2 rounded bg-white/10 text-orange-300">
+              {message}
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className={`space-y-5 ${raleway.className}`}>
             {activeTab === "register" && (
@@ -94,9 +155,11 @@ export default function LoginRegister() {
                   id="fullname"
                   type="text"
                   placeholder="Your Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   autoComplete="name"
+                  required
                   className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
-                  defaultValue="Techy Ahad"
                 />
               </div>
             )}
@@ -109,9 +172,11 @@ export default function LoginRegister() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
+                required
                 className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
-                defaultValue="techyahadpersonal@gmail.com"
               />
             </div>
 
@@ -123,9 +188,11 @@ export default function LoginRegister() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete={activeTab === "login" ? "current-password" : "new-password"}
+                required
                 className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
-                defaultValue="password123"
               />
               <button
                 type="button"
@@ -136,7 +203,6 @@ export default function LoginRegister() {
               </button>
             </div>
 
-            {/* Footer Buttons */}
             {activeTab === "login" ? (
               <>
                 <div className="flex items-center justify-between text-sm text-gray-300">
@@ -150,24 +216,46 @@ export default function LoginRegister() {
                 </div>
                 <button
                   type="submit"
+                  disabled={loading}
                   className="w-full py-2 bg-white text-[#0F4C5C] font-semibold rounded hover:bg-gray-100 transition"
                 >
-                  Login
+                  {loading ? "Logging in..." : "Login"}
                 </button>
               </>
             ) : (
               <>
+                <div className="flex items-center gap-4 text-sm text-gray-300">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="STUDENT"
+                      checked={!isTutor}
+                      onChange={() => setIsTutor(false)}
+                    />
+                    Register as Student
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="TEACHER"
+                      checked={isTutor}
+                      onChange={() => setIsTutor(true)}
+                    />
+                    Register as Tutor
+                  </label>
+                </div>
                 <button
                   type="submit"
-                  className="w-full py-2 bg-white text-[#0F4C5C] font-semibold rounded hover:bg-gray-100 transition"
-                >
-                  REGISTER AS STUDENT
-                </button>
-                <button
-                  type="submit"
+                  disabled={loading}
                   className="w-full py-2 bg-orange-500 text-white font-semibold rounded hover:bg-orange-400 transition"
                 >
-                  REGISTER AS TUTOR
+                  {loading
+                    ? "Registering..."
+                    : isTutor
+                    ? "Register as Tutor"
+                    : "Register as Student"}
                 </button>
               </>
             )}
