@@ -13,6 +13,7 @@ export default function LoginRegister() {
   const [showPassword, setShowPassword] = useState(false);
   const [isTutor, setIsTutor] = useState(false);
   const searchParams = useSearchParams();
+  
   const router = useRouter();
 
   const [fullName, setFullName] = useState("");
