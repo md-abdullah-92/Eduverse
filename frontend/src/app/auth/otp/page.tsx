@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { raleway, jaro } from "@/utils/font";
 import axios, { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
+
 
 export default function OtpVerification() {
   const [otp, setOtp] = useState(Array(6).fill(""));
@@ -12,6 +14,7 @@ export default function OtpVerification() {
   const [isResending, setIsResending] = useState(false);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     const emailParam = searchParams.get("email");
@@ -57,8 +60,8 @@ export default function OtpVerification() {
         email,
         otp: finalOtp.toString(),
       });
-
       alert(res.data.message);
+      router.push("auth/login?tab=login");
       console.log(res.data.user);
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
@@ -73,7 +76,7 @@ export default function OtpVerification() {
     try {
       const res = await axios.post("http://localhost:5000/api/auth/resend-otp", { email });
       alert(res.data.message || "OTP resent successfully!");
-      setResendCooldown(60); // Cooldown for 60 seconds
+      setResendCooldown(300); // Cooldown for 60 seconds
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
       alert(err.response?.data?.message || "Failed to resend OTP.");

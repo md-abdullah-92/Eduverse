@@ -7,6 +7,7 @@ import { raleway, jaro } from "@/utils/font"; // Assuming these are font imports
 import { AxiosError } from "axios";
 
 
+
 export default function LoginRegister() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -50,21 +51,26 @@ export default function LoginRegister() {
       if (activeTab === "login") {
         const res = await fetch("http://localhost:5000/api/auth/login", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-
+      
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Login failed");
-
-        console.log("✅ Logged in:", data);
-        setMessage("Successfully logged in!");
-        // router.push("/dashboard"); // Or save token
-      } else {
+        console.log("Login response:", data);
+      
+        if (!res.ok || !data.token) {
+          throw new Error(data.message || "Login failed");
+        }
+      
+        localStorage.setItem("token", data.token);
+        const token = localStorage.getItem("token");
+        console.log("Token:", token);
+        console.log("✅ Login successful, redirecting to dashboard...");
+        router.push("/profiles");
+      }
+       else {
         const registrationPayload = {
-          name,
+          name:fullName,
           email,
           password,
           role: isTutor ? "TEACHER" : "STUDENT",
