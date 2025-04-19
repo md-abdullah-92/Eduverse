@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { raleway, jaro } from "@/utils/font"; // Assuming these are font imports
+import { AxiosError } from "axios";
+
 
 export default function LoginRegister() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
@@ -30,7 +32,13 @@ export default function LoginRegister() {
     params.set("tab", tab);
     router.push(`?${params.toString()}`);
   };
-
+  const handleRedirectToOTP = (email: string) => {
+    if (email) {
+      router.push(`/auth/otp?email=${encodeURIComponent(email)}`);
+    } else {
+      alert("Email not available!");
+    }
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -74,13 +82,14 @@ export default function LoginRegister() {
         if (!res.ok) throw new Error(data.message || "Registration failed");
 
         console.log("✅ Registered:", data);
-        //tomcastro
         setMessage("OTP sent to your email!");
-         router.push("/auth/otp");
+        handleRedirectToOTP(email);
+        
       }
-    } catch (err: any) {
-      console.error("❌ Error:", err.message);
-      setMessage(err.message || "Something went wrong!");
+    }  catch (error: unknown) {
+      const err = error as AxiosError<{ message: string }>;
+      alert(err.response?.data?.message || "Registration failed!");
+      console.error("Error verifying OTP:", err);
     } finally {
       setLoading(false);
     }
