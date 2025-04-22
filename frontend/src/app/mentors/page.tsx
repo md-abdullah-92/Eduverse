@@ -22,7 +22,34 @@ import {
 import Image from "next/image";
 import React from "react";
 
-const menuItems = [
+// Types
+type MenuItem = {
+  icon: React.ElementType;
+  label: string;
+};
+
+type StatCardProps = {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  color: string;
+};
+
+type ChartCardProps = {
+  title: string;
+};
+
+type SocialIconProps = {
+  name: string;
+};
+
+type SidebarItemProps = {
+  icon: React.ElementType;
+  label: string;
+};
+
+// Menu Data
+const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard" },
   { icon: User, label: "My Profile" },
   { icon: BookOpen, label: "Enrolled Courses" },
@@ -34,7 +61,7 @@ const menuItems = [
   { icon: MessageSquare, label: "Q&A" },
 ];
 
-const instructorItems = [
+const instructorItems: MenuItem[] = [
   { icon: BookOpen, label: "My Courses" },
   { icon: Package, label: "My Package" },
   { icon: Megaphone, label: "Announcements" },
@@ -46,6 +73,7 @@ const instructorItems = [
   { icon: LogOut, label: "Logout" },
 ];
 
+// Sidebar Components
 const Sidebar = () => (
   <aside className="w-72 h-full bg-white border-r px-5 py-6 space-y-4">
     <nav className="space-y-1">
@@ -62,14 +90,15 @@ const Sidebar = () => (
   </aside>
 );
 
-const SidebarItem = ({ icon: Icon, label }: { icon: any; label: string }) => (
+const SidebarItem = ({ icon: Icon, label }: SidebarItemProps) => (
   <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700">
     <Icon size={18} className="text-yellow-500" />
     <span>{label}</span>
   </div>
 );
 
-const StatCard = ({ label, value, icon, color }: any) => (
+// Cards
+const StatCard = ({ label, value, icon, color }: StatCardProps) => (
   <div className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
     <div>
       <p className="text-sm text-gray-500">{label}</p>
@@ -79,7 +108,7 @@ const StatCard = ({ label, value, icon, color }: any) => (
   </div>
 );
 
-const ChartCard = ({ title }: { title: string }) => (
+const ChartCard = ({ title }: ChartCardProps) => (
   <div className="bg-white rounded-xl p-4 shadow">
     <div className="flex justify-between items-center mb-2">
       <h4 className="font-semibold text-gray-800">{title}</h4>
@@ -94,7 +123,8 @@ const ChartCard = ({ title }: { title: string }) => (
   </div>
 );
 
-const SocialIcon = ({ name }: { name: string }) => (
+// Social Icon
+const SocialIcon = ({ name }: SocialIconProps) => (
   <div className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 cursor-pointer">
     <Image
       src={`/icons/${name}.svg`}
@@ -106,6 +136,7 @@ const SocialIcon = ({ name }: { name: string }) => (
   </div>
 );
 
+// Dashboard Component
 const Dashboard = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -133,7 +164,7 @@ const Dashboard = () => {
             src="/images/team/minhaz.jpg"
             alt="Profile"
             width={160}
-            height={10}
+            height={160}
             className="rounded-full border-4 border-white shadow-lg"
           />
           <div className="flex-1 flex justify-between items-center pr-6">
