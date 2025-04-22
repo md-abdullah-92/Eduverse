@@ -23,25 +23,25 @@ import Image from "next/image";
 import React from "react";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dash board" },
-  { icon: User, label: "My profile" },
-  { icon: BookOpen, label: "Enrolled courses" },
+  { icon: LayoutDashboard, label: "Dashboard" },
+  { icon: User, label: "My Profile" },
+  { icon: BookOpen, label: "Enrolled Courses" },
   { icon: Package, label: "Package" },
   { icon: Heart, label: "Wishlist" },
   { icon: Star, label: "Reviews" },
-  { icon: ListChecks, label: "My quiz attempts" },
-  { icon: History, label: "Order history" },
-  { icon: MessageSquare, label: "Question & answer" },
+  { icon: ListChecks, label: "My Quiz Attempts" },
+  { icon: History, label: "Order History" },
+  { icon: MessageSquare, label: "Q&A" },
 ];
 
 const instructorItems = [
-  { icon: BookOpen, label: "My courses" },
-  { icon: Package, label: "My package" },
+  { icon: BookOpen, label: "My Courses" },
+  { icon: Package, label: "My Package" },
   { icon: Megaphone, label: "Announcements" },
   { icon: DollarSign, label: "Withdrawals" },
-  { icon: ListChecks, label: "Quiz attempts" },
+  { icon: ListChecks, label: "Quiz Attempts" },
   { icon: FileText, label: "Assignments" },
-  { icon: BadgeCheck, label: "Certificate" },
+  { icon: BadgeCheck, label: "Certificates" },
   { icon: PieChart, label: "Analytics" },
   { icon: LogOut, label: "Logout" },
 ];
@@ -79,99 +79,6 @@ const StatCard = ({ label, value, icon, color }: any) => (
   </div>
 );
 
-const Dashboard = () => {
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-
-      <main className="flex-1 p-6 space-y-6">
-        {/* Cover Photo */}
-        <div className="relative w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden">
-          <Image
-            src="/images/course1.png"
-            alt="Cover Photo"
-            fill
-            className="object-cover"
-          />
-          <div className="absolute bottom-4 right-6">
-            <button className="text-sm text-white bg-black/50 backdrop-blur px-4 py-1.5 rounded hover:bg-black/70">
-              Edit Cover Photo
-            </button>
-          </div>
-        </div>
-
-        {/* Profile Section */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Image
-              src="/images/team/minhaz.jpg"
-              alt="Profile"
-              width={60}
-              height={60}
-              className="rounded-full"
-            />
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Marley Botosh</h2>
-              <p className="text-sm text-gray-500">⭐ 4.8 (280)</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex space-x-2">
-              <SocialIcon name="facebook" />
-              <SocialIcon name="tiktok" />
-              <SocialIcon name="youtube" />
-              <SocialIcon name="mail" />
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <StatCard label="Total students" value="1,200" icon={<Users />} color="text-blue-500" />
-          <StatCard label="Total sales" value="$230.0" icon={<DollarSign />} color="text-green-500" />
-          <StatCard label="Total courses" value="17" icon={<BookOpen />} color="text-cyan-500" />
-          <StatCard label="Processing Orders" value="17" icon={<ClipboardList />} color="text-purple-500" />
-          <StatCard label="Completed Orders" value="17" icon={<ClipboardList />} color="text-pink-500" />
-          <StatCard label="Total orders" value="17" icon={<ClipboardList />} color="text-orange-500" />
-        </div>
-
-        {/* Charts */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <ChartCard title="Students" />
-          <ChartCard title="Net Sales" />
-        </div>
-
-        {/* Best Selling */}
-        <div className="bg-white rounded-xl p-6 shadow space-y-3">
-          <h3 className="text-lg font-semibold text-gray-800">Best selling course</h3>
-          <div className="flex flex-col md:flex-row gap-4">
-            <Image
-              src="/course-thumbnail.jpg"
-              alt="Course"
-              width={300}
-              height={200}
-              className="rounded-lg"
-            />
-            <div className="space-y-1">
-              <h4 className="text-gray-800 font-semibold text-lg">
-                How to Budget and Forecast for your business
-              </h4>
-              <p className="text-sm text-gray-500">4 Lessons · 1,200 Students · 3 weeks</p>
-              <div className="flex items-center space-x-2">
-                <p className="text-red-500 text-lg font-bold">$20.0</p>
-                <p className="text-sm text-gray-400 line-through">$29.0</p>
-              </div>
-              <p className="text-sm text-green-600">
-                1,210 Courses sold · $42,350.0 Net sales
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-};
-
 const ChartCard = ({ title }: { title: string }) => (
   <div className="bg-white rounded-xl p-4 shadow">
     <div className="flex justify-between items-center mb-2">
@@ -198,5 +105,96 @@ const SocialIcon = ({ name }: { name: string }) => (
     />
   </div>
 );
+
+const Dashboard = () => {
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar />
+
+      <main className="flex-1 p-6 space-y-6">
+        {/* Cover Photo */}
+        <div className="relative w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden">
+          <Image
+            src="/images/course1.png"
+            alt="Cover Photo"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute bottom-4 right-6">
+            <button className="text-sm text-white bg-black/50 backdrop-blur px-4 py-1.5 rounded hover:bg-black/70">
+              Edit Cover Photo
+            </button>
+          </div>
+        </div>
+
+        {/* Profile Overlap */}
+        <div className="relative -mt-20 pl-6 flex items-end gap-6">
+          <Image
+            src="/images/team/minhaz.jpg"
+            alt="Profile"
+            width={160}
+            height={10}
+            className="rounded-full border-4 border-white shadow-lg"
+          />
+          <div className="flex-1 flex justify-between items-center pr-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Marley Botosh</h2>
+              <p className="text-sm text-gray-500">⭐ 4.8 (280)</p>
+            </div>
+            <div className="flex space-x-2">
+              <SocialIcon name="facebook" />
+              <SocialIcon name="tiktok" />
+              <SocialIcon name="youtube" />
+              <SocialIcon name="mail" />
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <StatCard label="Total Students" value="1,200" icon={<Users />} color="text-blue-500" />
+          <StatCard label="Total Sales" value="$230.0" icon={<DollarSign />} color="text-green-500" />
+          <StatCard label="Total Courses" value="17" icon={<BookOpen />} color="text-cyan-500" />
+          <StatCard label="Processing Orders" value="17" icon={<ClipboardList />} color="text-purple-500" />
+          <StatCard label="Completed Orders" value="17" icon={<ClipboardList />} color="text-pink-500" />
+          <StatCard label="Total Orders" value="17" icon={<ClipboardList />} color="text-orange-500" />
+        </div>
+
+        {/* Charts */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <ChartCard title="Students" />
+          <ChartCard title="Net Sales" />
+        </div>
+
+        {/* Best Selling Course */}
+        <div className="bg-white rounded-xl p-6 shadow space-y-3">
+          <h3 className="text-lg font-semibold text-gray-800">Best Selling Course</h3>
+          <div className="flex flex-col md:flex-row gap-4">
+            <Image
+              src="/course-thumbnail.jpg"
+              alt="Course"
+              width={300}
+              height={200}
+              className="rounded-lg"
+            />
+            <div className="space-y-1">
+              <h4 className="text-gray-800 font-semibold text-lg">
+                How to Budget and Forecast for Your Business
+              </h4>
+              <p className="text-sm text-gray-500">4 Lessons · 1,200 Students · 3 Weeks</p>
+              <div className="flex items-center space-x-2">
+                <p className="text-red-500 text-lg font-bold">$20.0</p>
+                <p className="text-sm text-gray-400 line-through">$29.0</p>
+              </div>
+              <p className="text-sm text-green-600">
+                1,210 Courses Sold · $42,350.0 Net Sales
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
 
 export default Dashboard;
