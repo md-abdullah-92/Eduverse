@@ -205,7 +205,9 @@ const DashboardPage = () => {
           />
           <div className="flex-1 flex justify-between items-center pr-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">{profile.name || "Mentor Name"}</h2>
+              <h2 className="text-xl font-bold text-gray-800">
+                {userInfo.name || "Mentor Name"}
+              </h2>
               <p className="text-sm text-gray-500">⭐ {mentor.rating || "-"} ({mentor.totalReviews || 0})</p>
             </div>
             <div className="flex space-x-2">
