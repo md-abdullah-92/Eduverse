@@ -115,6 +115,34 @@ exports.verifyEmail = async (req, res) => {
             }
         });
 
+        // Create profile after verification
+        if (verifiedUser.role === "STUDENT") {
+            await prisma.studentProfile.upsert({
+                where: { userId: verifiedUser.id },
+                update: {},
+                create: {
+                    userId: verifiedUser.id,
+                    educationLevel: "Not set",
+                    institution: "Not set",
+                    guardianName: "",
+                    guardianPhone: "",
+                    // guardianEmail, dateOfBirth, address, coverPhoto, profilePhoto, bio are optional
+                }
+            });
+        } else if (verifiedUser.role === "TEACHER") {
+            await prisma.teacherProfile.upsert({
+                where: { userId: verifiedUser.id },
+                update: {},
+                create: {
+                    userId: verifiedUser.id,
+                    education: "Not set",
+                    specialization: "Not set",
+                    experience: 0,
+                    // institution, certifications, rating are optional
+                }
+            });
+        }
+
         res.status(200).json({ 
             message: "Email verified successfully!",
             user: verifiedUser

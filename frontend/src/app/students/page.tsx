@@ -13,7 +13,8 @@ import {
   FileText,
 } from "lucide-react";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 type NavigationItem = {
   icon: React.ElementType;
@@ -45,7 +46,7 @@ const studentNavigationItems: NavigationItem[] = [
   { icon: LogOut, label: "Logout" },
 ];
 
-// Sidebar Navigation
+// Sidebar Component
 const Sidebar: React.FC = () => (
   <aside className="w-72 h-full bg-white border-r px-5 py-6">
     <nav className="space-y-2">
@@ -63,7 +64,6 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label }) => (
   </div>
 );
 
-// Statistic Card Component
 const StatCard: React.FC<StatCardProps> = ({ label, value, icon, colorClass }) => (
   <div className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
     <div>
@@ -74,17 +74,57 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, colorClass }) =
   </div>
 );
 
-// Student Dashboard
 const StudentDashboard: React.FC = () => {
+  const params = useParams();
+  const userId = params?.id;
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!userId) {
+      setError("User ID not found");
+      setLoading(false);
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Failed to fetch profile");
+
+        const data = await res.json();
+        if (!data.studentProfile) {
+          throw new Error("Student profile not found");
+        }
+        setProfile(data.studentProfile);
+      } catch (err: any) {
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
+
+  if (loading) return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  if (error) return <div className="flex min-h-screen items-center justify-center text-red-500">{error}</div>;
+  if (!profile) return null;
+
+  const student = profile;
+  const userInfo = student.user || {};
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-
       <main className="flex-1 p-6 space-y-6">
         {/* Cover Section */}
         <div className="relative w-full h-64 rounded-xl overflow-hidden">
           <Image
-            src="/images/course1.png"
+            src={student.coverPhoto || "/images/course1.png"}
             alt="Student Cover"
             fill
             className="object-cover"
@@ -99,7 +139,7 @@ const StudentDashboard: React.FC = () => {
         {/* Profile Section */}
         <div className="relative -mt-20 pl-6 flex items-end gap-6">
           <Image
-            src="/images/team/apurbo.png"
+            src={student.profilePhoto || "/images/team/apurbo.png"}
             alt="Student Profile"
             width={160}
             height={160}
@@ -107,8 +147,8 @@ const StudentDashboard: React.FC = () => {
           />
           <div className="flex-1 flex justify-between items-center pr-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Abdullah Apurbo</h2>
-              <p className="text-sm text-gray-500">Student ID: SUST-CSE-2020</p>
+              <h2 className="text-xl font-bold text-gray-800">{student.name || "Student Name"}</h2>
+              <p className="text-sm text-gray-500">Student ID: {student.studentId || profile.id}</p>
             </div>
             <span className="text-sm text-gray-600">📘 Active Learner</span>
           </div>
@@ -116,15 +156,15 @@ const StudentDashboard: React.FC = () => {
 
         {/* Statistics Section */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-          <StatCard label="Courses Enrolled" value="8" icon={<BookOpen />} colorClass="text-blue-500" />
-          <StatCard label="Certificates Earned" value="4" icon={<BadgeCheck />} colorClass="text-green-500" />
-          <StatCard label="Lessons Completed" value="120" icon={<ClipboardList />} colorClass="text-cyan-500" />
-          <StatCard label="Quiz Attempts" value="45" icon={<ListChecks />} colorClass="text-purple-500" />
-          <StatCard label="Orders Placed" value="3" icon={<History />} colorClass="text-orange-500" />
-          <StatCard label="Reviews Given" value="7" icon={<Star />} colorClass="text-yellow-500" />
+          <StatCard label="Courses Enrolled" value={student.coursesEnrolled?.toString() || "-"} icon={<BookOpen />} colorClass="text-blue-500" />
+          <StatCard label="Certificates Earned" value={student.certificatesEarned?.toString() || "-"} icon={<BadgeCheck />} colorClass="text-green-500" />
+          <StatCard label="Lessons Completed" value={student.lessonsCompleted?.toString() || "-"} icon={<ClipboardList />} colorClass="text-cyan-500" />
+          <StatCard label="Quiz Attempts" value={student.quizAttempts?.toString() || "-"} icon={<ListChecks />} colorClass="text-purple-500" />
+          <StatCard label="Orders Placed" value={student.ordersPlaced?.toString() || "-"} icon={<History />} colorClass="text-orange-500" />
+          <StatCard label="Reviews Given" value={student.reviewsGiven?.toString() || "-"} icon={<Star />} colorClass="text-yellow-500" />
         </div>
 
-        {/* Progress Chart Placeholder */}
+        {/* Progress Chart */}
         <div className="bg-white rounded-xl p-6 shadow space-y-4">
           <h3 className="text-lg font-semibold text-gray-800">Learning Progress</h3>
           <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm">
@@ -132,7 +172,7 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Recent Courses Section */}
+        {/* Recent Courses */}
         <div className="bg-white rounded-xl p-6 shadow space-y-4">
           <h3 className="text-lg font-semibold text-gray-800">Recent Courses</h3>
           <div className="grid md:grid-cols-3 gap-4">

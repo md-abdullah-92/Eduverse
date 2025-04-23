@@ -20,7 +20,8 @@ import {
   PieChart,
 } from "lucide-react";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, notFound } from "next/navigation";
 
 // Types
 type MenuItem = {
@@ -73,7 +74,14 @@ const instructorItems: MenuItem[] = [
   { icon: LogOut, label: "Logout" },
 ];
 
-// Sidebar Components
+// Sidebar Component
+const SidebarItem = ({ icon: Icon, label }: SidebarItemProps) => (
+  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700">
+    <Icon size={18} className="text-yellow-500" />
+    <span>{label}</span>
+  </div>
+);
+
 const Sidebar = () => (
   <aside className="w-72 h-full bg-white border-r px-5 py-6 space-y-4">
     <nav className="space-y-1">
@@ -90,14 +98,7 @@ const Sidebar = () => (
   </aside>
 );
 
-const SidebarItem = ({ icon: Icon, label }: SidebarItemProps) => (
-  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700">
-    <Icon size={18} className="text-yellow-500" />
-    <span>{label}</span>
-  </div>
-);
-
-// Cards
+// Reusable Cards
 const StatCard = ({ label, value, icon, color }: StatCardProps) => (
   <div className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
     <div>
@@ -123,7 +124,6 @@ const ChartCard = ({ title }: ChartCardProps) => (
   </div>
 );
 
-// Social Icon
 const SocialIcon = ({ name }: SocialIconProps) => (
   <div className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 cursor-pointer">
     <Image
@@ -136,17 +136,53 @@ const SocialIcon = ({ name }: SocialIconProps) => (
   </div>
 );
 
-// Dashboard Component
-const Dashboard = () => {
+// Dashboard Page
+const DashboardPage = () => {
+  const params = useParams();
+  const userId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) {
+      notFound();
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+          credentials: "include",
+        });
+        if (!res.ok) throw new Error("Fetch failed");
+        const data = await res.json();
+        if (!data.teacherProfile) notFound();
+        setProfile(data.teacherProfile);
+      } catch {
+        notFound();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
+
+  if (loading) return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+  if (!profile) return null;
+
+  const mentor = profile;
+  const userInfo = mentor.user || {};
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-
       <main className="flex-1 p-6 space-y-6">
         {/* Cover Photo */}
         <div className="relative w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden">
           <Image
-            src="/images/course1.png"
+            src={mentor.coverPhoto || "/images/course1.png"}
             alt="Cover Photo"
             fill
             className="object-cover"
@@ -158,10 +194,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Profile Overlap */}
+        {/* Profile Section */}
         <div className="relative -mt-20 pl-6 flex items-end gap-6">
           <Image
-            src="/images/team/minhaz.jpg"
+            src={mentor.profilePhoto || "/images/team/minhaz.jpg"}
             alt="Profile"
             width={160}
             height={160}
@@ -169,8 +205,8 @@ const Dashboard = () => {
           />
           <div className="flex-1 flex justify-between items-center pr-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">Marley Botosh</h2>
-              <p className="text-sm text-gray-500">⭐ 4.8 (280)</p>
+              <h2 className="text-xl font-bold text-gray-800">{profile.name || "Mentor Name"}</h2>
+              <p className="text-sm text-gray-500">⭐ {mentor.rating || "-"} ({mentor.totalReviews || 0})</p>
             </div>
             <div className="flex space-x-2">
               <SocialIcon name="facebook" />
@@ -181,14 +217,14 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-          <StatCard label="Total Students" value="1,200" icon={<Users />} color="text-blue-500" />
-          <StatCard label="Total Sales" value="$230.0" icon={<DollarSign />} color="text-green-500" />
-          <StatCard label="Total Courses" value="17" icon={<BookOpen />} color="text-cyan-500" />
-          <StatCard label="Processing Orders" value="17" icon={<ClipboardList />} color="text-purple-500" />
-          <StatCard label="Completed Orders" value="17" icon={<ClipboardList />} color="text-pink-500" />
-          <StatCard label="Total Orders" value="17" icon={<ClipboardList />} color="text-orange-500" />
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <StatCard label="Total Students" value={mentor.totalStudents?.toString() || "-"} icon={<Users />} color="text-blue-500" />
+          <StatCard label="Total Sales" value={mentor.totalSales ? `$${mentor.totalSales}` : "-"} icon={<DollarSign />} color="text-green-500" />
+          <StatCard label="Total Courses" value={mentor.totalCourses?.toString() || "-"} icon={<BookOpen />} color="text-cyan-500" />
+          <StatCard label="Processing Orders" value={mentor.processingOrders?.toString() || "-"} icon={<ClipboardList />} color="text-purple-500" />
+          <StatCard label="Completed Orders" value={mentor.completedOrders?.toString() || "-"} icon={<ClipboardList />} color="text-pink-500" />
+          <StatCard label="Total Orders" value={mentor.totalOrders?.toString() || "-"} icon={<ClipboardList />} color="text-orange-500" />
         </div>
 
         {/* Charts */}
@@ -228,4 +264,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;

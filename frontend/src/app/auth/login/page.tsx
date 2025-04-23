@@ -50,24 +50,31 @@ export default function LoginRegister() {
 
     try {
       if (activeTab === "login") {
-        const res = await fetch("http://localhost:5000/api/auth/login", {
+        const res = await fetch(`http://localhost:5000/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-      
         const data = await res.json();
-        console.log("Login response:", data);
-      
-        if (!res.ok || !data.token) {
+        if (!res.ok || !data.token || !data.user) {
+          setMessage(data.message || "Login failed");
           throw new Error(data.message || "Login failed");
         }
-      
         localStorage.setItem("token", data.token);
-        const token = localStorage.getItem("token");
-        console.log("Token:", token);
-        console.log("✅ Login successful, redirecting to dashboard...");
-        router.push("/profiles");
+        const userId = data.user.id;
+        const role = data.user.role;
+        if (!userId || !role) {
+          setMessage("Missing user information in response.");
+          throw new Error("Missing user information in response.");
+        }
+        setMessage("Login successful! Redirecting...");
+        if (role === "TEACHER") {
+          router.push(`/mentors/${userId}`);
+        } else if (role === "STUDENT") {
+          router.push(`/students/${userId}`);
+        } else {
+          setMessage("Unknown user role. Please contact support.");
+        }
       }
        else {
         const registrationPayload = {

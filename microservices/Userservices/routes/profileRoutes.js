@@ -5,8 +5,12 @@ const {
     updateStudentProfile,
     updateTeacherProfile,
     updateUserProfile,
-    getProfile
+    getProfile,
+    getProfileById
 } = require("../controllers/profileController");
+
+// Get profile by userId (public or protected as needed)
+router.get("/:id", getProfileById);
 
 // Get profile
 router.get("/", protect, getProfile);

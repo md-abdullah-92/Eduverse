@@ -7,7 +7,10 @@ const profileRoutes = require("./routes/profileRoutes");
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "http://10.200.37.155:3000",
+  credentials: true
+}));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
