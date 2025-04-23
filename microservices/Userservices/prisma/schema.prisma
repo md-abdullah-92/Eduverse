@@ -42,6 +42,9 @@ model StudentProfile {
   guardianEmail   String?
   dateOfBirth     DateTime?
   address         String?
+  coverPhoto      String?  // URL to cover photo
+  profilePhoto    String?  // URL to profile photo
+  bio             String?  @db.Text // Student bio
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -55,7 +58,10 @@ model TeacherProfile {
   experience      Int      // Years of experience
   institution     String?  // Current institution
   certifications  String?  // List of certifications (JSON string)
-  bio            String?  @db.Text
+  rating          Float?   // Teacher rating
+  coverPhoto      String?  // URL to cover photo
+  profilePhoto    String?  // URL to profile photo
+  bio             String?  @db.Text // Teacher bio
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

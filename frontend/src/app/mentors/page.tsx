@@ -182,7 +182,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           <StatCard label="Total Students" value="1,200" icon={<Users />} color="text-blue-500" />
           <StatCard label="Total Sales" value="$230.0" icon={<DollarSign />} color="text-green-500" />
           <StatCard label="Total Courses" value="17" icon={<BookOpen />} color="text-cyan-500" />

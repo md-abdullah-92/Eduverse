@@ -11,7 +11,10 @@ exports.updateStudentProfile = async (req, res) => {
         guardianPhone,
         guardianEmail,
         dateOfBirth,
-        address
+        address,
+        coverPhoto,
+        profilePhoto,
+        bio
     } = req.body;
 
     try {
@@ -37,7 +40,10 @@ exports.updateStudentProfile = async (req, res) => {
                 guardianPhone,
                 guardianEmail,
                 dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-                address
+                address,
+                coverPhoto,
+                profilePhoto,
+                bio
             },
             create: {
                 userId,
@@ -47,7 +53,10 @@ exports.updateStudentProfile = async (req, res) => {
                 guardianPhone,
                 guardianEmail,
                 dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-                address
+                address,
+                coverPhoto,
+                profilePhoto,
+                bio
             }
         });
 
@@ -73,6 +82,9 @@ exports.updateTeacherProfile = async (req, res) => {
         experience,
         institution,
         certifications,
+        rating,
+        coverPhoto,
+        profilePhoto,
         bio
     } = req.body;
 
@@ -98,6 +110,9 @@ exports.updateTeacherProfile = async (req, res) => {
                 experience,
                 institution,
                 certifications,
+                rating,
+                coverPhoto,
+                profilePhoto,
                 bio
             },
             create: {
@@ -107,6 +122,9 @@ exports.updateTeacherProfile = async (req, res) => {
                 experience,
                 institution,
                 certifications,
+                rating,
+                coverPhoto,
+                profilePhoto,
                 bio
             }
         });
