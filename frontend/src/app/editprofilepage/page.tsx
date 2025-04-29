@@ -14,8 +14,8 @@ export default function EditTeacherProfilePage() {
   });
 
   const [userInfo, setUserInfo] = useState({
-    fullName: 'John Doe',
-    email: 'john.doe@example.com',
+    fullName: 'Nobel Ahmad Badhon',
+    email: 'ahmadbadhon@gmail.com',
   });
 
   const [coverImage, setCoverImage] = useState('/default-cover.jpg');
@@ -146,7 +146,7 @@ export default function EditTeacherProfilePage() {
                 name="education"
                 value={formData.education}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-100 rounded-md"
+                className="w-full px-3 py-2 bg-gray-200 text-gray-800 rounded-md"
               />
             </div>
             <div>
@@ -156,7 +156,7 @@ export default function EditTeacherProfilePage() {
                 name="specialization"
                 value={formData.specialization}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-100 rounded-md"
+                className="w-full px-3 py-2 bg-gray-200 text-gray-800 rounded-md"
               />
             </div>
             <div>
@@ -166,7 +166,7 @@ export default function EditTeacherProfilePage() {
                 name="experience"
                 value={formData.experience}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-100 rounded-md"
+                className="w-full px-3 py-2 bg-gray-200 text-gray-800 rounded-md"
               />
             </div>
             <div>
@@ -176,7 +176,7 @@ export default function EditTeacherProfilePage() {
                 name="institution"
                 value={formData.institution}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-gray-100 rounded-md"
+                className="w-full px-3 py-2 bg-gray-200 text-gray-800 rounded-md"
               />
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function EditTeacherProfilePage() {
               value={formData.bio}
               onChange={handleChange}
               rows={4}
-              className="w-full px-3 py-2 bg-gray-100 rounded-md"
+              className="w-full px-3 py-2 bg-gray-200 text-gray-800 rounded-md"
             />
           </div>
 
