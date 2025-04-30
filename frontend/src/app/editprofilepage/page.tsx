@@ -87,7 +87,7 @@ export default function EditTeacherProfilePage() {
         </div>
 
         {/* Profile Image */}
-        <div className="relative w-28 h-28 -mt-14 ml-6 border-[5px] border-white rounded-full shadow-xl bg-white group">
+        <div className="relative w-40 h-40 -mt-14 ml-2 border-[5px] border-white rounded-full shadow-xl bg-white group">
           <Image
             src={profileImage}
             alt="Profile"

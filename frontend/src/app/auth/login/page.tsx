@@ -71,6 +71,7 @@ export default function LoginRegister() {
         if (role === "TEACHER") {
           router.push(`/mentors/${userId}`);
         } else if (role === "STUDENT") {
+          
           router.push(`/students/${userId}`);
         } else {
           setMessage("Unknown user role. Please contact support.");
