@@ -159,6 +159,7 @@ const DashboardPage = () => {
         const data = await res.json();
         if (!data.teacherProfile) notFound();
         setProfile(data.teacherProfile);
+        console.log(data.teacherProfile);
       } catch {
         notFound();
       } finally {
