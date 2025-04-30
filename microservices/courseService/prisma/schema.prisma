@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Course {
+  id            Int              @id @default(autoincrement())
+  title         String
+  description   String
+  price         Float
+  coverPhotoUrl String
+  level         CourseLevel
+  outcomes      CourseOutcome[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  enrollments   Enrollment[]
+  lessons       Lesson[]
+  instructorId  String           // reference to user service
+  // reviews       Review[]
+  // ratings       Rating[]
+  // averageRating Float?           @default(0)
+  
+  @@index([instructorId])
+}
+
+model Enrollment {
+  id         Int      @id @default(autoincrement())
+  studentId  String   // reference to user service
+  courseId   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  course     Course   @relation(fields: [courseId], references: [id])
+
+  @@index([studentId])
+  @@index([courseId])
+}
+
+model CourseOutcome {
+  id        Int     @id @default(autoincrement())
+  courseId  Int
+  outcome   String
+  course    Course  @relation(fields: [courseId], references: [id])
+
+  @@index([courseId])
+}
+
+model Lesson {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  videoUrl    String
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  courseId    Int
+  course      Course   @relation(fields: [courseId], references: [id])
+  quiz        Quiz?
+
+  @@index([courseId])
+}
+
+model Quiz {
+  lessonId  Int      @id   // lessonId is now the primary key of Quiz
+  marks     Int?    
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lesson    Lesson   @relation(fields: [lessonId], references: [id])
+  questions Question[]
+
+  @@unique([lessonId]) // Ensure it's unique and a one-to-one relationship
+}
+
+model Question {
+  id        Int       @id @default(autoincrement())
+  text      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  lessonId  Int
+  quiz      Quiz      @relation(fields: [lessonId], references: [lessonId])
+  options   Option[]
+
+  @@index([lessonId])
+}
+
+model Option {
+  id         Int      @id @default(autoincrement())
+  text       String
+  isCorrect  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@index([questionId])
+}
+
+// model Review {
+//   id        Int      @id @default(autoincrement())
+//   studentId String   // reference to user service
+//   courseId  Int
+//   rating    Int      @default(0)    // 1-5 scale
+//   comment   String?
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   course    Course   @relation(fields: [courseId], references: [id])
+  
+//   @@index([courseId])
+//   @@index([studentId])
+//   @@unique([courseId, studentId])  // One review per student per course
+// }
+
+// model Rating {
+//   id        Int      @id @default(autoincrement())
+//   studentId String   // reference to user service
+//   courseId  Int
+//   rating    Int      @default(0)    // 1-5 scale
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   course    Course   @relation(fields: [courseId], references: [id])
+  
+//   @@index([courseId])
+//   @@index([studentId])
+//   @@unique([courseId, studentId])  // One rating per student per course
+// }
