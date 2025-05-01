@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { useParams, notFound } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 
 // Types
 type MenuItem = {
@@ -47,12 +47,13 @@ type SocialIconProps = {
 type SidebarItemProps = {
   icon: React.ElementType;
   label: string;
+  onClick: () => void;
 };
 
 // Menu Data
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "Dashboard" },
-  { icon: User, label: "My Profile" },
+  { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "Enrolled Courses" },
   { icon: Package, label: "Package" },
   { icon: Heart, label: "Wishlist" },
@@ -75,28 +76,62 @@ const instructorItems: MenuItem[] = [
 ];
 
 // Sidebar Component
-const SidebarItem = ({ icon: Icon, label }: SidebarItemProps) => (
-  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700">
+const SidebarItem = ({ icon: Icon, label, onClick }: SidebarItemProps) => (
+  <div
+    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+    onClick={onClick}
+  >
     <Icon size={18} className="text-yellow-500" />
     <span>{label}</span>
   </div>
 );
 
-const Sidebar = () => (
-  <aside className="w-72 h-full bg-white border-r px-5 py-6 space-y-4">
-    <nav className="space-y-1">
-      {menuItems.map((item, i) => (
-        <SidebarItem key={i} icon={item.icon} label={item.label} />
-      ))}
-    </nav>
-    <h4 className="text-xs uppercase text-gray-400 mt-6">Instructor</h4>
-    <nav className="space-y-1">
-      {instructorItems.map((item, i) => (
-        <SidebarItem key={i} icon={item.icon} label={item.label} />
-      ))}
-    </nav>
-  </aside>
-);
+const Sidebar = ({
+  role,
+  userId,
+}: {
+  role: string;
+  userId: string;
+}) => {
+  const router = useRouter();
+
+  const handleClick = (label: string) => {
+    if (label === "Update Profile") {
+      if (role === "TEACHER") {
+        router.push(`/updatementors-profile/${userId}`);
+      } else {
+        router.push(`/update-profile/${userId}`);
+      }
+    }
+    // Add more conditionals if needed
+  };
+
+  return (
+    <aside className="w-72 h-full bg-white border-r px-5 py-6 space-y-4">
+      <nav className="space-y-1">
+        {menuItems.map((item, i) => (
+          <SidebarItem
+            key={i}
+            icon={item.icon}
+            label={item.label}
+            onClick={() => handleClick(item.label)}
+          />
+        ))}
+      </nav>
+      <h4 className="text-xs uppercase text-gray-400 mt-6">Instructor</h4>
+      <nav className="space-y-1">
+        {instructorItems.map((item, i) => (
+          <SidebarItem
+            key={i}
+            icon={item.icon}
+            label={item.label}
+            onClick={() => handleClick(item.label)}
+          />
+        ))}
+      </nav>
+    </aside>
+  );
+};
 
 // Reusable Cards
 const StatCard = ({ label, value, icon, color }: StatCardProps) => (
@@ -140,7 +175,6 @@ const SocialIcon = ({ name }: SocialIconProps) => (
 const DashboardPage = () => {
   const params = useParams();
   const userId = Array.isArray(params?.id) ? params.id[0] : params?.id;
-
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -159,7 +193,6 @@ const DashboardPage = () => {
         const data = await res.json();
         if (!data.teacherProfile) notFound();
         setProfile(data.teacherProfile);
-        console.log(data.teacherProfile);
       } catch {
         notFound();
       } finally {
@@ -175,12 +208,12 @@ const DashboardPage = () => {
 
   const mentor = profile;
   const userInfo = mentor.user || {};
+  const role = userInfo.role || "STUDENT";
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+      <Sidebar role={role} userId={userId} />
       <main className="flex-1 p-6 space-y-6">
-        {/* Cover Photo */}
         <div className="relative w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden">
           <Image
             src={mentor.coverPhoto || "/images/course1.png"}
@@ -195,7 +228,6 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Profile Section */}
         <div className="relative -mt-20 pl-6 flex items-end gap-6">
           <Image
             src={mentor.profilePhoto || "/images/team/minhaz.jpg"}
@@ -209,7 +241,9 @@ const DashboardPage = () => {
               <h2 className="text-xl font-bold text-gray-800">
                 {userInfo.name || "Mentor Name"}
               </h2>
-              <p className="text-sm text-gray-500">⭐ {mentor.rating || "-"} ({mentor.totalReviews || 0})</p>
+              <p className="text-sm text-gray-500">
+                ⭐ {mentor.rating || "-"} ({mentor.totalReviews || 0})
+              </p>
             </div>
             <div className="flex space-x-2">
               <SocialIcon name="facebook" />
@@ -220,7 +254,6 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <StatCard label="Total Students" value={mentor.totalStudents?.toString() || "-"} icon={<Users />} color="text-blue-500" />
           <StatCard label="Total Sales" value={mentor.totalSales ? `$${mentor.totalSales}` : "-"} icon={<DollarSign />} color="text-green-500" />
@@ -230,13 +263,11 @@ const DashboardPage = () => {
           <StatCard label="Total Orders" value={mentor.totalOrders?.toString() || "-"} icon={<ClipboardList />} color="text-orange-500" />
         </div>
 
-        {/* Charts */}
         <div className="grid md:grid-cols-2 gap-6">
           <ChartCard title="Students" />
           <ChartCard title="Net Sales" />
         </div>
 
-        {/* Best Selling Course */}
         <div className="bg-white rounded-xl p-6 shadow space-y-3">
           <h3 className="text-lg font-semibold text-gray-800">Best Selling Course</h3>
           <div className="flex flex-col md:flex-row gap-4">

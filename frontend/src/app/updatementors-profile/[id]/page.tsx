@@ -3,8 +3,11 @@
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { UploadIcon } from 'lucide-react';
+import { useParams } from 'next/navigation';
 
 export default function EditTeacherProfilePage() {
+  const { id: userId } = useParams();
+
   const [formData, setFormData] = useState({
     education: '',
     specialization: '',
@@ -14,38 +17,96 @@ export default function EditTeacherProfilePage() {
   });
 
   const [userInfo, setUserInfo] = useState({
-    fullName: 'Nobel Ahmad Badhon',
-    email: 'ahmadbadhon@gmail.com',
+    fullName: '',
+    email: '',
   });
 
   const [coverImage, setCoverImage] = useState('/default-cover.jpg');
   const [profileImage, setProfileImage] = useState('/profile-icon.png');
 
+  const [loading, setLoading] = useState(true);
+  const [notFoundError, setNotFoundError] = useState(false);
+
   const coverInputRef = useRef<HTMLInputElement>(null);
   const profileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    async function loadTeacherProfile() {
-      // Fetch and set form data here
-      setFormData({
-        education: '',
-        specialization: '',
-        experience: '',
-        institution: '',
-        bio: '',
-      });
-    }
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error('Fetch failed');
+        const data = await res.json();
 
-    loadTeacherProfile();
-  }, []);
+        if (!data.teacherProfile) {
+          setNotFoundError(true);
+          return;
+        }
+
+        const profile = data.teacherProfile;
+        setFormData({
+          education: profile.education || '',
+          specialization: profile.specialization || '',
+          experience: profile.experience || '',
+          institution: profile.institution || '',
+          bio: profile.bio || '',
+        });
+
+        setUserInfo({
+          fullName: data.fullName || '',
+          email: data.email || '',
+        });
+
+        if (profile.coverPhoto) setCoverImage(profile.coverPhoto);
+        if (profile.profilePhoto) setProfileImage(profile.profilePhoto);
+      } catch (err) {
+        console.error('Fetch error:', err);
+        setNotFoundError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    console.log('Saving data:', formData);
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem('token'); // Or use cookies if that's where it's stored
+  
+      const res = await fetch(`http://localhost:5000/api/profile/teacher`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          experience: formData.experience ? parseInt(formData.experience, 10) : null,
+          coverPhoto: coverImage,
+          profilePhoto: profileImage,
+        }),
+      });
+  
+      const result = await res.json();
+  
+      if (res.ok) {
+        alert('Profile updated successfully!');
+      } else {
+        alert('Failed to update profile: ' + result.message);
+      }
+    } catch (err) {
+      console.error('Submit error:', err);
+      alert('An error occurred while saving changes.');
+    }
   };
+  
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -53,10 +114,19 @@ export default function EditTeacherProfilePage() {
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Just preview for now — implement actual upload if needed
       const imageUrl = URL.createObjectURL(file);
       type === 'cover' ? setCoverImage(imageUrl) : setProfileImage(imageUrl);
     }
   };
+
+  if (loading) {
+    return <div className="text-center py-20">Loading profile...</div>;
+  }
+
+  if (notFoundError) {
+    return <div className="text-center py-20 text-red-500">Profile not found.</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">

@@ -91,7 +91,7 @@ exports.updateTeacherProfile = async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            include: { teacherProfile: { include: { user: true } } }
+            include: { teacherProfile: true }
         });
 
         if (!user) {
@@ -103,24 +103,32 @@ exports.updateTeacherProfile = async (req, res) => {
         }
 
         if (!user.teacherProfile) {
-            return res.status(404).json({ message: "Teacher profile not found" });
+            // If profile doesn't exist, create one
+            const newProfile = await prisma.teacherProfile.create({
+                data: {
+                    userId,
+                    education,
+                    specialization,
+                    experience,
+                    institution,
+                    certifications,
+                    rating,
+                    coverPhoto,
+                    profilePhoto,
+                    bio
+                }
+            });
+
+            return res.status(201).json({
+                message: "Teacher profile created successfully",
+                profile: newProfile
+            });
         }
 
-        const profile = await prisma.teacherProfile.upsert({
+        // Profile exists, update it
+        const updatedProfile = await prisma.teacherProfile.update({
             where: { userId },
-            update: {
-                education,
-                specialization,
-                experience,
-                institution,
-                certifications,
-                rating,
-                coverPhoto,
-                profilePhoto,
-                bio
-            },
-            create: {
-                userId,
+            data: {
                 education,
                 specialization,
                 experience,
@@ -135,7 +143,7 @@ exports.updateTeacherProfile = async (req, res) => {
 
         res.status(200).json({
             message: "Teacher profile updated successfully",
-            profile
+            profile: updatedProfile
         });
     } catch (error) {
         console.error("Update teacher profile error:", error);
