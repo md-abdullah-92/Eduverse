@@ -24,7 +24,7 @@ The Course Service is a critical microservice component of the EduVerse e-learni
 
 The service utilizes the following database schema:
 
-![Database Schema](/path/to/schema-diagram.png)
+![Database Schema](/microservices/courseService/SchemaDiagram.svg)
 
 ### Key Entities
 
