@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { UploadIcon } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/firebaseConfig';
 
 export default function EditTeacherProfilePage() {
   const { id: userId } = useParams();
@@ -77,14 +79,13 @@ export default function EditTeacherProfilePage() {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token'); // Or use cookies if that's where it's stored
-  
+      const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:5000/api/profile/teacher`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...formData,
@@ -93,9 +94,9 @@ export default function EditTeacherProfilePage() {
           profilePhoto: profileImage,
         }),
       });
-  
+
       const result = await res.json();
-  
+
       if (res.ok) {
         alert('Profile updated successfully!');
       } else {
@@ -106,27 +107,29 @@ export default function EditTeacherProfilePage() {
       alert('An error occurred while saving changes.');
     }
   };
-  
 
-  const handleImageUpload = (
+  const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: 'cover' | 'profile'
   ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Just preview for now — implement actual upload if needed
-      const imageUrl = URL.createObjectURL(file);
-      type === 'cover' ? setCoverImage(imageUrl) : setProfileImage(imageUrl);
+    if (!file) return;
+
+    const storageRef = ref(storage, `teacher_profiles/${type}-${Date.now()}-${file.name}`);
+    try {
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      if (type === 'cover') setCoverImage(downloadURL);
+      else setProfileImage(downloadURL);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      alert('Failed to upload image.');
     }
   };
 
-  if (loading) {
-    return <div className="text-center py-20">Loading profile...</div>;
-  }
-
-  if (notFoundError) {
-    return <div className="text-center py-20 text-red-500">Profile not found.</div>;
-  }
+  if (loading) return <div className="text-center py-20">Loading profile...</div>;
+  if (notFoundError) return <div className="text-center py-20 text-red-500">Profile not found.</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
