@@ -75,7 +75,7 @@ const instructorItems: MenuItem[] = [
   { icon: LogOut, label: "Logout" },
 ];
 
-// Sidebar Component
+// Sidebar Components
 const SidebarItem = ({ icon: Icon, label, onClick }: SidebarItemProps) => (
   <div
     className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
@@ -86,54 +86,88 @@ const SidebarItem = ({ icon: Icon, label, onClick }: SidebarItemProps) => (
   </div>
 );
 
-const Sidebar = ({
-  role,
-  userId,
+const LogoutModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
 }: {
-  role: string;
-  userId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
 }) => {
-  const router = useRouter();
-
-  const handleClick = (label: string) => {
-    if (label === "Update Profile") {
-      if (role === "TEACHER") {
-        router.push(`/updatementors-profile/${userId}`);
-      } else {
-        router.push(`/update-profile/${userId}`);
-      }
-    }
-    // Add more conditionals if needed
-  };
+  if (!isOpen) return null;
 
   return (
-    <aside className="w-72 h-full bg-white border-r px-5 py-6 space-y-4">
-      <nav className="space-y-1">
-        {menuItems.map((item, i) => (
-          <SidebarItem
-            key={i}
-            icon={item.icon}
-            label={item.label}
-            onClick={() => handleClick(item.label)}
-          />
-        ))}
-      </nav>
-      <h4 className="text-xs uppercase text-gray-400 mt-6">Instructor</h4>
-      <nav className="space-y-1">
-        {instructorItems.map((item, i) => (
-          <SidebarItem
-            key={i}
-            icon={item.icon}
-            label={item.label}
-            onClick={() => handleClick(item.label)}
-          />
-        ))}
-      </nav>
-    </aside>
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">Confirm Logout</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          Are you sure you want to log out of EduVerse?
+        </p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
-// Reusable Cards
+const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
+  const router = useRouter();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleClick = (label: string) => {
+    if (label === "Logout") {
+      setShowLogoutModal(true);
+      return;
+    }
+
+    if (label === "Update Profile") {
+      router.push(role === "TEACHER" ? `/updatementors-profile/${userId}` : `/update-profile/${userId}`);
+      return;
+    }
+
+    // Add more routes here
+  };
+
+  const confirmLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/");
+  };
+
+  return (
+    <>
+      <aside className="w-72 h-full bg-white border-r px-5 py-6 space-y-4">
+        <nav className="space-y-1">
+          {menuItems.map((item, i) => (
+            <SidebarItem key={i} icon={item.icon} label={item.label} onClick={() => handleClick(item.label)} />
+          ))}
+        </nav>
+        <h4 className="text-xs uppercase text-gray-400 mt-6">Instructor</h4>
+        <nav className="space-y-1">
+          {instructorItems.map((item, i) => (
+            <SidebarItem key={i} icon={item.icon} label={item.label} onClick={() => handleClick(item.label)} />
+          ))}
+        </nav>
+      </aside>
+
+      <LogoutModal isOpen={showLogoutModal} onClose={() => setShowLogoutModal(false)} onConfirm={confirmLogout} />
+    </>
+  );
+};
+
+// Reusable UI
 const StatCard = ({ label, value, icon, color }: StatCardProps) => (
   <div className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
     <div>
@@ -161,13 +195,7 @@ const ChartCard = ({ title }: ChartCardProps) => (
 
 const SocialIcon = ({ name }: SocialIconProps) => (
   <div className="bg-gray-200 p-2 rounded-full hover:bg-gray-300 cursor-pointer">
-    <Image
-      src={`/icons/${name}.svg`}
-      alt={name}
-      width={16}
-      height={16}
-      className="object-contain"
-    />
+    <Image src={`/icons/${name}.svg`} alt={name} width={16} height={16} className="object-contain" />
   </div>
 );
 
@@ -238,12 +266,8 @@ const DashboardPage = () => {
           />
           <div className="flex-1 flex justify-between items-center pr-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">
-                {userInfo.name || "Mentor Name"}
-              </h2>
-              <p className="text-sm text-gray-500">
-                ⭐ {mentor.rating || "-"} ({mentor.totalReviews || 0})
-              </p>
+              <h2 className="text-xl font-bold text-gray-800">{userInfo.name || "Mentor Name"}</h2>
+              <p className="text-sm text-gray-500">⭐ {mentor.rating || "-"} ({mentor.totalReviews || 0})</p>
             </div>
             <div className="flex space-x-2">
               <SocialIcon name="facebook" />
@@ -271,25 +295,15 @@ const DashboardPage = () => {
         <div className="bg-white rounded-xl p-6 shadow space-y-3">
           <h3 className="text-lg font-semibold text-gray-800">Best Selling Course</h3>
           <div className="flex flex-col md:flex-row gap-4">
-            <Image
-              src="/course-thumbnail.jpg"
-              alt="Course"
-              width={300}
-              height={200}
-              className="rounded-lg"
-            />
+            <Image src="/course-thumbnail.jpg" alt="Course" width={300} height={200} className="rounded-lg" />
             <div className="space-y-1">
-              <h4 className="text-gray-800 font-semibold text-lg">
-                How to Budget and Forecast for Your Business
-              </h4>
+              <h4 className="text-gray-800 font-semibold text-lg">How to Budget and Forecast for Your Business</h4>
               <p className="text-sm text-gray-500">4 Lessons · 1,200 Students · 3 Weeks</p>
               <div className="flex items-center space-x-2">
                 <p className="text-red-500 text-lg font-bold">$20.0</p>
                 <p className="text-sm text-gray-400 line-through">$29.0</p>
               </div>
-              <p className="text-sm text-green-600">
-                1,210 Courses Sold · $42,350.0 Net Sales
-              </p>
+              <p className="text-sm text-green-600">1,210 Courses Sold · $42,350.0 Net Sales</p>
             </div>
           </div>
         </div>
