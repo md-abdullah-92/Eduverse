@@ -6,6 +6,7 @@ import {
   Heart,
   Star,
   ListChecks,
+  User,
   History,
   BadgeCheck,
   ClipboardList,
@@ -14,7 +15,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 type NavigationItem = {
   icon: React.ElementType;
@@ -31,11 +32,12 @@ type StatCardProps = {
 type SidebarItemProps = {
   icon: React.ElementType;
   label: string;
+  onClick: () => void;
 };
 
-// Navigation Items for Students
 const studentNavigationItems: NavigationItem[] = [
   { icon: LayoutDashboard, label: "Dashboard" },
+  { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "Enrolled Courses" },
   { icon: Heart, label: "Wishlist" },
   { icon: Star, label: "Reviews" },
@@ -46,23 +48,49 @@ const studentNavigationItems: NavigationItem[] = [
   { icon: LogOut, label: "Logout" },
 ];
 
-// Sidebar Component
-const Sidebar: React.FC = () => (
-  <aside className="w-72 h-full bg-white border-r px-5 py-6">
-    <nav className="space-y-2">
-      {studentNavigationItems.map((item, index) => (
-        <SidebarItem key={index} icon={item.icon} label={item.label} />
-      ))}
-    </nav>
-  </aside>
-);
-
-const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label }) => (
-  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700">
+const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, onClick }) => (
+  <div
+    onClick={onClick}
+    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
+  >
     <Icon size={18} className="text-yellow-500" />
     <span>{label}</span>
   </div>
 );
+
+const Sidebar: React.FC<{
+  userId: string | string[];
+  role: string;
+  onLogout: () => void;
+}> = ({ userId, role, onLogout }) => {
+  const router = useRouter();
+
+  const handleClick = (label: string) => {
+    switch (label) {
+      case "Logout":
+        onLogout();
+        break;
+      case "Update Profile":
+        router.push(role === "TEACHER" ? `/updatementors-profile/${userId}` : `/updatestudents-profile/${userId}`);
+        break;
+      case "Dashboard":
+        router.push(`/dashboard/${userId}`);
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <aside className="w-72 h-full bg-white border-r px-5 py-6">
+      <nav className="space-y-2">
+        {studentNavigationItems.map((item, index) => (
+          <SidebarItem key={index} icon={item.icon} label={item.label} onClick={() => handleClick(item.label)} />
+        ))}
+      </nav>
+    </aside>
+  );
+};
 
 const StatCard: React.FC<StatCardProps> = ({ label, value, icon, colorClass }) => (
   <div className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
@@ -76,10 +104,12 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, colorClass }) =
 
 const StudentDashboard: React.FC = () => {
   const params = useParams();
+  const router = useRouter();
   const userId = params?.id;
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [role, setRole] = useState("STUDENT");
 
   useEffect(() => {
     if (!userId) {
@@ -96,10 +126,10 @@ const StudentDashboard: React.FC = () => {
         if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
-        if (!data.studentProfile) {
-          throw new Error("Student profile not found");
-        }
+        if (!data.studentProfile) throw new Error("Student profile not found");
+
         setProfile(data.studentProfile);
+        setRole(data.studentProfile?.user?.role || "STUDENT");
       } catch (err: any) {
         setError(err.message || "Something went wrong");
       } finally {
@@ -110,16 +140,20 @@ const StudentDashboard: React.FC = () => {
     fetchProfile();
   }, [userId]);
 
+  const handleLogout = () => {
+    console.log("Logout clicked");
+    // TODO: Add your logout logic here
+  };
+
   if (loading) return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   if (error) return <div className="flex min-h-screen items-center justify-center text-red-500">{error}</div>;
   if (!profile) return null;
 
   const student = profile;
-  const userInfo = student.user || {};
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
+      <Sidebar userId={userId} role={role} onLogout={handleLogout} />
       <main className="flex-1 p-6 space-y-6">
         {/* Cover Section */}
         <div className="relative w-full h-64 rounded-xl overflow-hidden">
@@ -147,7 +181,7 @@ const StudentDashboard: React.FC = () => {
           />
           <div className="flex-1 flex justify-between items-center pr-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">{student.name || "Student Name"}</h2>
+              <h2 className="text-xl font-bold text-gray-800">{student.user.name || "Student Name"}</h2>
               <p className="text-sm text-gray-500">Student ID: {student.studentId || profile.id}</p>
             </div>
             <span className="text-sm text-gray-600">📘 Active Learner</span>

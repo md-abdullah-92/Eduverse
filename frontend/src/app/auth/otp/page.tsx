@@ -61,7 +61,7 @@ export default function OtpVerification() {
         otp: finalOtp.toString(),
       });
       alert(res.data.message);
-      router.push("auth/login?tab=login");
+      router.push("/login?tab=login");
       console.log(res.data.user);
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;

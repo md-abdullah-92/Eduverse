@@ -236,7 +236,7 @@ const DashboardPage = () => {
 
   const mentor = profile;
   const userInfo = mentor.user || {};
-  const role = userInfo.role || "STUDENT";
+  const role = userInfo.role || "TEACHER";
 
   return (
     <div className="flex min-h-screen bg-gray-50">
