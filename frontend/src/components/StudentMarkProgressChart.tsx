@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import ChartCard from './ChartCard';
+import ChartCard from '../components/ChartCard';
 
 const examData = [
   { exam: 'Quiz 1', mark: 65, average: 60 },

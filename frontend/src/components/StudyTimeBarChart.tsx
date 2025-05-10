@@ -11,7 +11,7 @@ import {
   Legend,
   Cell,
 } from 'recharts';
-import ChartCard from './ChartCard';
+import ChartCard from '../components/ChartCard';
 
 const studyData = [
   { day: 'Monday', hours: 2 },

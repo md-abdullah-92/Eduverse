@@ -10,7 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.7.0",
     "cors": "^2.8.5",
     "course_service_eduverse": "file:",
     "express": "^5.1.0",
