@@ -31,9 +31,9 @@ const Header = () => {
 
   const profileLink =
     role === 'STUDENT'
-      ? `/dashboard/students/${userId}`
+      ? `/students/${userId}`
       : role === 'TEACHER'
-      ? `/dashboard/teachers/${userId}`
+      ? `/teachers/${userId}`
       : '/';
 
   return (
