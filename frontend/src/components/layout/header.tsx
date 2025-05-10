@@ -20,7 +20,6 @@ const Header = () => {
     console.log('User ID:', userId);
     console.log('Role:', role);
 
-
     setIsLoggedIn(!!token);
     setUserPhoto(photo || '/profile.png');
     setRole(role || 'STUDENT');

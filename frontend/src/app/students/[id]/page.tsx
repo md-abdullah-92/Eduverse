@@ -15,6 +15,7 @@ import {
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import StudentMarkProgressChart from "@/components/StudentMarkProgressChart";
 
 type NavigationItem = {
   icon: React.ElementType;
@@ -57,29 +58,46 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, onClick })
   </div>
 );
 
+
+
 const Sidebar: React.FC<{
   userId: string | string[];
   role: string;
   onLogout: () => void;
-}> = ({ userId, role, onLogout }) => {
+}> = ({ userId,  onLogout }) => {
   const router = useRouter();
 
   const handleClick = (label: string) => {
     switch (label) {
-      case "Logout":
-        onLogout();
+      case "Logout": {
+        const confirmLogout = window.confirm("Are you sure you want to log out?");
+        if (confirmLogout) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userId");
+          localStorage.removeItem("userPhoto");
+          localStorage.removeItem("role");
+          onLogout(); // If you have any additional logout logic
+          router.push("/");
+        }
         break;
+      }
+
       case "Update Profile":
-        router.push(role === "TEACHER" ? `/updatementors-profile/${userId}` : `/updatestudents-profile/${userId}`);
+        if (userId) {
+          router.push(`/updatestudents-profile/${userId}`);
+        }
         break;
-      case "Dashboard":
-        router.push(`/dashboard/${userId}`);
-        break;
-        
+
       default:
+        console.warn(`Unhandled label: ${label}`);
         break;
     }
   };
+
+ 
+
+
+
 
   return (
     <aside className="w-72 h-full bg-white border-r px-5 py-6">
@@ -104,7 +122,6 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, colorClass }) =
 
 const StudentDashboard: React.FC = () => {
   const params = useParams();
-  const router = useRouter();
   const userId = params?.id;
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -214,6 +231,8 @@ const StudentDashboard: React.FC = () => {
             Progress Chart Placeholder
           </div>
         </div>
+
+        <StudentMarkProgressChart />
 
         {/* Recent Courses */}
         <div className="bg-white rounded-xl p-6 shadow space-y-4">
