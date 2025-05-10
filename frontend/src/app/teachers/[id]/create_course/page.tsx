@@ -1,4 +1,6 @@
 "use client";
+import axios from "axios";
+import { useParams } from "next/navigation";
 import React, { ChangeEvent, useState } from "react";
 
 const inputStyle: React.CSSProperties = {
@@ -41,16 +43,18 @@ const cardStyle: React.CSSProperties = {
 };
 
 export default function AddCoursePage() {
-  const [topic, setTopic] = useState("");
-  const [level, setLevel] = useState("");
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [description, setDescription] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const params = useParams();
+  const userId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const [topic, setTopic] = useState("fkdfk");
+  const [level, setLevel] = useState("BEGINNER");
+  const [title, setTitle] = useState("kfdkf");
+  const [price, setPrice] = useState(0.0);
+  const [description, setDescription] = useState("ksdk");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  // Handle file selection and preview
   const handleCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -59,28 +63,60 @@ export default function AddCoursePage() {
     }
   };
 
+  const handleCreateCourse = async () => {
+    try {
+      setLoading(true);
+      setMessage("");
+
+      // NOTE: Replace this with actual upload logic or use a mock URL
+      const coverPhotoUrl = "https://dummyimage.com/600x400";
+
+      const body = {
+        title,
+        description,
+        price: 34.5,
+        coverPhotoUrl,
+        level,
+        instructorId: userId,
+      };
+
+      console.log(body);
+
+      const response = await axios.post(
+        "http://localhost:5001/api/courses/create/",
+        body
+      );
+      console.log(response);
+
+      if (response.status === 201) {
+        setMessage("✅ Course created successfully!");
+        setTitle("");
+        setDescription("");
+        setPrice(0);
+        setLevel("");
+        setTopic("");
+        setCoverFile(null);
+        setCoverPreview(null);
+      } else {
+        setMessage("❌ Failed to create course.");
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("❌ Error creating course.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f2f2f2",
-      }}
-    >
-      {/* Left: Instructions */}
+    <div style={{ display: "flex", minHeight: "100vh", background: "#f2f2f2" }}>
+      {/* Left Section */}
       <div style={{ flex: 1.7, padding: "4rem 2.5rem 0 3rem" }}>
         <h1 style={sectionTitleStyle}>Create a course</h1>
         <p style={{ fontSize: "1.4rem", marginBottom: "1rem", color: "#222" }}>
           Follow the steps to create a course.
         </p>
-        <ul
-          style={{
-            color: "#333",
-            fontSize: "1.15rem",
-            lineHeight: "2",
-            fontWeight: 400,
-          }}
-        >
+        <ul style={{ color: "#333", fontSize: "1.15rem", lineHeight: "2" }}>
           <li>Select a topic for your course</li>
           <li>Select course level</li>
           <li>Input Price</li>
@@ -93,14 +129,13 @@ export default function AddCoursePage() {
         </ul>
       </div>
 
-      {/* Center: The Form */}
+      {/* Center Form */}
       <div
         style={{
           flex: 2.2,
           padding: "4rem 2rem 0 2rem",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-start",
         }}
       >
         <form style={{ marginBottom: "2rem", width: "100%" }}>
@@ -125,9 +160,9 @@ export default function AddCoursePage() {
               onChange={(e) => setLevel(e.target.value)}
             >
               <option value="">Select</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advance">Advance</option>
+              <option value="BEGINNER">Beginner</option>
+              <option value="INTERMEDIATE">Intermediate</option>
+              <option value="ADVANCED">Advanced</option>
             </select>
           </div>
           <div>
@@ -160,9 +195,9 @@ export default function AddCoursePage() {
               placeholder="Enter course description"
             />
           </div>
-          {/* RE-ADDED: Next button */}
           <button
             type="button"
+            onClick={handleCreateCourse}
             style={{
               background: "#15616d",
               color: "#fff",
@@ -174,13 +209,19 @@ export default function AddCoursePage() {
               fontSize: "1.15rem",
               marginTop: "10px",
             }}
+            disabled={loading}
           >
-            Next &rarr;
+            {loading ? "Creating..." : "Create Course"}
           </button>
+          {message && (
+            <p style={{ marginTop: "1rem", color: "#15616d", fontWeight: 600 }}>
+              {message}
+            </p>
+          )}
         </form>
       </div>
 
-      {/* Right: Preview Card */}
+      {/* Right Preview Card */}
       <div
         style={{
           flex: 2,
@@ -191,7 +232,6 @@ export default function AddCoursePage() {
         }}
       >
         <div style={cardStyle}>
-          {/* COVER PREVIEW & BUTTON */}
           <div
             style={{ marginBottom: "1rem", width: "100%", textAlign: "center" }}
           >
@@ -224,8 +264,6 @@ export default function AddCoursePage() {
                 Cover Image Preview
               </div>
             )}
-
-            {/* Hidden File Input + Upload Button */}
             <input
               type="file"
               accept="image/*"
@@ -254,7 +292,7 @@ export default function AddCoursePage() {
           <div
             style={{ marginBottom: "0.7rem", fontSize: "1rem", color: "#888" }}
           >
-            {level ? level : "Course Level"}
+            {level || "Course Level"}
           </div>
           <h2
             style={{
@@ -264,7 +302,7 @@ export default function AddCoursePage() {
               color: "#222",
             }}
           >
-            {title ? title : "Please input a heading for your course"}
+            {title || "Please input a heading for your course"}
           </h2>
           <div
             style={{ color: "#444", fontWeight: 600, marginBottom: "0.3em" }}
@@ -290,7 +328,7 @@ export default function AddCoursePage() {
             200 followers
           </div>
           <div style={{ color: "#2a2", fontWeight: 700, fontSize: "1.15rem" }}>
-            From £{price ? price : "25"}
+            From £{price || "25"}
           </div>
           <button
             disabled

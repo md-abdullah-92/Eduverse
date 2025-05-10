@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type SidebarLink = {
   href: string;
@@ -10,7 +10,7 @@ type SidebarLink = {
 };
 
 type SidebarProps = {
-  role: 'student' | 'teacher' | 'admin';
+  role: "student" | "teacher" | "admin";
 };
 
 export const Sidebar = ({ role }: SidebarProps) => {
@@ -18,19 +18,19 @@ export const Sidebar = ({ role }: SidebarProps) => {
 
   const links: Record<string, SidebarLink[]> = {
     student: [
-      { href: '/dashboard/students', label: 'Dashboard' },
-      { href: '/dashboard/students/courses', label: 'My Courses' },
-      { href: '/certificates', label: 'Certificates' },
+      { href: "/dashboard/students", label: "Dashboard" },
+      { href: "/dashboard/students/courses", label: "My Courses" },
+      { href: "/certificates", label: "Certificates" },
     ],
     teacher: [
-      { href: '/dashboard/teachers', label: 'Dashboard' },
-      { href: '/dashboard/teachers/create-course', label: 'Create Course' },
-      { href: '/dashboard/teachers/courses', label: 'My Courses' },
+      { href: "/dashboard/teachers", label: "Dashboard" },
+      { href: "/dashboard/teachers/create-course", label: "Create Course" },
+      { href: "/dashboard/teachers/courses", label: "My Courses" },
     ],
     admin: [
-      { href: '/dashboard/admin', label: 'Dashboard' },
-      { href: '/dashboard/admin/users', label: 'Users' },
-      { href: '/dashboard/admin/courses', label: 'Courses' },
+      { href: "/dashboard/admin", label: "Dashboard" },
+      { href: "/dashboard/admin/users", label: "Users" },
+      { href: "/dashboard/admin/courses", label: "Courses" },
     ],
   };
 
@@ -45,8 +45,8 @@ export const Sidebar = ({ role }: SidebarProps) => {
             href={link.href}
             className={`block px-4 py-2 rounded-md ${
               pathname === link.href
-                ? 'bg-sky-50 text-sky-900'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? "bg-sky-50 text-sky-900"
+                : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             {link.label}

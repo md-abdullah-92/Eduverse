@@ -1,7 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { jaro, raleway } from "@/utils/font";
+import { motion } from "framer-motion";
 
 const teamMembers = [
   {
@@ -24,7 +24,6 @@ const teamMembers = [
     role: "Database & Infrastructure Engineer",
     image: "/images/team/apurbo.png",
   },
- 
 ];
 
 export default function AboutPage() {
@@ -36,29 +35,47 @@ export default function AboutPage() {
           About EduVerse
         </h1>
 
-        <p className={`text-lg text-center text-gray-300 mb-12 ${raleway.className}`}>
-          EduVerse is a forward-thinking digital education platform committed to reshaping modern learning through intelligent technology and accessible design.
+        <p
+          className={`text-lg text-center text-gray-300 mb-12 ${raleway.className}`}
+        >
+          EduVerse is a forward-thinking digital education platform committed to
+          reshaping modern learning through intelligent technology and
+          accessible design.
         </p>
 
         {/* Mission */}
         <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-orange-400 mb-3">Our Mission</h2>
+          <h2 className="text-3xl font-semibold text-orange-400 mb-3">
+            Our Mission
+          </h2>
           <p className="text-gray-200 leading-relaxed">
-            Our mission is to democratize access to high-quality education by leveraging cutting-edge technologies such as artificial intelligence, real-time interactivity, and scalable cloud architecture. EduVerse aspires to empower individuals by providing personalized, flexible, and enriching educational experiences tailored to diverse learning needs.
+            Our mission is to democratize access to high-quality education by
+            leveraging cutting-edge technologies such as artificial
+            intelligence, real-time interactivity, and scalable cloud
+            architecture. EduVerse aspires to empower individuals by providing
+            personalized, flexible, and enriching educational experiences
+            tailored to diverse learning needs.
           </p>
         </section>
 
         {/* Vision */}
         <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-orange-400 mb-3">Our Vision</h2>
+          <h2 className="text-3xl font-semibold text-orange-400 mb-3">
+            Our Vision
+          </h2>
           <p className="text-gray-200 leading-relaxed">
-            We envision a global learning environment where barriers to education no longer exist — a space where every student, regardless of background or location, has the opportunity to grow through intelligent and engaging learning systems.
+            We envision a global learning environment where barriers to
+            education no longer exist — a space where every student, regardless
+            of background or location, has the opportunity to grow through
+            intelligent and engaging learning systems.
           </p>
         </section>
 
         {/* Unique Value */}
         <section className="mb-12">
-          <h2 className="text-3xl font-semibold text-orange-400 mb-3">What Sets Us Apart</h2>
+          <h2 className="text-3xl font-semibold text-orange-400 mb-3">
+            What Sets Us Apart
+          </h2>
           <ul className="list-disc list-inside text-gray-200 space-y-2">
             <li>AI-powered personalized learning paths</li>
             <li>Real-time interactive classrooms and collaboration tools</li>
@@ -86,7 +103,9 @@ export default function AboutPage() {
                   alt={member.name}
                   className="w-24 h-24 mx-auto rounded-full object-cover mb-4 border-4 border-orange-400"
                 />
-                <h3 className="text-xl font-semibold text-white">{member.name}</h3>
+                <h3 className="text-xl font-semibold text-white">
+                  {member.name}
+                </h3>
                 <p className="text-sm text-gray-300 mt-1">{member.role}</p>
               </motion.div>
             ))}

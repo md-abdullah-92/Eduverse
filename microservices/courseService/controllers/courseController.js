@@ -3,6 +3,7 @@ const prisma = require('../prismaClient');
 module.exports = {
   
   createCourse: async (req, res) => {
+    console.log('Creates')
     try {
       const { title, description, price, coverPhotoUrl, level, instructorId } = req.body;
       const newCourse = await prisma.course.create({
