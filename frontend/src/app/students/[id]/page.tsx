@@ -76,6 +76,7 @@ const Sidebar: React.FC<{
       case "Dashboard":
         router.push(`/dashboard/${userId}`);
         break;
+        
       default:
         break;
     }
