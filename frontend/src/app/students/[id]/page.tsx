@@ -16,6 +16,7 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import StudentMarkProgressChart from "@/components/StudentMarkProgressChart";
+import StudyTimeBarChart from "@/components/StudyTimeBarChart";
 
 type NavigationItem = {
   icon: React.ElementType;
@@ -223,16 +224,11 @@ const StudentDashboard: React.FC = () => {
           <StatCard label="Orders Placed" value={student.ordersPlaced?.toString() || "-"} icon={<History />} colorClass="text-orange-500" />
           <StatCard label="Reviews Given" value={student.reviewsGiven?.toString() || "-"} icon={<Star />} colorClass="text-yellow-500" />
         </div>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <StudyTimeBarChart />
+      <StudentMarkProgressChart />
+    </div>
 
-        {/* Progress Chart */}
-        <div className="bg-white rounded-xl p-6 shadow space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Learning Progress</h3>
-          <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-sm">
-            Progress Chart Placeholder
-          </div>
-        </div>
-
-        <StudentMarkProgressChart />
 
         {/* Recent Courses */}
         <div className="bg-white rounded-xl p-6 shadow space-y-4">
