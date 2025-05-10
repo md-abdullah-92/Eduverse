@@ -28,7 +28,8 @@ export default function EditProfile() {
   const profileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState('');
   const [notFoundError, setNotFoundError] = useState(false);
 
   useEffect(() => {
@@ -45,20 +46,23 @@ export default function EditProfile() {
         }
 
         const data = await res.json();
-        console.log(data);
+
         setFormData({
-          educationLevel: data.educationLevel || data.studentProfile.educationLevel ,
-          institution: data.institution || data.studentProfile.institution|| '',
-          guardianName: data.guardianName ||data.studentProfile.guardianName || '',
+          educationLevel: data.educationLevel || data.studentProfile.educationLevel || '',
+          institution: data.institution || data.studentProfile.institution || '',
+          guardianName: data.guardianName || data.studentProfile.guardianName || '',
           guardianPhone: data.guardianPhone || data.studentProfile.guardianPhone || '',
-          guardianEmail: data.guardianEmail ||data.studentProfile.guardianEmail || '',
-          dateOfBirth: data.dateOfBirth?.substring(0, 10) || data.studentProfile.dateOfBirth?.substring(0, 10) || '',
-          address: data.address ||data.studentProfile.address || '',
+          guardianEmail: data.guardianEmail || data.studentProfile.guardianEmail || '',
+          dateOfBirth: (data.dateOfBirth || data.studentProfile.dateOfBirth || '').substring(0, 10),
+          address: data.address || data.studentProfile.address || '',
           bio: data.bio || data.studentProfile.bio || ''
         });
         setCoverImage(data.studentProfile.coverPhoto || '');
         setProfileImage(data.studentProfile.profilePhoto || '');
-        setUserInfo({ fullName: data.studentProfile.user.name, email: data.studentProfile.user.email });
+        setUserInfo({
+          fullName: data.studentProfile.user.name,
+          email: data.studentProfile.user.email
+        });
       } catch (err) {
         console.error('Fetch profile error:', err);
         setNotFoundError(true);
@@ -93,13 +97,13 @@ export default function EditProfile() {
       const result = await res.json();
 
       if (res.ok) {
-        setMessage('✅ Profile updated successfully!');
+        setShowModal(true);
       } else {
-        setMessage('❌ Failed to update: ' + result.message);
+        setError('❌ Failed to update: ' + result.message);
       }
     } catch (err) {
       console.error('Submit error:', err);
-      setMessage('❌ An error occurred while saving changes.');
+      setError('❌ An error occurred while saving changes.');
     }
   };
 
@@ -119,7 +123,7 @@ export default function EditProfile() {
       else setProfileImage(downloadURL);
     } catch (error) {
       console.error('Image upload failed:', error);
-      setMessage('❌ Failed to upload image.');
+      setError('❌ Failed to upload image.');
     }
   };
 
@@ -250,6 +254,10 @@ export default function EditProfile() {
             />
           </div>
 
+          {error && (
+            <div className="text-red-600 text-sm text-center">{error}</div>
+          )}
+
           <div className="text-right">
             <button
               onClick={handleSubmit}
@@ -258,10 +266,26 @@ export default function EditProfile() {
               Save Changes
             </button>
           </div>
-
-          {message && <p className="text-center text-sm mt-4">{message}</p>}
         </div>
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-[90%] max-w-md text-center">
+            <h3 className="text-xl font-semibold mb-2">Profile Updated</h3>
+            <p className="text-gray-600 mb-4">Your profile has been successfully updated.</p>
+            <button
+              onClick={() => {
+                setShowModal(false);
+                history.back();
+              }}
+              className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

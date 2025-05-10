@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  LayoutDashboard,
   BookOpen,
   Heart,
   Star,
@@ -36,7 +35,7 @@ type SidebarItemProps = {
 };
 
 const studentNavigationItems: NavigationItem[] = [
-  { icon: LayoutDashboard, label: "Dashboard" },
+  
   { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "Enrolled Courses" },
   { icon: Heart, label: "Wishlist" },
@@ -131,6 +130,15 @@ const StudentDashboard: React.FC = () => {
 
         setProfile(data.studentProfile);
         setRole(data.studentProfile?.user?.role || "STUDENT");
+        localStorage.setItem("userPhoto", data.studentProfile.profilePhoto);
+        localStorage.setItem("userName", data.studentProfile.user.name || "Student Name");
+        localStorage.setItem("userId", data.studentProfile.userId || userId);
+        localStorage.setItem("role", data.studentProfile.user.role || "STUDENT");
+        localStorage.setItem("userEmail", data.studentProfile.user.email || ")");
+        localStorage.setItem("userPhone", data.studentProfile.user.phone || "N/A");
+        localStorage.setItem("userBio", data.studentProfile.user.bio || "N/A");
+        localStorage.setItem("userCoverPhoto", data.studentProfile.coverPhoto || "N/A");
+        console.log("Profile data:", data.studentProfile);
       } catch (err: any) {
         setError(err.message || "Something went wrong");
       } finally {

@@ -31,7 +31,7 @@ export default function Home() {
 
         const data = await res.json();
         if (data.role === 'TEACHER') {
-          router.push(`/mentors/${data.id}`); // Make sure `data.id` is correct
+          router.push(`/teachers/${data.id}`); // Make sure `data.id` is correct
         } else if (data.role === 'STUDENT') {
           router.push(`/students/${data.id}`);
         } else {

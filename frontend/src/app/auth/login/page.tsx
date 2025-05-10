@@ -69,10 +69,10 @@ export default function LoginRegister() {
         }
         setMessage("Login successful! Redirecting...");
         if (role === "TEACHER") {
-          router.push(`/mentors/${userId}`);
+         window.location.href = `/teachers/${userId}`;
+
         } else if (role === "STUDENT") {
-          
-          router.push(`/students/${userId}`);
+          window.location.href = `/students/${userId}`;
         } else {
           setMessage("Unknown user role. Please contact support.");
         }

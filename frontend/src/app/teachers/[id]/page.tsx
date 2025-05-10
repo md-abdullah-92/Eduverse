@@ -221,6 +221,14 @@ const DashboardPage = () => {
         const data = await res.json();
         if (!data.teacherProfile) notFound();
         setProfile(data.teacherProfile);
+        localStorage.setItem("userPhoto", data.teacherProfile.profilePhoto);
+        localStorage.setItem("userName", data.teacherProfile.user.name || "Mentor Name");
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("role", data.teacherProfile.user.role || "TEACHER");
+        localStorage.setItem("userEmail", data.teacherProfile.user.email || ")");
+        localStorage.setItem("userPhone", data.teacherProfile.user.phone || "N/A");
+        localStorage.setItem("userBio", data.teacherProfile.user.bio || "N/A");
+        localStorage.setItem("userCoverPhoto", data.teacherProfile.coverPhoto || "N/A");
       } catch {
         notFound();
       } finally {
