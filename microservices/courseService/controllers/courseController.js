@@ -52,6 +52,7 @@ module.exports = {
 
   // Get all courses
   getAllCourses: async (req, res) => {
+    console.log('reached')
     try {
       const courses = await prisma.course.findMany();
       res.json(courses);

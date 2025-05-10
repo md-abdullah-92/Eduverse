@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, ChangeEvent } from "react";
+import React, { ChangeEvent, useState } from "react";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -46,6 +46,7 @@ export default function AddCoursePage() {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
