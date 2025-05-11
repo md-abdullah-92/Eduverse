@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 type Course = {
   id: string;
   title: string;
-  image: string;
+  coverPhotoUrl: string;
   rating: number;
   reviews: number;
 };
@@ -21,15 +21,21 @@ export default function PopularCourses() {
       try {
         const res = await fetch(`http://localhost:5001/api/courses/all`);
         const data: Course[] = await res.json();
-        setCourses(data);
+  
+        // Sort by rating (descending) and take top 6
+        const topCourses = data
+          .sort((a, b) => b.rating - a.rating)
+          .slice(0, 6);
+  
+        setCourses(topCourses);
       } catch (error) {
         console.error("Failed to fetch courses:", error);
       }
     };
-
+  
     fetchCourses();
   }, []);
-
+  
   return (
     <motion.section
       id="courses"
@@ -56,7 +62,7 @@ export default function PopularCourses() {
           >
             <div className="w-full h-52 relative">
               <Image
-                src={course.image}
+                src={course.coverPhotoUrl}
                 alt={course.title}
                 fill
                 className="object-cover"

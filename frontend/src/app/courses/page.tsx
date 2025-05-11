@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 type Course = {
   id: string;
   title: string;
-  image: string;
+  coverPhotoUrl:string,
   rating: number;
   reviews: number;
 };
@@ -59,7 +59,7 @@ export default function AllCoursesPage() {
           >
             <div className="w-full h-52 relative">
               <Image
-                src={course.image}
+                src={course.coverPhotoUrl}
                 alt={course.title}
                 fill
                 className="object-cover"
