@@ -10,6 +10,6 @@ router.put('/update/:id', courseValidator, validateResult, courseController.upda
 router.delete('/delete/:id', courseController.deleteCourse);
 router.get('/all', courseController.getAllCourses);
 router.get('/get/:id', courseController.getCourseById);
-router.get('/getByInstructorId/:id', courseController.getByInstructorId);
+router.get('/getByInstructorId/:instructorId', courseController.getByInstructorId);
 
 module.exports = router;

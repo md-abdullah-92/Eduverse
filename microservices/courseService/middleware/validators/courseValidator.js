@@ -30,9 +30,9 @@ const courseValidator = [
   //   .isURL().withMessage('Invalid URL format'),
 
   // Instructor ID (assuming MySQL - numeric foreign key, not MongoDB)
-  check('instructorId')
-    .notEmpty().withMessage('Instructor ID is required')
-    .isInt({ gt: 0 }).withMessage('Instructor ID must be a positive integer'),
+  // check('instructorId')
+  //   .notEmpty().withMessage('Instructor ID is required')
+  //   .isInt({ gt: 0 }).withMessage('Instructor ID must be a positive integer'),
 ];
 
 module.exports = { courseValidator };

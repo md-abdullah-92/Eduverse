@@ -83,13 +83,16 @@ module.exports = {
   },
   // get course by instructor id
   getByInstructorId : async (req, res) => {
+    console.log('getbyinstructor')
     const { instructorId } = req.params;
-  
+    console.log(instructorId)
     try {
       const courses = await prisma.course.findMany({
         where: { instructorId },
       });
+      console.log(courses)
       res.json(courses);
+      
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch instructor courses', details: error.message });
     }
