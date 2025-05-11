@@ -2,6 +2,9 @@
 import axios from "axios";
 import { useParams } from "next/navigation";
 import React, { ChangeEvent, useState } from "react";
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/firebaseConfig';
+
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -47,21 +50,42 @@ export default function AddCoursePage() {
   const userId = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const [topic, setTopic] = useState("fkdfk");
   const [level, setLevel] = useState("BEGINNER");
-  const [title, setTitle] = useState("kfdkf");
+  const [title, setTitle] = useState("Title Must be 3-100 characters");
   const [price, setPrice] = useState(0.0);
-  const [description, setDescription] = useState("ksdk");
+  const [description, setDescription] = useState("Description must be at least 10 characters");
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverImage, setCoverImage] = useState("");
+  
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleCoverChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setCoverFile(file);
-      setCoverPreview(URL.createObjectURL(file));
+    if (!file) return;
+  
+    // Set the preview for the cover image
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(file));
+  
+    // Create storage reference
+    const storageRef = ref(storage, `course_covers/${Date.now()}-${file.name}`);
+    
+    try {
+      // Upload the image
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+  
+      // Set the cover image URL
+      setCoverImage(downloadURL);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      alert('Failed to upload image.');
     }
   };
+  
 
   const handleCreateCourse = async () => {
     try {
@@ -69,7 +93,8 @@ export default function AddCoursePage() {
       setMessage("");
 
       // NOTE: Replace this with actual upload logic or use a mock URL
-      const coverPhotoUrl = "https://dummyimage.com/600x400";
+      const coverPhotoUrl = coverImage;
+      console.log(coverPhotoUrl);
 
       const body = {
         title,
