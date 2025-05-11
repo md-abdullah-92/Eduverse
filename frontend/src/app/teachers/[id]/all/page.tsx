@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type Course = {
@@ -13,9 +12,12 @@ type Course = {
   reviews: number;
 };
 
-export default function AllCoursesByInstructorPage() {
-  const params = useParams();
-  const userId = Array.isArray(params?.id) ? params.id[0] : params?.id || "";
+export default function AllCoursesByInstructorPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const userId = params.id;
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 

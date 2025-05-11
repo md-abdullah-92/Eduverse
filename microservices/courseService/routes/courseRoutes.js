@@ -6,7 +6,7 @@ const { validateResult } = require('../middleware/validators/validateResult');
 
 // Course Routes
 router.post('/create', courseValidator, validateResult, courseController.createCourse);
-router.put('/update/:id', courseValidator, validateResult, courseController.updateCourse);
+router.put('/update/:id', courseController.updateCourse);
 router.delete('/delete/:id', courseController.deleteCourse);
 router.get('/all', courseController.getAllCourses);
 router.get('/get/:id', courseController.getCourseById);

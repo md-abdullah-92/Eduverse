@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 
-export default function LessonUpload() {
+export default function LessonUpload({
+  params,
+}: {
+  params: { id: string; id2: string; id3: string };
+}) {
+  const instructorId = params.id;
+  const courseId = params.id2;
+  const lessonId = params.id3;
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",

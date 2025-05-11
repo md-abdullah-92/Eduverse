@@ -2,41 +2,127 @@
 
 import { ChevronDown, ChevronUp, Plus, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CourseDashboard({
   params,
 }: {
   params: { id: string; id2: string };
 }) {
+  const instructorId = params.id;
+  const courseId = params.id2;
+
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
+  const [coverPhotoUrl, setCoverPhotoUrl] = useState("");
+  const [level, setLevel] = useState("");
   const router = useRouter();
-  const { id, id2 } = params;
   const [description, setDescription] = useState("");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isOutcomesExpanded, setIsOutcomesExpanded] = useState(false);
-  const [outcomes, setOutcomes] = useState(["First Outcome"]);
-  const [lessons, setLessons] = useState(["First Lesson"]);
+  const [outcomes, setOutcomes] = useState([""]);
+  const [lessons, setLessons] = useState([""]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCourseDetails = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          `http://localhost:5001/api/courses/get/${courseId}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch course details");
+        }
+
+        const courseData = await response.json();
+
+        setTitle(courseData.title || "");
+        setPrice(courseData.price || "");
+        setCoverPhotoUrl(courseData.coverPhotoUrl || "");
+        setLevel(courseData.level || "");
+        setDescription(courseData.description || "");
+
+        if (courseData.outcomes && courseData.outcomes.length > 0) {
+          setOutcomes(courseData.outcomes);
+        }
+
+        if (courseData.lessons && courseData.lessons.length > 0) {
+          setLessons(courseData.lessons);
+        }
+      } catch (err: unknown) {
+        console.error("Error fetching course details:", err);
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourseDetails();
+  }, [courseId]);
+
+  if (isLoading) {
+    return <div>Loading course details...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   const addOutcome = () => {
     setOutcomes([...outcomes, ""]);
   };
 
   const updateOutcome = (index: number, value: string) => {
-    const newOutcomes = [...outcomes];
-    newOutcomes[index] = value;
-    setOutcomes(newOutcomes);
+    const updatedOutcomes = [...outcomes];
+    updatedOutcomes[index] = value;
+    setOutcomes(updatedOutcomes);
   };
 
   const addLesson = () => {
-    router.push(`/teachers/${id}/course_dashboard/${id2}/lesson`);
+    router.push(
+      `/teachers/${instructorId}/course_dashboard/${courseId}/lesson`
+    );
   };
 
-  const updateLesson = (index: number, value: string) => {
-    const newLessons = [...lessons];
-    newLessons[index] = value;
-    setLessons(newLessons);
+  // const updateLesson = (index: number, value: string) => {
+  //   const updatedLessons = [...lessons];
+  //   updatedLessons[index] = value;
+  //   setLessons(updatedLessons);
+  // };
+
+  const handleFinish = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/courses/update/${courseId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            price,
+            description,
+            coverPhotoUrl,
+            level,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update course");
+      }
+      // Optional: Show success message or redirect
+      alert("Course updated successfully!");
+      router.push(`/teachers/${instructorId}/all`);
+    } catch (err: unknown) {
+      console.error("Error updating course:", err);
+      alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
   };
 
   return (
@@ -170,7 +256,13 @@ export default function CourseDashboard({
                 <input
                   type="text"
                   value={lesson}
-                  onChange={(e) => updateLesson(index, e.target.value)}
+                  onChange={(e) =>
+                    setLessons((prev) => {
+                      const newLessons = [...prev];
+                      newLessons[index] = e.target.value;
+                      return newLessons;
+                    })
+                  }
                   placeholder={`Lesson ${index + 1}`}
                   className="w-full bg-blue-50 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
@@ -182,7 +274,10 @@ export default function CourseDashboard({
 
       {/* Finish Button */}
       <div className="flex justify-end mt-10">
-        <button className="bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2 px-8 rounded-md transition-all">
+        <button
+          onClick={handleFinish}
+          className="bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2 px-8 rounded-md transition-all"
+        >
           Finish
         </button>
       </div>

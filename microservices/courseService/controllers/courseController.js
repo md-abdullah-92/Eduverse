@@ -29,14 +29,14 @@ module.exports = {
       const { title, description, price, coverPhotoUrl, level } = req.body;
       const updatedCourse = await prisma.course.update({
         where: { id: Number(id) },
-        data: { title, description, price, coverPhotoUrl, level}
+        data: { title, description, price, coverPhotoUrl, level,}
       });
       res.json(updatedCourse);
     } catch (error) {
       res.status(500).json({ message: 'Error updating course', error });
     }
   },
-
+  
   // Delete a course
   deleteCourse: async (req, res) => {
     try {
