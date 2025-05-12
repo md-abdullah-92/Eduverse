@@ -1,16 +1,13 @@
 "use client";
 
 import { ChevronDown, ChevronUp, Plus, Upload } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function CourseDashboard({
-  params,
-}: {
-  params: { id: string; id2: string };
-}) {
-  const instructorId = params.id;
-  const courseId = params.id2;
+export default function CourseDashboard() {
+  const params = useParams();
+  const instructorId = params.id as string;
+  const courseId = params.id2 as string;
 
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
