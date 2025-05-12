@@ -1,10 +1,9 @@
 "use client";
 import axios from "axios";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { ChangeEvent, useState } from "react";
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/firebaseConfig';
 
+type CourseLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -47,89 +46,125 @@ const cardStyle: React.CSSProperties = {
 
 export default function AddCoursePage() {
   const params = useParams();
-  const userId = Array.isArray(params?.id) ? params.id[0] : params?.id;
-  const [topic, setTopic] = useState("fkdfk");
-  const [level, setLevel] = useState("BEGINNER");
-  const [title, setTitle] = useState("Title Must be 3-100 characters");
-  const [price, setPrice] = useState(0.0);
-  const [description, setDescription] = useState("Description must be at least 10 characters");
+  const userId = Array.isArray(params?.id) ? params.id[0] : params?.id || "";
+  const [topic, setTopic] = useState("");
+  const [level, setLevel] = useState<CourseLevel>("BEGINNER");
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("0.00");
+  const [description, setDescription] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverImage, setCoverImage] = useState("");
-  
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
-  const handleCoverChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-  
-    // Set the preview for the cover image
-    setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
-  
-    // Create storage reference
-    const storageRef = ref(storage, `course_covers/${Date.now()}-${file.name}`);
-    
-    try {
-      // Upload the image
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
-  
-      // Set the cover image URL
-      setCoverImage(downloadURL);
-    } catch (error) {
-      console.error('Image upload failed:', error);
-      alert('Failed to upload image.');
+    if (file) {
+      setCoverFile(file);
+      setCoverPreview(URL.createObjectURL(file));
     }
   };
-  
+
+  const uploadCoverImage = async (): Promise<string> => {
+    // In a real implementation, you would upload the file to your server or a service like S3
+    // For now, we'll simulate an upload with a placeholder URL
+    if (!coverFile) {
+      return "https://dummyimage.com/600x400/000/fff";
+    }
+
+    try {
+      // Here you would implement actual file upload logic
+      // Example with FormData:
+      /*
+      const formData = new FormData();
+      formData.append('file', coverFile);
+      const uploadResponse = await axios.post('http://localhost:5001/api/upload', formData);
+      return uploadResponse.data.url;
+      */
+
+      // For now, return a placeholder URL
+      return "https://dummyimage.com/600x400/000/fff";
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+  };
 
   const handleCreateCourse = async () => {
+    if (!title || !description || !level) {
+      setMessage("❌ Please fill in all required fields.");
+      return;
+    }
+
     try {
       setLoading(true);
       setMessage("");
 
-      // NOTE: Replace this with actual upload logic or use a mock URL
-      const coverPhotoUrl = coverImage;
-      console.log(coverPhotoUrl);
+      // Upload cover image and get URL
+      const coverPhotoUrl = await uploadCoverImage();
+
+      // Ensure price is a valid float
+      const priceValue = parseFloat(price.replace(",", "."));
+      if (isNaN(priceValue)) {
+        setMessage("❌ Please enter a valid price.");
+        setLoading(false);
+        return;
+      }
 
       const body = {
         title,
         description,
-        price: 34.5,
+        price: priceValue,
         coverPhotoUrl,
         level,
         instructorId: userId,
       };
 
-      console.log(body);
+      console.log("Sending request with data:", body);
 
       const response = await axios.post(
         "http://localhost:5001/api/courses/create/",
         body
       );
-      console.log(response);
 
       if (response.status === 201) {
         setMessage("✅ Course created successfully!");
+        // Reset form
         setTitle("");
         setDescription("");
-        setPrice(0);
-        setLevel("");
+        setPrice("0.00");
+        setLevel("BEGINNER");
         setTopic("");
         setCoverFile(null);
         setCoverPreview(null);
+        router.push(`/teachers/${userId}/all`);
       } else {
-        setMessage("❌ Failed to create course.");
+        setMessage(
+          `❌ Failed to create course: ${
+            response.data.message || "Unknown error"
+          }`
+        );
+        setLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      setMessage("❌ Error creating course.");
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      console.error("Error creating course:", error);
+
+      // If validation errors exist, show all of them
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors
+          .map((err: any) => `❌ ${err.msg}`)
+          .join("\n");
+        setMessage(errorMessages);
+        setLoading(false);
+      } else {
+        setMessage(
+          `❌ Error creating course: ${
+            error.response?.data?.message || error.message || "Unknown error"
+          }`
+        );
+        setLoading(false);
+      }
     }
   };
 
@@ -182,9 +217,8 @@ export default function AddCoursePage() {
             <select
               style={inputStyle}
               value={level}
-              onChange={(e) => setLevel(e.target.value)}
+              onChange={(e) => setLevel(e.target.value as CourseLevel)}
             >
-              <option value="">Select</option>
               <option value="BEGINNER">Beginner</option>
               <option value="INTERMEDIATE">Intermediate</option>
               <option value="ADVANCED">Advanced</option>
@@ -198,17 +232,25 @@ export default function AddCoursePage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter course title"
+              required
             />
           </div>
           <div>
             <label style={labelStyle}>Price</label>
             <input
               style={inputStyle}
-              type="number"
+              type="text"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              placeholder="25"
+              onChange={(e) => {
+                const val = e.target.value;
+                // Allow empty string (user still typing), valid float, or zero
+                if (val === "" || /^[0-9]*[.,]?[0-9]*$/.test(val)) {
+                  setPrice(val);
+                }
+              }}
+              placeholder="25.00"
               min="0"
+              required
             />
           </div>
           <div>
@@ -218,6 +260,7 @@ export default function AddCoursePage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter course description"
+              required
             />
           </div>
           <button
@@ -239,7 +282,13 @@ export default function AddCoursePage() {
             {loading ? "Creating..." : "Create Course"}
           </button>
           {message && (
-            <p style={{ marginTop: "1rem", color: "#15616d", fontWeight: 600 }}>
+            <p
+              style={{
+                marginTop: "1rem",
+                color: message.includes("✅") ? "#2a2" : "#d33",
+                fontWeight: 600,
+              }}
+            >
               {message}
             </p>
           )}
@@ -317,7 +366,13 @@ export default function AddCoursePage() {
           <div
             style={{ marginBottom: "0.7rem", fontSize: "1rem", color: "#888" }}
           >
-            {level || "Course Level"}
+            {level === "BEGINNER"
+              ? "Beginner"
+              : level === "INTERMEDIATE"
+              ? "Intermediate"
+              : level === "ADVANCED"
+              ? "Advanced"
+              : "Course Level"}
           </div>
           <h2
             style={{
@@ -353,7 +408,7 @@ export default function AddCoursePage() {
             200 followers
           </div>
           <div style={{ color: "#2a2", fontWeight: 700, fontSize: "1.15rem" }}>
-            From £{price || "25"}
+            From £{parseFloat(price || "0").toFixed(2)}
           </div>
           <button
             disabled

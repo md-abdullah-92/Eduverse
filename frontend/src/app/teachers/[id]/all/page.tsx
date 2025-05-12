@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Course = {
@@ -12,14 +13,21 @@ type Course = {
   reviews: number;
 };
 
-export default function AllCoursesPage() {
+export default function AllCoursesByInstructorPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const userId = params.id;
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/courses/all`);
+        const res = await fetch(
+          `http://localhost:5001/api/courses/getByInstructorId/${userId}`
+        );
         const data: Course[] = await res.json();
         setCourses(data);
         console.log(data);
@@ -31,7 +39,7 @@ export default function AllCoursesPage() {
     };
 
     fetchCourses();
-  }, []);
+  }, [userId]);
 
   if (loading) {
     return (
@@ -48,7 +56,7 @@ export default function AllCoursesPage() {
     <div className="bg-[#F9FAFC] py-20">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-gray-800">
-          All Courses of Mr. XYZ
+          All Courses of {userId}
         </h2>
         <p className="text-gray-500 mt-2 max-w-xl mx-auto">
           Browse all our available courses to find what suits your needs.
@@ -79,9 +87,11 @@ export default function AllCoursesPage() {
                   {course.rating}.0 ({course.reviews} rating)
                 </span>
               </div>
-              <button className="mt-4 w-full border border-blue-500 text-blue-500 font-semibold py-2 rounded-md hover:bg-blue-50 transition">
-                Add to Cart
-              </button>
+              <Link href={`/teachers/${userId}/course_dashboard/${course.id}`}>
+                <button className="mt-4 w-full border border-blue-500 text-blue-500 font-semibold py-2 rounded-md hover:bg-blue-50 transition">
+                  DashBoard
+                </button>
+              </Link>
             </div>
           </div>
         ))}
