@@ -21,8 +21,8 @@ const Navigation = () => {
       <Link href="/courses" className={linkClasses("/courses")}>
         Course
       </Link>
-      <Link href="/monitors" className={linkClasses("/monitors")}>
-        Monitors
+      <Link href="/mentors" className={linkClasses("/mentors")}>
+        Mentors
       </Link>
       <Link href="/about" className={linkClasses("/about")}>
         About

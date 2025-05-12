@@ -278,3 +278,51 @@ exports.getProfile = async (req, res) => {
         });
     }
 };
+// Get all teachers
+exports.getAllTeachers = async (req, res) => {
+    try {
+        const teachers = await prisma.user.findMany({
+            where: { role: 'TEACHER' },
+            include: { teacherProfile: true }
+        });
+
+        if (!teachers || teachers.length === 0) {
+            return res.status(404).json({ message: "No teachers found" });
+        }
+
+        res.status(200).json({
+            message: "Teachers retrieved successfully",
+            teachers
+        });
+    } catch (error) {
+        console.error("Get all teachers error:", error);
+        res.status(500).json({
+            message: "Failed to get teachers",
+            error: error.message
+        });
+    }
+};
+// Get all students
+exports.getAllStudents = async (req, res) => {
+    try {
+        const students = await prisma.user.findMany({
+            where: { role: 'STUDENT' },
+            include: { studentProfile: true }
+        });
+
+        if (!students || students.length === 0) {
+            return res.status(404).json({ message: "No students found" });
+        }
+
+        res.status(200).json({
+            message: "Students retrieved successfully",
+            students
+        });
+    } catch (error) {
+        console.error("Get all students error:", error);
+        res.status(500).json({
+            message: "Failed to get students",
+            error: error.message
+        });
+    }
+};

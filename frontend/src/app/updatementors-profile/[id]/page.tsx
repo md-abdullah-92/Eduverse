@@ -47,6 +47,8 @@ export default function EditTeacherProfilePage() {
         }
 
         const profile = data.teacherProfile;
+        const user = profile.user;
+        console.log(user);
         setFormData({
           education: profile.education || '',
           specialization: profile.specialization || '',
@@ -56,8 +58,8 @@ export default function EditTeacherProfilePage() {
         });
 
         setUserInfo({
-          fullName: data.fullName || '',
-          email: data.email || '',
+          fullName: user.name || '',
+          email: user.email || '',
         });
 
         if (profile.coverPhoto) setCoverImage(profile.coverPhoto);
