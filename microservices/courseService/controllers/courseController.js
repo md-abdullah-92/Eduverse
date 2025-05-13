@@ -3,8 +3,8 @@ const prisma = require('../prismaClient');
 module.exports = {
   
   createCourse: async (req, res) => {
-    console.log('Creates')
     try {
+      console.log(req.body);
       const { title, description, price, coverPhotoUrl, level, instructorId } = req.body;
       const newCourse = await prisma.course.create({
         data: {
@@ -33,6 +33,7 @@ module.exports = {
       });
       res.json(updatedCourse);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ message: 'Error updating course', error });
     }
   },
@@ -53,7 +54,6 @@ module.exports = {
 
   // Get all courses
   getAllCourses: async (req, res) => {
-    console.log('reached')
     try {
       const courses = await prisma.course.findMany();
       res.json(courses);
@@ -83,14 +83,11 @@ module.exports = {
   },
   // get course by instructor id
   getByInstructorId : async (req, res) => {
-    console.log('getbyinstructor')
     const { instructorId } = req.params;
-    console.log(instructorId)
     try {
       const courses = await prisma.course.findMany({
         where: { instructorId },
       });
-      console.log(courses)
       res.json(courses);
       
     } catch (error) {

@@ -25,14 +25,10 @@ const courseValidator = [
     .withMessage('Level must be BEGINNER, INTERMEDIATE or ADVANCED'),
 
   // Cover photo URL
-  // check('coverPhotoUrl')
-  //   .optional()
-  //   .isURL().withMessage('Invalid URL format'),
+  check('coverPhotoUrl')
+    .optional()
+    .isURL().withMessage('Invalid Cover Photo. Try again'),
 
-  // Instructor ID (assuming MySQL - numeric foreign key, not MongoDB)
-  // check('instructorId')
-  //   .notEmpty().withMessage('Instructor ID is required')
-  //   .isInt({ gt: 0 }).withMessage('Instructor ID must be a positive integer'),
 ];
 
 module.exports = { courseValidator };
