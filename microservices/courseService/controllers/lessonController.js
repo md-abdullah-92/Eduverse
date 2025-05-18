@@ -2,6 +2,8 @@ const prisma = require('../prismaClient');
 
 // Add a lesson to a course
 exports.addLesson = async (req, res) => {
+  console.log("req.params", req.params);
+  console.log("req.body", req.body);
   const { courseId } = req.params;
   const { title, description, videoUrl, notes } = req.body;
 
@@ -13,10 +15,14 @@ exports.addLesson = async (req, res) => {
         videoUrl,
         notes,
         courseId: parseInt(courseId),
+        course: {
+          connect: { id: parseInt(courseId) },
+        },
       }
     });
     res.status(201).json(lesson);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Failed to add lesson', details: error.message });
   }
 };

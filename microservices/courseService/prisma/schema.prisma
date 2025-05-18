@@ -26,20 +26,22 @@ model Course {
   enrollments   Enrollment[]
   lessons       Lesson[]
   instructorId  String           // reference to user service
-  // reviews       Review[]
-  // ratings       Rating[]
-  // averageRating Float?           @default(0)
+  reviews       Review[]
+  ratings       Rating[]
+  averageRating Float?           @default(0)
   
   @@index([instructorId])
 }
 
 model Enrollment {
-  id         Int      @id @default(autoincrement())
-  studentId  String   // reference to user service
-  courseId   Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  course     Course   @relation(fields: [courseId], references: [id])
+  id                Int               @id @default(autoincrement())
+  studentId         String            // reference to user service
+  courseId          Int
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  course            Course            @relation(fields: [courseId], references: [id])
+  lessonCompletions LessonCompletion[]
+  progressPercentage Float             @default(0)
 
   @@index([studentId])
   @@index([courseId])
@@ -55,18 +57,33 @@ model CourseOutcome {
 }
 
 model Lesson {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  videoUrl    String
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  courseId    Int
-  course      Course   @relation(fields: [courseId], references: [id])
-  quiz        Quiz?
+  id               Int                @id @default(autoincrement())
+  title            String
+  description      String?
+  videoUrl         String?
+  notes            String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  courseId         Int
+  course           Course             @relation(fields: [courseId], references: [id])
+  quiz             Quiz?
+  lessonCompletions LessonCompletion[]
+  orderIndex       Int                // To track the sequence of lessons in a course
 
   @@index([courseId])
+}
+
+model LessonCompletion {
+  id           Int       @id @default(autoincrement())
+  enrollmentId Int
+  lessonId     Int
+  completedAt  DateTime  @default(now())
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId]) // A lesson can be completed only once per enrollment
+  @@index([enrollmentId])
+  @@index([lessonId])
 }
 
 model Quiz {
@@ -104,31 +121,31 @@ model Option {
   @@index([questionId])
 }
 
-// model Review {
-//   id        Int      @id @default(autoincrement())
-//   studentId String   // reference to user service
-//   courseId  Int
-//   rating    Int      @default(0)    // 1-5 scale
-//   comment   String?
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   course    Course   @relation(fields: [courseId], references: [id])
+model Review {
+  id        Int      @id @default(autoincrement())
+  studentId String   // reference to user service
+  courseId  Int
+  rating    Int      @default(0)    // 1-5 scale
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id])
   
-//   @@index([courseId])
-//   @@index([studentId])
-//   @@unique([courseId, studentId])  // One review per student per course
-// }
+  @@index([courseId])
+  @@index([studentId])
+  @@unique([courseId, studentId])  // One review per student per course
+}
 
-// model Rating {
-//   id        Int      @id @default(autoincrement())
-//   studentId String   // reference to user service
-//   courseId  Int
-//   rating    Int      @default(0)    // 1-5 scale
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   course    Course   @relation(fields: [courseId], references: [id])
+model Rating {
+  id        Int      @id @default(autoincrement())
+  studentId String   // reference to user service
+  courseId  Int
+  rating    Int      @default(0)    // 1-5 scale
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id])
   
-//   @@index([courseId])
-//   @@index([studentId])
-//   @@unique([courseId, studentId])  // One rating per student per course
-// }
+  @@index([courseId])
+  @@index([studentId])
+  @@unique([courseId, studentId])  // One rating per student per course
+}

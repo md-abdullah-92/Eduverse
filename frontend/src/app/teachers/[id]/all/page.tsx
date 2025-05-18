@@ -32,7 +32,7 @@ export default function AllCoursesByInstructorPage({
         setCourses(data);
         console.log(data);
       } catch (error) {
-        console.error("Failed to fetch courses:", error);
+        console.log("Failed to fetch courses:", error);
       } finally {
         setLoading(false);
       }

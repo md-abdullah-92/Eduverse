@@ -4,7 +4,7 @@ module.exports = {
   
   createCourse: async (req, res) => {
     try {
-      console.log(req.body);
+      
       const { title, description, price, coverPhotoUrl, level, instructorId } = req.body;
       const newCourse = await prisma.course.create({
         data: {
@@ -13,11 +13,13 @@ module.exports = {
           price,
           coverPhotoUrl,
           level,
-          instructorId
-        }
+          instructorId,
+          
+        }   
       });
       res.status(201).json(newCourse);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ message: 'Error creating course', error });
     }
   },
@@ -48,6 +50,7 @@ module.exports = {
       res.status(204).send();
       // res.status(200).json({"message": "Course Deleted"});
     } catch (error) {
+      console.log(error);
       res.status(500).json({ message: 'Error deleting course', error });
     }
   },
@@ -58,6 +61,7 @@ module.exports = {
       const courses = await prisma.course.findMany();
       res.json(courses);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ message: 'Error fetching courses', error });
     }
   },
@@ -78,6 +82,7 @@ module.exports = {
       }
       res.json(course);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ message: 'Error fetching course', error });
     }
   },
@@ -91,6 +96,7 @@ module.exports = {
       res.json(courses);
       
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: 'Failed to fetch instructor courses', details: error.message });
     }
   }

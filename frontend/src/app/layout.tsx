@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
-import Header from '@/components/layout/header';
-import '@/styles/globals.css';
-import Footer from '@/components/layout/footer';
-import { poppins } from '@/utils/font';
-
-
+import Footer from "@/components/layout/footer";
+import Header from "@/components/layout/header";
+import { ToastProvider } from "@/components/ui/toast";
+import "@/styles/globals.css";
+import { poppins } from "@/utils/font";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'Eduverse - Online Learning Platform',
-  description: 'Discover a world of knowledge with Eduverse online learning platform',
+  title: "Eduverse - Online Learning Platform",
+  description:
+    "Discover a world of knowledge with Eduverse online learning platform",
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={poppins.className}>
         <Header />
-        {children}
+        <ToastProvider>{children}</ToastProvider>
         <Footer />
       </body>
     </html>
