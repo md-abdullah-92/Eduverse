@@ -21,22 +21,11 @@ export interface CourseFormData {
   description: string;
   coverPhotoUrl?: string | null;
   instructorId: string;
+  averageRating: number;
 }
 
 export interface CourseData extends CourseFormData {
-  id?: string;
+  id: string;
   lessons: Lesson[];
   outcomes: string[];
-}
-
-export interface Course {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  coverPhotoUrl: string | null;
-  level: string;
-  topic: string;
-  instructorId: string;
-  averageRating: number;
 }

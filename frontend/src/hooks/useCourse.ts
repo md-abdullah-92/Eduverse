@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 // Define proper interfaces for better type safety
-import { CourseData, LessonForm } from "@/utils/types";
+import { CourseData, Lesson, LessonForm } from "@/utils/types";
 
 interface UseCourseProps {
   courseId: string;
@@ -14,10 +14,15 @@ interface UseCourseProps {
 }
 
 const INITIAL_COURSE_DATA: CourseData = {
+  id: "",
   title: "",
-  price: "",
-  description: "",
+  price: 0.0,
   level: "",
+  topic: "",
+  description: "",
+  coverPhotoUrl: null,
+  instructorId: "",
+  averageRating: 0.0,
   outcomes: [""],
   lessons: [],
 };
@@ -86,10 +91,12 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
         const data = await response.json();
 
         setCourseData({
+          id: data.id || "",
           title: data.title || "",
           price:
             typeof data.price === "number" ? data.price.toFixed(2) : "0.00",
           level: data.level || "",
+          topic: data.topic || "",
           description: data.description || "",
           coverPhotoUrl: data.coverPhotoUrl,
           outcomes: Array.isArray(data.outcomes)
@@ -98,6 +105,8 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
               )
             : [""],
           lessons: formatLessons(data.lessons || []),
+          averageRating: data.averageRating || 0.0,
+          instructorId: data.instructorId || "",
         });
         setCoverPreview(data.coverPhotoUrl);
       } catch (err) {
@@ -357,7 +366,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
         `${API_BASE_URL}/api/lessons/get/${courseId}`
       );
       if (!existingLessonsResponse.ok) {
-        throw new Error("Failed to fetch existing lessons");
+        throw new Error("s to fetch existing lessons");
       }
 
       const existingLessons = await existingLessonsResponse.json();

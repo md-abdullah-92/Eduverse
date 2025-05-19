@@ -121,37 +121,6 @@ export default function AddCoursePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
-      {/* Left Sidebar */}
-      <div className="md:w-1/4 p-8 bg-white border-r border-gray-200">
-        <h1 className="text-3xl font-bold text-teal-800 mb-6">
-          Create a course
-        </h1>
-        <p className="text-lg mb-4 text-gray-700">
-          Follow the steps for your course.
-        </p>
-        <div className="space-y-4">
-          {[
-            "Select a topic for your course",
-            "Select course level",
-            "Input Price",
-            "Input Title",
-            "Write a description",
-            "Upload a cover",
-            "Create course",
-            "Go to course dashboard",
-            "Write what one will learn from the course",
-            "Add lessons",
-          ].map((step, index) => (
-            <div key={index} className="flex items-center">
-              <div className="w-8 h-8 rounded-full bg-teal-700 text-white flex items-center justify-center mr-3">
-                {index + 1}
-              </div>
-              <span className="text-gray-700">{step}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 p-8">
         <div className="max-w-5xl mx-auto">
@@ -272,13 +241,39 @@ export default function AddCoursePage() {
                   >
                     Cover Image
                   </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    id="cover-upload"
-                    onChange={handleCoverChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
+                  <div className="flex items-center space-x-2">
+                    <label
+                      htmlFor="cover-upload"
+                      className="flex items-center justify-center px-3 py-1.5 bg-teal-400 text-black rounded-md cursor-pointer hover:bg-teal-500 transition-colors"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-1"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      Upload
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="cover-upload"
+                      onChange={handleCoverChange}
+                      className="hidden"
+                    />
+                    {coverFile && (
+                      <span className="text-sm text-gray-500">
+                        {coverFile.name}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="pt-4">
@@ -346,13 +341,13 @@ export default function AddCoursePage() {
                           xmlns="http://www.w3.org/2000/svg"
                           className="h-12 w-12 mb-2"
                           fill="none"
-                          viewBox="0 0 24 24"
                           stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth={2}
+                            strokeWidth="2"
                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
                         </svg>
@@ -391,7 +386,7 @@ export default function AddCoursePage() {
                     disabled
                     className="w-full py-2 px-4 bg-teal-700 text-white font-medium rounded-md cursor-not-allowed"
                   >
-                    Book
+                    Add to Cart
                   </button>
                 </div>
               </div>
