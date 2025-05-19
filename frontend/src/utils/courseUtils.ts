@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { storage } from "@/firebaseConfig";
-import { CourseData, CourseFormData } from "@/utils/types";
+import { CourseData, CourseFormData, Lesson } from "@/utils/types";
 import axios from "axios";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
@@ -48,10 +49,44 @@ export class CourseUtils {
     return response.data;
   }
 
+  // Fetch course details from API
+  async fetchCourseDetails(): Promise<CourseData> {
+    if (!this.courseId) throw new Error("Course ID is required");
+
+    const response = await fetch(
+      `${API_BASE_URL}/courses/get/${this.courseId}`
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch course details.");
+    }
+
+    const data = await response.json();
+    return {
+      id: data.id || "",
+      title: data.title || "",
+      price: typeof data.price === "number" ? data.price.toFixed(2) : "0.00",
+      level: data.level || "",
+      topic: data.topic || "",
+      description: data.description || "",
+      coverPhotoUrl: data.coverPhotoUrl,
+      outcomes: Array.isArray(data.outcomes)
+        ? data.outcomes.map((outcome: { outcome: string }) => outcome.outcome)
+        : [""],
+      lessons: CourseUtils.formatLessons(data.lessons || []),
+      averageRating: data.averageRating || 0.0,
+      instructorId: data.instructorId || "",
+    };
+  }
+
   // Create new course
   async createCourse(data: CourseFormData): Promise<CourseFormData> {
     try {
-      const response = await axios.post(`${API_BASE_URL}/courses/create`, data);
+      const parsedPrice = String(data.price).replace(",", ".");
+      const response = await axios.post(`${API_BASE_URL}/courses/create`, {
+        ...data,
+        price: parseFloat(parsedPrice),
+      });
       return response.data;
     } catch (error) {
       console.error("Error creating course:", error);
@@ -59,15 +94,119 @@ export class CourseUtils {
     }
   }
 
-  // Update course
-  async updateCourse(data: CourseFormData): Promise<CourseFormData> {
+  // Update course with all related entities
+  async updateCourseWithEntities(
+    data: CourseData,
+    coverFile: File | null
+  ): Promise<CourseData> {
     if (!this.courseId) throw new Error("Course ID is required");
 
-    const response = await axios.put(
-      `${API_BASE_URL}/courses/${this.courseId}`,
-      data
+    try {
+      // Validate price
+      const parsedPrice = String(data.price).replace(",", ".");
+      if (isNaN(parseFloat(parsedPrice))) {
+        throw new Error("Please enter a valid price");
+      }
+
+      // Upload cover image if changed
+      const coverPhotoUrl = coverFile
+        ? await this.uploadCoverImage(coverFile)
+        : data.coverPhotoUrl;
+
+      // Update course
+      const response = await axios.put(
+        `${API_BASE_URL}/courses/update/${this.courseId}`,
+        {
+          ...data,
+          price: parseFloat(parsedPrice),
+          coverPhotoUrl,
+        }
+      );
+      if (!response || response.status !== 200) {
+        throw new Error("Failed to update course");
+      }
+
+      // Handle lessons
+      await this.handleLessons(data.lessons);
+
+      // Handle outcomes
+      await this.handleOutcomes(data.outcomes);
+
+      return {
+        ...data,
+        price: parsedPrice,
+        coverPhotoUrl,
+      };
+    } catch (error) {
+      console.error("Error updating course:", error);
+      throw error;
+    }
+  }
+
+  // Handle lessons update
+  private async handleLessons(lessons: Lesson[]): Promise<void> {
+    // Fetch existing lessons
+    const existingLessonsResponse = await axios.get(
+      `${API_BASE_URL}/lessons/get/${this.courseId}`
     );
-    return response.data;
+    const existingLessons = existingLessonsResponse.data;
+
+    // Delete all existing lessons
+    await Promise.all(
+      existingLessons.map((lesson: any) =>
+        axios.delete(`${API_BASE_URL}/lessons/delete/${lesson.id}`)
+      )
+    );
+
+    // Create new lessons
+    await Promise.all(
+      lessons.map((lesson) =>
+        axios.post(`${API_BASE_URL}/lessons/add/${this.courseId}`, {
+          title: lesson.title,
+          description: lesson.description,
+          notes: lesson.notes,
+          videoUrl: lesson.videoUrl,
+        })
+      )
+    );
+  }
+
+  // Handle outcomes update
+  private async handleOutcomes(outcomes: string[]): Promise<void> {
+    // Fetch existing outcomes
+    const existingOutcomesResponse = await axios.get(
+      `${API_BASE_URL}/outcomes/get/${this.courseId}`
+    );
+    const existingOutcomes = existingOutcomesResponse.data;
+    const existingOutcomeTexts = existingOutcomes.map(
+      (outcome: { outcome: string }) => outcome.outcome
+    );
+
+    // Delete outcomes that are no longer needed
+    const outcomesToDelete = existingOutcomes.filter(
+      (outcome: { outcome: string; id: string }) =>
+        !outcomes.includes(outcome.outcome)
+    );
+
+    await Promise.all(
+      outcomesToDelete.map((outcome: { id: string }) =>
+        axios.delete(`${API_BASE_URL}/outcomes/delete/${outcome.id}`)
+      )
+    );
+
+    // Add new outcomes
+    const newOutcomes = outcomes.filter(
+      (outcome: string) =>
+        !existingOutcomeTexts.includes(outcome) && outcome.trim() !== ""
+    );
+
+    await Promise.all(
+      newOutcomes.map((outcome) =>
+        axios.post(`${API_BASE_URL}/outcomes/add/${this.courseId}`, {
+          outcome,
+        })
+      )
+    );
   }
 
   // Delete course
@@ -78,20 +217,23 @@ export class CourseUtils {
   }
 
   // Format lessons data
-  //   static formatLessons(lessons: any[]): any[] {
-  //     return lessons.map((lesson) => ({
-  //       id: lesson.id,
-  //       title: lesson.title || "",
-  //       description: lesson.description || "",
-  //       lectureNote: lesson.lectureNote || "",
-  //       videoUrl: lesson.videoUrl || null,
-  //     }));
-  //   }
+  static formatLessons(lessons: any[]): Lesson[] {
+    if (!Array.isArray(lessons)) return [];
+
+    return lessons.map((lesson) => ({
+      id: lesson.id || this.generateId(),
+      title: lesson.title || "",
+      description: lesson.description || "",
+      notes: lesson.notes || "",
+      videoUrl: lesson.videoUrl || null,
+      orderIndex: lesson.orderIndex || 0,
+    }));
+  }
 
   // Generate unique ID for lessons
-  //   static generateId(): string {
-  //     return `lesson-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-  //   }
+  static generateId(): string {
+    return `lesson-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }
 
   // Validate course form
   static validateCourseForm(data: CourseFormData): string | null {
@@ -102,11 +244,13 @@ export class CourseUtils {
     return null;
   }
 
-  //   // Validate lesson form
-  //   static validateLessonForm(data: LessonForm): string | null {
-  //     if (!data.title.trim()) return "Lesson title is required";
-  //     if (!data.description.trim()) return "Lesson description is required";
-  //     if (!data.lectureNote.trim()) return "Lecture note is required";
-  //     return null;
-  //   }
+  // Validate lesson form
+  static validateLessonForm(data: Lesson): string | null {
+    if (!data.title.trim()) return "Lesson title is required";
+    if (!data.description.trim()) return "Lesson description is required";
+    if (!data.notes.trim()) return "Lecture note is required";
+    if (!data.videoUrl) return "Video URL is required";
+    if (!data.orderIndex) return "Order index is required";
+    return null;
+  }
 }

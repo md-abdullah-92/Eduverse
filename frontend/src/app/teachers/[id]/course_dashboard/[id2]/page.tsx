@@ -20,9 +20,10 @@ export default function CourseDashboard() {
     setCoverFile,
     showLessonModal,
     setShowLessonModal,
-    lessonForm,
     editingLessonId,
     setCoverPreview,
+    currentLesson, // Changed from lessonData to currentLesson
+    lessonErrors, // Added lessonErrors
 
     // Methods
     updateCourseField,
@@ -146,14 +147,14 @@ export default function CourseDashboard() {
                       </div>
                       <div className="flex space-x-1">
                         <button
-                          onClick={() => lessonHandlers.edit(lesson.id)}
+                          onClick={() => lessonHandlers.edit(lesson.id!)}
                           className="text-gray-400 hover:text-teal-600"
                           aria-label="Edit lesson"
                         >
                           <Edit2 size={16} />
                         </button>
                         <button
-                          onClick={() => lessonHandlers.delete(lesson.id)}
+                          onClick={() => lessonHandlers.delete(lesson.id!)}
                           className="text-gray-400 hover:text-red-500"
                           aria-label="Delete lesson"
                         >
@@ -185,12 +186,13 @@ export default function CourseDashboard() {
             </h2>
 
             <LessonForm
-              initialData={lessonForm}
+              initialData={currentLesson}
               editingId={editingLessonId}
               onChange={lessonHandlers.change}
               onVideoChange={lessonHandlers.videoChange}
               onSubmit={lessonHandlers.submit}
               onCancel={handleCloseModal}
+              errors={lessonErrors}
             />
           </div>
         </div>

@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useToast } from "@/components/ui/toast";
-import { storage } from "@/firebaseConfig";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Define proper interfaces for better type safety
-import { CourseData, Lesson, LessonForm } from "@/utils/types";
+import { CourseUtils } from "@/utils/courseUtils";
+import { CourseData, Lesson } from "@/utils/types";
 
 interface UseCourseProps {
   courseId: string;
@@ -16,7 +16,7 @@ interface UseCourseProps {
 const INITIAL_COURSE_DATA: CourseData = {
   id: "",
   title: "",
-  price: 0.0,
+  price: "0.00",
   level: "",
   topic: "",
   description: "",
@@ -27,11 +27,13 @@ const INITIAL_COURSE_DATA: CourseData = {
   lessons: [],
 };
 
-const INITIAL_LESSON_FORM: LessonForm = {
+const INITIAL_LESSON_DATA: Lesson = {
+  id: "",
   title: "",
   description: "",
-  lectureNote: "",
-  video: null,
+  notes: "",
+  videoUrl: "",
+  orderIndex: 0,
 };
 
 export function useCourse({ courseId, instructorId }: UseCourseProps) {
@@ -45,32 +47,17 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
-  const [lessonForm, setLessonForm] = useState<LessonForm>(INITIAL_LESSON_FORM);
 
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001";
+  // Changed from array to single object
+  const [currentLesson, setCurrentLesson] =
+    useState<Lesson>(INITIAL_LESSON_DATA);
 
-  // Generate unique ID for lessons
-  const generateId = useCallback(
-    (): string =>
-      `lesson-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-    []
-  );
+  // Form validation
+  const [lessonErrors, setLessonErrors] = useState<Record<string, string>>({});
 
-  // Format lessons to ensure they have proper structure
-  const formatLessons = useCallback(
-    (lessons: any[]): Lesson[] => {
-      if (!Array.isArray(lessons)) return [];
-
-      return lessons.map((lesson) => ({
-        id: lesson.id || generateId(),
-        title: lesson.title || "",
-        description: lesson.description || "",
-        lectureNote: lesson.notes || "",
-        videoUrl: lesson.videoUrl || null,
-      }));
-    },
-    [generateId]
+  const courseUtils = useMemo(
+    () => new CourseUtils({ courseId, userId: instructorId }),
+    [courseId, instructorId]
   );
 
   // Fetch course details
@@ -80,35 +67,9 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(
-          `${API_BASE_URL}/api/courses/get/${courseId}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch course details.");
-        }
-
-        const data = await response.json();
-
-        setCourseData({
-          id: data.id || "",
-          title: data.title || "",
-          price:
-            typeof data.price === "number" ? data.price.toFixed(2) : "0.00",
-          level: data.level || "",
-          topic: data.topic || "",
-          description: data.description || "",
-          coverPhotoUrl: data.coverPhotoUrl,
-          outcomes: Array.isArray(data.outcomes)
-            ? data.outcomes.map(
-                (outcome: { outcome: string }) => outcome.outcome
-              )
-            : [""],
-          lessons: formatLessons(data.lessons || []),
-          averageRating: data.averageRating || 0.0,
-          instructorId: data.instructorId || "",
-        });
-        setCoverPreview(data.coverPhotoUrl);
+        const courseData = await courseUtils.fetchCourseDetails();
+        setCourseData(courseData);
+        setCoverPreview(courseData.coverPhotoUrl);
       } catch (err) {
         console.error("Error fetching course details:", err);
         const errorMsg = err instanceof Error ? err.message : String(err);
@@ -122,12 +83,29 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     if (courseId) {
       fetchCourseDetails();
     }
-  }, [courseId, showToast, API_BASE_URL, formatLessons]);
+  }, [courseId, courseUtils, showToast]);
 
   // Update course field handlers
   const updateCourseField = useCallback(
     <K extends keyof CourseData>(field: K, value: CourseData[K]) => {
-      setCourseData((prev) => ({ ...prev, [field]: value }));
+      if (field === "price") {
+        if (value === null || value === undefined) {
+          setCourseData((prev) => ({ ...prev, price: "0.00" }));
+          return;
+        }
+        if (
+          typeof value === "string" &&
+          (value === "" || /^[0-9]*[.,]?[0-9]*$/.test(value))
+        ) {
+          const formattedPrice = value.replace(",", ".");
+          setCourseData((prev) => ({
+            ...prev,
+            price: formattedPrice,
+          }));
+        }
+      } else {
+        setCourseData((prev) => ({ ...prev, [field]: value }));
+      }
     },
     []
   );
@@ -158,76 +136,84 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     ),
   };
 
-  // Handle uploads to Firebase storage
-  const uploadToStorage = useCallback(
-    async (file: File, path: string): Promise<string> => {
-      const storageRef = ref(storage, path);
-      await uploadBytes(storageRef, file);
-      return await getDownloadURL(storageRef);
+  // Reset lesson form
+  const resetLessonForm = useCallback(() => {
+    setCurrentLesson(INITIAL_LESSON_DATA);
+    setEditingLessonId(null);
+    setLessonErrors({});
+    setShowLessonModal(false);
+  }, []);
+
+  // Validate lesson data
+  const validateLesson = useCallback(
+    (lessonData: Lesson): Record<string, string> => {
+      const errors: Record<string, string> = {};
+
+      if (!lessonData.title.trim()) {
+        errors.title = "Lesson title is required";
+      }
+
+      if (!lessonData.description.trim()) {
+        errors.description = "Lesson description is required";
+      }
+
+      return errors;
     },
     []
   );
 
-  // Upload cover image to storage
-  const uploadCoverImage = useCallback(async (): Promise<string> => {
-    if (!coverFile) {
-      return courseData.coverPhotoUrl || "";
-    }
+  // Update lesson order after drag and drop
+  const updateLessonOrder = useCallback(
+    (reorderedLessons: Lesson[]) => {
+      // Update the orderIndex for all lessons
+      const updatedLessons = reorderedLessons.map((lesson, index) => ({
+        ...lesson,
+        orderIndex: index,
+      }));
 
-    try {
-      const url = await uploadToStorage(
-        coverFile,
-        `course_covers/${Date.now()}-${coverFile.name}`
-      );
-      updateCourseField("coverPhotoUrl", url);
-      return url;
-    } catch (error) {
-      console.error("Error uploading cover image:", error);
-      showToast("Failed to upload cover image", "error");
-      throw new Error("Failed to upload cover image");
-    }
-  }, [
-    coverFile,
-    courseData.coverPhotoUrl,
-    showToast,
-    updateCourseField,
-    uploadToStorage,
-  ]);
-
-  // Reset lesson form
-  const resetLessonForm = useCallback(() => {
-    setLessonForm(INITIAL_LESSON_FORM);
-    setEditingLessonId(null);
-    setShowLessonModal(false);
-  }, []);
+      updateCourseField("lessons", updatedLessons);
+    },
+    [updateCourseField]
+  );
 
   // Lesson form handlers
   const lessonHandlers = {
+    // Update the current lesson being edited
     change: useCallback(
       (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setLessonForm((prev) => ({ ...prev, [name]: value }));
+        setCurrentLesson((prev) => ({ ...prev, [name]: value }));
+
+        // Clear error for this field if it exists
+        if (lessonErrors[name]) {
+          setLessonErrors((prev) => ({ ...prev, [name]: "" }));
+        }
       },
-      []
+      [lessonErrors]
     ),
 
     videoChange: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0] || null;
-      setLessonForm((prev) => ({ ...prev, video: file }));
+      // Placeholder for video handling
+      // Will be implemented later
     }, []),
 
+    // Load lesson data into form for editing
     edit: useCallback(
       (lessonId: string) => {
         const lessonToEdit = courseData.lessons.find(
           (lesson) => lesson.id === lessonId
         );
+
         if (lessonToEdit) {
-          setLessonForm({
+          setCurrentLesson({
+            id: lessonToEdit.id,
             title: lessonToEdit.title,
             description: lessonToEdit.description,
-            lectureNote: lessonToEdit.lectureNote,
-            video: null,
+            notes: lessonToEdit.notes || "",
+            videoUrl: lessonToEdit.videoUrl || "",
+            orderIndex: lessonToEdit.orderIndex,
           });
+
           setEditingLessonId(lessonId);
           setShowLessonModal(true);
         }
@@ -241,7 +227,14 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
           const updatedLessons = courseData.lessons.filter(
             (lesson) => lesson.id !== lessonId
           );
-          updateCourseField("lessons", updatedLessons);
+
+          // Reindex the remaining lessons
+          const reindexedLessons = updatedLessons.map((lesson, index) => ({
+            ...lesson,
+            orderIndex: index,
+          }));
+
+          updateCourseField("lessons", reindexedLessons);
           showToast("Lesson deleted", "info");
         }
       },
@@ -251,41 +244,43 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     submit: useCallback(
       async (e: React.FormEvent) => {
         e.preventDefault();
-        try {
-          let videoUrl: string | null = null;
 
-          // Upload video if provided
-          if (lessonForm.video) {
-            videoUrl = await uploadToStorage(
-              lessonForm.video,
-              `course_videos/${courseId}/${Date.now()}-${lessonForm.video.name}`
+        // Validate lesson data
+        const errors = validateLesson(currentLesson);
+        if (Object.keys(errors).length > 0) {
+          setLessonErrors(errors);
+          return;
+        }
+
+        try {
+          // Place for video upload logic (to be implemented later)
+          const videoUrl = currentLesson.videoUrl;
+
+          if (editingLessonId) {
+            // Update existing lesson
+            const updatedLessons = courseData.lessons.map((lesson) =>
+              lesson.id === editingLessonId
+                ? {
+                    ...currentLesson,
+                    videoUrl: videoUrl || lesson.videoUrl,
+                  }
+                : lesson
             );
+
+            updateCourseField("lessons", updatedLessons);
+          } else {
+            // Add new lesson with the next order index
+            const nextOrderIndex = courseData.lessons.length;
+            const newLesson: Lesson = {
+              ...currentLesson,
+              id: CourseUtils.generateId(),
+              orderIndex: nextOrderIndex,
+              videoUrl: videoUrl || "",
+            };
+
+            updateCourseField("lessons", [...courseData.lessons, newLesson]);
           }
 
-          const updatedLessons = editingLessonId
-            ? courseData.lessons.map((lesson) =>
-                lesson.id === editingLessonId
-                  ? {
-                      ...lesson,
-                      title: lessonForm.title,
-                      description: lessonForm.description,
-                      lectureNote: lessonForm.lectureNote,
-                      videoUrl: videoUrl || lesson.videoUrl,
-                    }
-                  : lesson
-              )
-            : [
-                ...courseData.lessons,
-                {
-                  id: generateId(),
-                  title: lessonForm.title,
-                  description: lessonForm.description,
-                  lectureNote: lessonForm.lectureNote,
-                  videoUrl,
-                },
-              ];
-
-          updateCourseField("lessons", updatedLessons);
           resetLessonForm();
           showToast(
             editingLessonId
@@ -300,14 +295,12 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
       },
       [
         courseData.lessons,
-        courseId,
+        currentLesson,
         editingLessonId,
-        generateId,
-        lessonForm,
         resetLessonForm,
         showToast,
         updateCourseField,
-        uploadToStorage,
+        validateLesson,
       ]
     ),
   };
@@ -325,119 +318,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     try {
       setIsSaving(true);
 
-      // Validate price
-      const parsedPrice = parseFloat(
-        String(courseData.price).replace(",", ".")
-      );
-      if (isNaN(parsedPrice)) {
-        showToast("Please enter a valid price", "error");
-        return;
-      }
-
-      // Upload cover image if changed
-      const coverPhotoUrl = coverFile
-        ? await uploadCoverImage()
-        : courseData.coverPhotoUrl;
-
-      // Create data for API submission
-      const apiCourseData = {
-        ...courseData,
-        price: parsedPrice,
-        coverPhotoUrl,
-      };
-
-      // Update the course
-      const response = await fetch(
-        `${API_BASE_URL}/api/courses/update/${courseId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(apiCourseData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw errorData;
-      }
-
-      // Handle lessons: First fetch existing
-      const existingLessonsResponse = await fetch(
-        `${API_BASE_URL}/api/lessons/get/${courseId}`
-      );
-      if (!existingLessonsResponse.ok) {
-        throw new Error("s to fetch existing lessons");
-      }
-
-      const existingLessons = await existingLessonsResponse.json();
-
-      // Delete all existing lessons first (batch approach)
-      await Promise.all(
-        existingLessons.map((lesson: any) =>
-          fetch(`${API_BASE_URL}/api/lessons/delete/${lesson.id}`, {
-            method: "DELETE",
-          })
-        )
-      );
-
-      // Create new lessons from courseData.lessons
-      await Promise.all(
-        courseData.lessons.map((lesson) =>
-          fetch(`${API_BASE_URL}/api/lessons/add/${courseId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              title: lesson.title,
-              description: lesson.description,
-              lectureNote: lesson.lectureNote,
-              videoUrl: lesson.videoUrl,
-            }),
-          })
-        )
-      );
-
-      // Handle outcomes: First fetch existing
-      const existingOutcomesResponse = await fetch(
-        `${API_BASE_URL}/api/outcomes/get/${courseId}`
-      );
-      if (!existingOutcomesResponse.ok) {
-        throw new Error("Failed to fetch existing outcomes");
-      }
-
-      const existingOutcomes = await existingOutcomesResponse.json();
-      const existingOutcomeTexts = existingOutcomes.map(
-        (outcome: { outcome: string }) => outcome.outcome
-      );
-
-      // Delete outcomes that are no longer needed
-      const outcomesToDelete = existingOutcomes.filter(
-        (outcome: { outcome: string; id: string }) =>
-          !courseData.outcomes.includes(outcome.outcome)
-      );
-
-      await Promise.all(
-        outcomesToDelete.map((outcome: { id: string }) =>
-          fetch(`${API_BASE_URL}/api/outcomes/delete/${outcome.id}`, {
-            method: "DELETE",
-          })
-        )
-      );
-
-      // Add new outcomes
-      const newOutcomes = courseData.outcomes.filter(
-        (outcome: string) =>
-          !existingOutcomeTexts.includes(outcome) && outcome.trim() !== ""
-      );
-
-      await Promise.all(
-        newOutcomes.map((outcome) =>
-          fetch(`${API_BASE_URL}/api/outcomes/add/${courseId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ outcome }),
-          })
-        )
-      );
+      await courseUtils.updateCourseWithEntities(courseData, coverFile);
 
       showToast("Course updated successfully!", "success");
       router.push(`/teachers/${instructorId}/all`);
@@ -449,15 +330,13 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
       setIsSaving(false);
     }
   }, [
-    API_BASE_URL,
     courseData,
-    courseId,
     coverFile,
     handleApiError,
     instructorId,
     router,
     showToast,
-    uploadCoverImage,
+    courseUtils,
   ]);
 
   return {
@@ -471,14 +350,15 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     setCoverPreview,
     showLessonModal,
     setShowLessonModal,
-    lessonForm,
+    currentLesson,
     editingLessonId,
+    lessonErrors,
 
     // Methods
     updateCourseField,
-    uploadCoverImage,
     saveCourse,
     resetLessonForm,
+    updateLessonOrder,
 
     // Grouped handlers
     outcomeHandlers: {

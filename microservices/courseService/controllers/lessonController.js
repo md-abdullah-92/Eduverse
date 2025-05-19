@@ -5,19 +5,23 @@ exports.addLesson = async (req, res) => {
   console.log("req.params", req.params);
   console.log("req.body", req.body);
   const { courseId } = req.params;
-  const { title, description, videoUrl, notes } = req.body;
+  const { title, description, videoUrl, notes, orderIndex } = req.body;
 
   try {
     const lesson = await prisma.lesson.create({
       data: {
         title,
-        description,
+        description,    course: {
+          connect: {
+            id: 10
+          }
+        },
         videoUrl,
         notes,
-        courseId: parseInt(courseId),
         course: {
           connect: { id: parseInt(courseId) },
         },
+        orderIndex: parseInt(orderIndex),
       }
     });
     res.status(201).json(lesson);
@@ -44,7 +48,7 @@ exports.getCourseLessons = async (req, res) => {
 // Update a lesson by ID
 exports.updateLesson = async (req, res) => {
   const { lessonId } = req.params;
-  const { title, description, videoUrl, notes } = req.body;
+  const { title, description, videoUrl, notes, orderIndex } = req.body;
 
   try {
     const updatedLesson = await prisma.lesson.update({
@@ -54,6 +58,10 @@ exports.updateLesson = async (req, res) => {
         description,
         videoUrl,
         notes,
+        orderIndex: parseInt(orderIndex),
+        course: {
+          connect: { id: parseInt(req.params.courseId) },
+        },
       },
     });
     res.status(200).json(updatedLesson);
@@ -83,7 +91,8 @@ exports.deleteLesson = async (req, res) => {
     //   "title": "Lesson 1",
     //   "description": "This is a lesson description.",
     //   "videoUrl": "http://localhost:5000/api/lessons/video",
-    //   "notes": "This is a lesson notes."
+    //   "notes": "This is a lesson notes.",
+    //   "orderIndex": 0
     // }
 
 // update lesson

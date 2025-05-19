@@ -102,7 +102,7 @@ export default function CourseForm({
             <input
               type="text"
               value={courseData.price}
-              onChange={(e) => onUpdate("price", Number(e.target.value))}
+              onChange={(e) => onUpdate("price", e.target.value)}
               placeholder="0.00"
               className="w-full border border-gray-300 rounded-md pl-7 p-2 focus:ring-teal-500 focus:border-teal-500"
             />

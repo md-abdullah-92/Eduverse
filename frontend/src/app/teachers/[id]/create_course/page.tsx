@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useToast } from "@/components/ui/toast";
@@ -18,10 +19,11 @@ export default function AddCoursePage() {
     topic: "",
     level: "BEGINNER",
     title: "",
-    price: 0.0, // Use decimal format
+    price: "", // Use string format
     description: "",
     coverPhotoUrl: "",
     instructorId: userId,
+    averageRating: 0,
   });
 
   // UI state
@@ -38,11 +40,11 @@ export default function AddCoursePage() {
     if (name === "price") {
       // Allow only valid price format
       if (value === "" || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
-        // Convert to float and round to 2 decimal places
-        const price = parseFloat(value.replace(",", "."));
+        // Format the price with 2 decimal places
+        const formattedPrice = value.replace(",", ".");
         setFormState((prev) => ({
           ...prev,
-          price: isNaN(price) ? 0.0 : parseFloat(price.toFixed(2)),
+          price: formattedPrice,
         }));
       }
     } else {
@@ -63,10 +65,11 @@ export default function AddCoursePage() {
       topic: "",
       level: "BEGINNER",
       title: "",
-      price: 0.0,
+      price: "0.0",
       description: "",
       coverPhotoUrl: coverPreview || "",
       instructorId: userId,
+      averageRating: 0,
     });
     setCoverFile(null);
     setCoverPreview(null);
@@ -90,10 +93,11 @@ export default function AddCoursePage() {
         topic: formState.topic,
         level: formState.level,
         title: formState.title,
-        price: formState.price, // Already a float
+        price: formState.price, // Convert to float
         description: formState.description,
         coverPhotoUrl: coverPhotoUrl || "",
         instructorId: userId,
+        averageRating: 0,
       };
 
       await courseUtils.createCourse(courseData);
@@ -379,7 +383,7 @@ export default function AddCoursePage() {
                   </div>
 
                   <div className="text-lg font-bold text-green-600 mb-3">
-                    ৳{formState.price.toFixed(2)}
+                    ৳{formState.price}
                   </div>
 
                   <button

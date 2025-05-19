@@ -1,25 +1,21 @@
-export interface Lesson {
-  id: string;
+export interface LessonFormData {
   title: string;
   description: string;
-  lectureNote: string;
   videoUrl: string | null;
+  notes: string;
+  orderIndex: number;
 }
 
-export interface LessonForm {
-  title: string;
-  description: string;
-  lectureNote: string;
-  video: File | null;
+export interface Lesson extends LessonFormData {
+  id: string | null;
 }
-
 export interface CourseFormData {
   title: string;
-  price: number;
+  price: string;
   level: string;
   topic: string;
   description: string;
-  coverPhotoUrl?: string | null;
+  coverPhotoUrl: string | null;
   instructorId: string;
   averageRating: number;
 }
