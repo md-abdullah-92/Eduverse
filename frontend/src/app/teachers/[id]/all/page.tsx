@@ -1,7 +1,7 @@
 "use client";
 
-import InstructorCourseCard from "@/components/ui/instructorCourseCard";
-import { Course } from "@/utils/types";
+import InstructorCourseCard from "@/components/ui_elements/instructorCourseCard";
+import { CourseData } from "@/utils/types";
 import { BarChart2, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -11,7 +11,7 @@ export default function AllCoursesByInstructorPage({
   params: { id: string };
 }) {
   const userId = params.id;
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("All Topics");
@@ -22,7 +22,7 @@ export default function AllCoursesByInstructorPage({
         const res = await fetch(
           `http://localhost:5001/api/courses/getByInstructorId/${userId}`
         );
-        const data: Course[] = await res.json();
+        const data: CourseData[] = await res.json();
         setCourses(data);
       } catch (error) {
         console.log("Failed to fetch courses:", error);

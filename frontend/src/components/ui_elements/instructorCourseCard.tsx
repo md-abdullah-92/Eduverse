@@ -1,10 +1,10 @@
-import { Course } from "@/utils/types";
+import { CourseData } from "@/utils/types";
 import { StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 interface InstructorCourseCardProps {
-  course: Course;
+  course: CourseData;
   instructorId: string;
 }
 
@@ -90,11 +90,11 @@ export default function InstructorCourseCard({
           {renderStars(course.averageRating)}
 
           <div className="text-lg font-bold text-green-600 mt-3 mb-3">
-            ৳{course.price ? course.price.toFixed(2) : "Free"}
+            ৳{course.price ? course.price : "Free"}
           </div>
 
           <Link
-            href={`/teachers/${instructorId}/course_dashboard/${course.id}`}
+            href={`/teachers/${instructorId}/course_update/${course.id}`}
             onClick={(e) => {
               e.stopPropagation(); // Stop the event from bubbling up to the card link
             }}

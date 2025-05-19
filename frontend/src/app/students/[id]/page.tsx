@@ -1,22 +1,22 @@
 "use client";
 
+import StudentMarkProgressChart from "@/app/students/components/StudentMarkProgressChart";
+import StudyTimeBarChart from "@/app/students/components/StudyTimeBarChart";
 import {
-  BookOpen,
-  Heart,
-  Star,
-  ListChecks,
-  User,
-  History,
   BadgeCheck,
+  BookOpen,
   ClipboardList,
-  LogOut,
   FileText,
+  Heart,
+  History,
+  ListChecks,
+  LogOut,
+  Star,
+  User,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import StudentMarkProgressChart from "@/components/StudentMarkProgressChart";
-import StudyTimeBarChart from "@/components/StudyTimeBarChart";
+import React, { useEffect, useState } from "react";
 
 type NavigationItem = {
   icon: React.ElementType;
@@ -37,7 +37,6 @@ type SidebarItemProps = {
 };
 
 const studentNavigationItems: NavigationItem[] = [
-  
   { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "Enrolled Courses" },
   { icon: Heart, label: "Wishlist" },
@@ -49,7 +48,11 @@ const studentNavigationItems: NavigationItem[] = [
   { icon: LogOut, label: "Logout" },
 ];
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, onClick }) => (
+const SidebarItem: React.FC<SidebarItemProps> = ({
+  icon: Icon,
+  label,
+  onClick,
+}) => (
   <div
     onClick={onClick}
     className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm text-gray-700"
@@ -59,19 +62,19 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon: Icon, label, onClick })
   </div>
 );
 
-
-
 const Sidebar: React.FC<{
   userId: string | string[];
   role: string;
   onLogout: () => void;
-}> = ({ userId,  onLogout }) => {
+}> = ({ userId, onLogout }) => {
   const router = useRouter();
 
   const handleClick = (label: string) => {
     switch (label) {
       case "Logout": {
-        const confirmLogout = window.confirm("Are you sure you want to log out?");
+        const confirmLogout = window.confirm(
+          "Are you sure you want to log out?"
+        );
         if (confirmLogout) {
           localStorage.removeItem("token");
           localStorage.removeItem("userId");
@@ -95,23 +98,28 @@ const Sidebar: React.FC<{
     }
   };
 
- 
-
-
-
-
   return (
     <aside className="w-72 h-full bg-white border-r px-5 py-6">
       <nav className="space-y-2">
         {studentNavigationItems.map((item, index) => (
-          <SidebarItem key={index} icon={item.icon} label={item.label} onClick={() => handleClick(item.label)} />
+          <SidebarItem
+            key={index}
+            icon={item.icon}
+            label={item.label}
+            onClick={() => handleClick(item.label)}
+          />
         ))}
       </nav>
     </aside>
   );
 };
 
-const StatCard: React.FC<StatCardProps> = ({ label, value, icon, colorClass }) => (
+const StatCard: React.FC<StatCardProps> = ({
+  label,
+  value,
+  icon,
+  colorClass,
+}) => (
   <div className="bg-white p-4 rounded-xl shadow flex items-center justify-between">
     <div>
       <p className="text-sm text-gray-500">{label}</p>
@@ -149,13 +157,28 @@ const StudentDashboard: React.FC = () => {
         setProfile(data.studentProfile);
         setRole(data.studentProfile?.user?.role || "STUDENT");
         localStorage.setItem("userPhoto", data.studentProfile.profilePhoto);
-        localStorage.setItem("userName", data.studentProfile.user.name || "Student Name");
+        localStorage.setItem(
+          "userName",
+          data.studentProfile.user.name || "Student Name"
+        );
         localStorage.setItem("userId", data.studentProfile.userId || userId);
-        localStorage.setItem("role", data.studentProfile.user.role || "STUDENT");
-        localStorage.setItem("userEmail", data.studentProfile.user.email || ")");
-        localStorage.setItem("userPhone", data.studentProfile.user.phone || "N/A");
+        localStorage.setItem(
+          "role",
+          data.studentProfile.user.role || "STUDENT"
+        );
+        localStorage.setItem(
+          "userEmail",
+          data.studentProfile.user.email || ")"
+        );
+        localStorage.setItem(
+          "userPhone",
+          data.studentProfile.user.phone || "N/A"
+        );
         localStorage.setItem("userBio", data.studentProfile.user.bio || "N/A");
-        localStorage.setItem("userCoverPhoto", data.studentProfile.coverPhoto || "N/A");
+        localStorage.setItem(
+          "userCoverPhoto",
+          data.studentProfile.coverPhoto || "N/A"
+        );
         console.log("Profile data:", data.studentProfile);
       } catch (err: any) {
         setError(err.message || "Something went wrong");
@@ -172,8 +195,18 @@ const StudentDashboard: React.FC = () => {
     // TODO: Add your logout logic here
   };
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
-  if (error) return <div className="flex min-h-screen items-center justify-center text-red-500">{error}</div>;
+  if (loading)
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="flex min-h-screen items-center justify-center text-red-500">
+        {error}
+      </div>
+    );
   if (!profile) return null;
 
   const student = profile;
@@ -208,8 +241,12 @@ const StudentDashboard: React.FC = () => {
           />
           <div className="flex-1 flex justify-between items-center pr-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">{student.user.name || "Student Name"}</h2>
-              <p className="text-sm text-gray-500">Student ID: {student.studentId || profile.id}</p>
+              <h2 className="text-xl font-bold text-gray-800">
+                {student.user.name || "Student Name"}
+              </h2>
+              <p className="text-sm text-gray-500">
+                Student ID: {student.studentId || profile.id}
+              </p>
             </div>
             <span className="text-sm text-gray-600">📘 Active Learner</span>
           </div>
@@ -217,22 +254,53 @@ const StudentDashboard: React.FC = () => {
 
         {/* Statistics Section */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-          <StatCard label="Courses Enrolled" value={student.coursesEnrolled?.toString() || "-"} icon={<BookOpen />} colorClass="text-blue-500" />
-          <StatCard label="Certificates Earned" value={student.certificatesEarned?.toString() || "-"} icon={<BadgeCheck />} colorClass="text-green-500" />
-          <StatCard label="Lessons Completed" value={student.lessonsCompleted?.toString() || "-"} icon={<ClipboardList />} colorClass="text-cyan-500" />
-          <StatCard label="Quiz Attempts" value={student.quizAttempts?.toString() || "-"} icon={<ListChecks />} colorClass="text-purple-500" />
-          <StatCard label="Orders Placed" value={student.ordersPlaced?.toString() || "-"} icon={<History />} colorClass="text-orange-500" />
-          <StatCard label="Reviews Given" value={student.reviewsGiven?.toString() || "-"} icon={<Star />} colorClass="text-yellow-500" />
+          <StatCard
+            label="Courses Enrolled"
+            value={student.coursesEnrolled?.toString() || "-"}
+            icon={<BookOpen />}
+            colorClass="text-blue-500"
+          />
+          <StatCard
+            label="Certificates Earned"
+            value={student.certificatesEarned?.toString() || "-"}
+            icon={<BadgeCheck />}
+            colorClass="text-green-500"
+          />
+          <StatCard
+            label="Lessons Completed"
+            value={student.lessonsCompleted?.toString() || "-"}
+            icon={<ClipboardList />}
+            colorClass="text-cyan-500"
+          />
+          <StatCard
+            label="Quiz Attempts"
+            value={student.quizAttempts?.toString() || "-"}
+            icon={<ListChecks />}
+            colorClass="text-purple-500"
+          />
+          <StatCard
+            label="Orders Placed"
+            value={student.ordersPlaced?.toString() || "-"}
+            icon={<History />}
+            colorClass="text-orange-500"
+          />
+          <StatCard
+            label="Reviews Given"
+            value={student.reviewsGiven?.toString() || "-"}
+            icon={<Star />}
+            colorClass="text-yellow-500"
+          />
         </div>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <StudyTimeBarChart />
-      <StudentMarkProgressChart />
-    </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StudyTimeBarChart />
+          <StudentMarkProgressChart />
+        </div>
 
         {/* Recent Courses */}
         <div className="bg-white rounded-xl p-6 shadow space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Recent Courses</h3>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Recent Courses
+          </h3>
           <div className="grid md:grid-cols-3 gap-4">
             {[1, 2, 3].map((index) => (
               <div key={index} className="flex items-center space-x-4">
@@ -244,8 +312,12 @@ const StudentDashboard: React.FC = () => {
                   className="rounded-md"
                 />
                 <div className="space-y-1">
-                  <h4 className="text-sm font-semibold text-gray-800">Course Title {index}</h4>
-                  <p className="text-xs text-gray-500">Progress: {40 + index * 10}%</p>
+                  <h4 className="text-sm font-semibold text-gray-800">
+                    Course Title {index}
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    Progress: {40 + index * 10}%
+                  </p>
                 </div>
               </div>
             ))}

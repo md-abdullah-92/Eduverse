@@ -1,8 +1,8 @@
 "use client";
-import CourseForm from "@/components/course/CourseForm";
-import LessonForm from "@/components/course/LessonForm";
-import LessonList from "@/components/course/LessonList"; // Import the LessonList component
-import { useCourse } from "@/hooks/useCourse";
+import CourseForm from "@/app/teachers/[id]/course_update/components/CourseForm";
+import LessonForm from "@/app/teachers/[id]/course_update/components/LessonForm";
+import LessonList from "@/app/teachers/[id]/course_update/components/LessonList"; // Import the LessonList component
+import { useCourse } from "@/app/teachers/[id]/course_update/hooks/useCourse";
 import { Lesson } from "@/utils/types";
 import { Plus, Video, X } from "lucide-react";
 import { useParams } from "next/navigation";

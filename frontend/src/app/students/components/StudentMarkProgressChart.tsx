@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
-import ChartCard from '../components/ChartCard';
+} from "recharts";
+import ChartCard from "../components/ChartCard";
 
 const examData = [
-  { exam: 'Quiz 1', mark: 65, average: 60 },
-  { exam: 'Quiz 2', mark: 70, average: 68 },
-  { exam: 'Midterm', mark: 80, average: 75 },
-  { exam: 'Quiz 3', mark: 75, average: 70 },
-  { exam: 'Final', mark: 90, average: 78 },
+  { exam: "Quiz 1", mark: 65, average: 60 },
+  { exam: "Quiz 2", mark: 70, average: 68 },
+  { exam: "Midterm", mark: 80, average: 75 },
+  { exam: "Quiz 3", mark: 75, average: 70 },
+  { exam: "Final", mark: 90, average: 78 },
 ];
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -26,8 +26,12 @@ const CustomTooltip = ({ active, payload }: any) => {
     return (
       <div className="bg-white border border-gray-300 rounded-md p-3 shadow text-sm text-gray-800">
         <p className="font-medium">{exam}</p>
-        <p>Student Mark: <span className="font-semibold">{mark}</span></p>
-        <p>Class Average: <span className="font-semibold">{average}</span></p>
+        <p>
+          Student Mark: <span className="font-semibold">{mark}</span>
+        </p>
+        <p>
+          Class Average: <span className="font-semibold">{average}</span>
+        </p>
       </div>
     );
   }
@@ -41,7 +45,10 @@ const StudentMarkProgressChart = () => {
       description="Track your individual marks compared to the class average across assessments."
     >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={examData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+        <LineChart
+          data={examData}
+          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+        >
           <defs>
             <linearGradient id="colorMark" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#1A5B6D" stopOpacity={0.8} />
@@ -63,7 +70,7 @@ const StudentMarkProgressChart = () => {
             name="Your Mark"
             stroke="#1A5B6D"
             strokeWidth={3}
-            dot={{ fill: '#1A5B6D', r: 5 }}
+            dot={{ fill: "#1A5B6D", r: 5 }}
             activeDot={{ r: 7 }}
           />
           <Line
@@ -73,7 +80,7 @@ const StudentMarkProgressChart = () => {
             stroke="#f59e0b"
             strokeWidth={2}
             strokeDasharray="5 5"
-            dot={{ fill: '#f59e0b', r: 4 }}
+            dot={{ fill: "#f59e0b", r: 4 }}
             activeDot={{ r: 6 }}
           />
         </LineChart>

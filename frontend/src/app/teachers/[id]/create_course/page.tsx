@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/components/ui_elements/toast";
 import { CourseUtils } from "@/utils/courseUtils";
 import { CourseFormData } from "@/utils/types";
 import { useParams, useRouter } from "next/navigation";

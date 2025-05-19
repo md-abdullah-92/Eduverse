@@ -1,39 +1,39 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { jaro, poppins } from '@/utils/font';
-import Navigation from '@/components/ui/navigation';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+"use client";
+import Navigation from "@/components/ui_elements/navigation";
+import { jaro, poppins } from "@/utils/font";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const Header = () => {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userPhoto, setUserPhoto] = useState('');
-  const [role, setRole] = useState('');
-  const [userId, setUserId] = useState('');
+  const [userPhoto, setUserPhoto] = useState("");
+  const [role, setRole] = useState("");
+  const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const photo = localStorage.getItem('userPhoto');
-    const userId = localStorage.getItem('userId');
-    const role = localStorage.getItem('role');
-    console.log('User ID:', userId);
-    console.log('Role:', role);
+    const token = localStorage.getItem("token");
+    const photo = localStorage.getItem("userPhoto");
+    const userId = localStorage.getItem("userId");
+    const role = localStorage.getItem("role");
+    console.log("User ID:", userId);
+    console.log("Role:", role);
 
     setIsLoggedIn(!!token);
-    setUserPhoto(photo || '/profile.png');
-    setRole(role || 'STUDENT');
-    setUserId(userId || '');
+    setUserPhoto(photo || "/profile.png");
+    setRole(role || "STUDENT");
+    setUserId(userId || "");
   }, [pathname]);
 
-  const isAuthPage = pathname === '/auth/login';
+  const isAuthPage = pathname === "/auth/login";
 
   const profileLink =
-    role === 'STUDENT'
+    role === "STUDENT"
       ? `/students/${userId}`
-      : role === 'TEACHER'
+      : role === "TEACHER"
       ? `/teachers/${userId}`
-      : '/';
+      : "/";
 
   return (
     <header className="bg-white shadow-sm px-8 py-4 flex items-center justify-between border-b border-gray-200 sticky top-0 z-50">
@@ -41,7 +41,9 @@ const Header = () => {
       <div className="flex items-center space-x-2">
         <Link href="/" className="flex items-center gap-2">
           <img src="/logo_t.png" alt="EduVerse Logo" className="h-10 w-auto" />
-          <span className={`text-3xl font-bold text-sky-900 tracking-wide ${jaro.className}`}>
+          <span
+            className={`text-3xl font-bold text-sky-900 tracking-wide ${jaro.className}`}
+          >
             EduVerse
           </span>
         </Link>
@@ -53,7 +55,10 @@ const Header = () => {
       {/* Right-side */}
       <div className="flex items-center space-x-4">
         {isLoggedIn ? (
-          <Link href={profileLink} className="text-gray-700 hover:text-gray-900">
+          <Link
+            href={profileLink}
+            className="text-gray-700 hover:text-gray-900"
+          >
             <img
               src={userPhoto}
               alt="User Profile"

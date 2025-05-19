@@ -1,12 +1,12 @@
 "use client";
 
-import CourseCard from "@/components/ui/courseCard";
-import { Course } from "@/utils/types";
+import CourseCard from "@/components/ui_elements/courseCard";
+import { CourseData } from "@/utils/types";
 import { BookOpen, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function AllCoursesPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("All Topics");
@@ -15,7 +15,7 @@ export default function AllCoursesPage() {
     const fetchCourses = async () => {
       try {
         const res = await fetch(`http://localhost:5001/api/courses/all`);
-        const data: Course[] = await res.json();
+        const data: CourseData[] = await res.json();
         setCourses(data);
       } catch (error) {
         console.error("Failed to fetch courses:", error);
