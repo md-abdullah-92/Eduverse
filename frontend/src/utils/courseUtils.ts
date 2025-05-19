@@ -166,6 +166,7 @@ export class CourseUtils {
           description: lesson.description,
           notes: lesson.notes,
           videoUrl: lesson.videoUrl,
+          orderIndex: lesson.orderIndex,
         })
       )
     );
