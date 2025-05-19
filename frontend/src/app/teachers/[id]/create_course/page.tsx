@@ -1,55 +1,33 @@
 "use client";
 
-import { storage } from "@/firebaseConfig";
-import axios from "axios";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { useToast } from "@/components/ui/toast";
+import { CourseUtils } from "@/utils/courseUtils";
+import { CourseFormData } from "@/utils/types";
 import { useParams, useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
-
-// Type definitions
-type CourseLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
-
-interface FormState {
-  topic: string;
-  level: CourseLevel;
-  title: string;
-  price: string;
-  description: string;
-}
-
-// Form validation function
-const validateForm = (
-  form: FormState,
-  coverFile: File | null
-): string | null => {
-  if (!form.title.trim()) return "Course title is required";
-  if (!form.description.trim()) return "Course description is required";
-
-  const priceValue = parseFloat(form.price.replace(",", "."));
-  if (isNaN(priceValue)) return "Please enter a valid price";
-
-  return null; // Form is valid
-};
 
 export default function AddCoursePage() {
   const params = useParams();
   const router = useRouter();
   const userId = Array.isArray(params?.id) ? params.id[0] : params?.id || "";
+  const courseUtils = new CourseUtils({ userId });
+  const { showToast } = useToast();
 
   // Form state
-  const [formState, setFormState] = useState<FormState>({
+  const [formState, setFormState] = useState<CourseFormData>({
     topic: "",
     level: "BEGINNER",
     title: "",
-    price: "0.00",
+    price: 0.0, // Use decimal format
     description: "",
+    coverPhotoUrl: "",
+    instructorId: userId,
   });
 
   // UI state
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", type: "" });
 
   // Form handlers
   const handleInputChange = (
@@ -60,7 +38,12 @@ export default function AddCoursePage() {
     if (name === "price") {
       // Allow only valid price format
       if (value === "" || /^[0-9]*[.,]?[0-9]*$/.test(value)) {
-        setFormState((prev) => ({ ...prev, [name]: value }));
+        // Convert to float and round to 2 decimal places
+        const price = parseFloat(value.replace(",", "."));
+        setFormState((prev) => ({
+          ...prev,
+          price: isNaN(price) ? 0.0 : parseFloat(price.toFixed(2)),
+        }));
       }
     } else {
       setFormState((prev) => ({ ...prev, [name]: value }));
@@ -75,30 +58,15 @@ export default function AddCoursePage() {
     }
   };
 
-  const uploadCoverImage = async (): Promise<string> => {
-    if (!coverFile) return "";
-
-    const storageRef = ref(
-      storage,
-      `course_covers/${Date.now()}-${coverFile.name}`
-    );
-
-    try {
-      await uploadBytes(storageRef, coverFile);
-      return await getDownloadURL(storageRef);
-    } catch (error) {
-      console.error("Error uploading cover image:", error);
-      throw new Error("Failed to upload cover image");
-    }
-  };
-
   const resetForm = () => {
     setFormState({
       topic: "",
       level: "BEGINNER",
       title: "",
-      price: "0.00",
+      price: 0.0,
       description: "",
+      coverPhotoUrl: coverPreview || "",
+      instructorId: userId,
     });
     setCoverFile(null);
     setCoverPreview(null);
@@ -106,63 +74,45 @@ export default function AddCoursePage() {
 
   const handleCreateCourse = async () => {
     // Validate form
-    const validationError = validateForm(formState, coverFile);
+    const validationError = CourseUtils.validateCourseForm(formState);
     if (validationError) {
-      setMessage({ text: `❌ ${validationError}`, type: "error" });
+      showToast(validationError, "error");
       return;
     }
 
     try {
       setLoading(true);
-      setMessage({ text: "", type: "" });
 
-      const coverPhotoUrl = await uploadCoverImage();
-      const priceValue = parseFloat(formState.price.replace(",", "."));
+      const coverPhotoUrl = await courseUtils.uploadCoverImage(coverFile);
 
-      const body = {
-        title: formState.title,
-        description: formState.description,
-        price: priceValue,
-        coverPhotoUrl,
+      // Format data according to CourseData interface
+      const courseData: CourseFormData = {
+        topic: formState.topic,
         level: formState.level,
+        title: formState.title,
+        price: formState.price, // Already a float
+        description: formState.description,
+        coverPhotoUrl: coverPhotoUrl || "",
         instructorId: userId,
       };
 
-      const response = await axios.post(
-        "http://localhost:5001/api/courses/create/",
-        body
-      );
-
-      if (response.status === 201) {
-        setMessage({
-          text: "✅ Course created successfully!",
-          type: "success",
-        });
-        resetForm();
-        router.push(`/teachers/${userId}/all`);
-      } else {
-        setMessage({
-          text: `❌ Failed to create course: ${
-            response.data.message || "Unknown error"
-          }`,
-          type: "error",
-        });
-      }
+      await courseUtils.createCourse(courseData);
+      showToast("Course created successfully!", "success");
+      resetForm();
+      router.push(`/teachers/${userId}/all`);
     } catch (error: any) {
       console.error("Error creating course:", error);
 
       if (error.response?.data?.errors) {
         const errorMessages = error.response.data.errors
-          .map((err: any) => `❌ ${err.msg}`)
+          .map((err: any) => err.msg)
           .join("\n");
-        setMessage({ text: errorMessages, type: "error" });
+        showToast(errorMessages, "error");
       } else {
-        setMessage({
-          text: `❌ Error creating course: ${
-            error.response?.data?.message || error.message || "Unknown error"
-          }`,
-          type: "error",
-        });
+        showToast(
+          error.response?.data?.message || error.message || "Unknown error",
+          "error"
+        );
       }
     } finally {
       setLoading(false);
@@ -177,7 +127,7 @@ export default function AddCoursePage() {
           Create a course
         </h1>
         <p className="text-lg mb-4 text-gray-700">
-          Follow the steps to create a course.
+          Follow the steps for your course.
         </p>
         <div className="space-y-4">
           {[
@@ -187,9 +137,10 @@ export default function AddCoursePage() {
             "Input Title",
             "Write a description",
             "Upload a cover",
+            "Create course",
+            "Go to course dashboard",
             "Write what one will learn from the course",
-            "Upload lessons",
-            "Deploy course",
+            "Add lessons",
           ].map((step, index) => (
             <div key={index} className="flex items-center">
               <div className="w-8 h-8 rounded-full bg-teal-700 text-white flex items-center justify-center mr-3">
@@ -233,6 +184,7 @@ export default function AddCoursePage() {
                     <option value="Language">Language</option>
                     <option value="Arts">Arts</option>
                     <option value="Technology">Technology</option>
+                    <option value="Islamic">Islamic</option>
                   </select>
                 </div>
 
@@ -280,7 +232,7 @@ export default function AddCoursePage() {
                     htmlFor="price"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   >
-                    Price (£)
+                    Price (৳)
                   </label>
                   <input
                     type="text"
@@ -367,18 +319,6 @@ export default function AddCoursePage() {
                     )}
                   </button>
                 </div>
-
-                {message.text && (
-                  <div
-                    className={`p-3 rounded-md mt-4 ${
-                      message.type === "success"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {message.text}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -418,6 +358,9 @@ export default function AddCoursePage() {
                         </svg>
                         <span>No cover image</span>
                       </div>
+                      <div className="absolute top-3 right-3 bg-white py-1 px-2 rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                        {formState.topic}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -441,12 +384,12 @@ export default function AddCoursePage() {
                   </div>
 
                   <div className="text-lg font-bold text-green-600 mb-3">
-                    £{parseFloat(formState.price || "0").toFixed(2)}
+                    ৳{formState.price.toFixed(2)}
                   </div>
 
                   <button
                     disabled
-                    className="w-full py-2 px-4 bg-gray-200 text-gray-500 font-medium rounded-md cursor-not-allowed"
+                    className="w-full py-2 px-4 bg-teal-700 text-white font-medium rounded-md cursor-not-allowed"
                   >
                     Book
                   </button>

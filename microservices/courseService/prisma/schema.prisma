@@ -20,6 +20,7 @@ model Course {
   price         Float
   coverPhotoUrl String
   level         CourseLevel
+  topic         String?
   outcomes      CourseOutcome[]
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt

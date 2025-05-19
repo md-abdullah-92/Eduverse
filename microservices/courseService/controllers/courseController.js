@@ -5,7 +5,7 @@ module.exports = {
   createCourse: async (req, res) => {
     try {
       
-      const { title, description, price, coverPhotoUrl, level, instructorId } = req.body;
+      const { title, description, price, coverPhotoUrl, level, instructorId, topic } = req.body;
       const newCourse = await prisma.course.create({
         data: {
           title,
@@ -14,7 +14,7 @@ module.exports = {
           coverPhotoUrl,
           level,
           instructorId,
-          
+          topic
         }   
       });
       res.status(201).json(newCourse);
@@ -28,10 +28,10 @@ module.exports = {
   updateCourse: async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, description, price, coverPhotoUrl, level } = req.body;
+      const { title, description, price, coverPhotoUrl, level, topic } = req.body;
       const updatedCourse = await prisma.course.update({
         where: { id: Number(id) },
-        data: { title, description, price, coverPhotoUrl, level,}
+        data: { title, description, price, coverPhotoUrl, level, topic }
       });
       res.json(updatedCourse);
     } catch (error) {
@@ -99,6 +99,20 @@ module.exports = {
       console.log(error);
       res.status(500).json({ error: 'Failed to fetch instructor courses', details: error.message });
     }
+  },
+
+  //get course by topic
+  getByTopic : async (req, res) => {
+    const { topic } = req.params;
+    try {
+      const courses = await prisma.course.findMany({
+        where: { topic },
+      });
+      res.json(courses);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: 'Failed to fetch courses by topic', details: error.message });
+    }
   }
 
 };
@@ -106,6 +120,7 @@ module.exports = {
 
 // Create a new course
 // hit ->  http://localhost:5000/api/courses/create
+
 // request body -> 
     // {
     //   "title": "programming with c",
@@ -135,3 +150,6 @@ module.exports = {
 
 // get courses by instructor id
 // hit ->  http://localhost:5000/api/courses/getByInstructorId/id 
+
+//get course by topic
+// hit ->  http://localhost:5000/api/courses/getByTopic/topic

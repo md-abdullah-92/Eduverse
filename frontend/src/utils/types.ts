@@ -15,13 +15,28 @@ export interface LessonForm {
 
 export interface CourseFormData {
   title: string;
-  price: string;
+  price: number;
   level: string;
+  topic: string;
   description: string;
-  coverPhotoUrl?: string;
-  outcomes: string[];
+  coverPhotoUrl?: string | null;
+  instructorId: string;
 }
 
 export interface CourseData extends CourseFormData {
+  id?: string;
   lessons: Lesson[];
+  outcomes: string[];
+}
+
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  coverPhotoUrl: string | null;
+  level: string;
+  topic: string;
+  instructorId: string;
+  averageRating: number;
 }
