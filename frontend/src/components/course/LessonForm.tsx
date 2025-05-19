@@ -71,6 +71,12 @@ export default function LessonForm({
               errors.description ? "border-red-500" : "border-gray-300"
             } rounded-md p-2 min-h-[120px] resize-y focus:ring-teal-500 focus:border-teal-500`}
           />
+          {errors.description && (
+            <div className="mt-1 text-red-500 text-sm flex items-center">
+              <AlertCircle size={14} className="mr-1" />
+              {errors.description}
+            </div>
+          )}
         </div>
 
         {/* Lecture Notes */}
@@ -85,6 +91,12 @@ export default function LessonForm({
             placeholder="Enter lecture notes (optional)"
             className="w-full border border-gray-300 rounded-md p-2 min-h-[120px] resize-y focus:ring-teal-500 focus:border-teal-500"
           />
+          {errors.notes && (
+            <div className="mt-1 text-red-500 text-sm flex items-center">
+              <AlertCircle size={14} className="mr-1" />
+              {errors.notes}
+            </div>
+          )}
         </div>
 
         {/* Video - Placeholder for future implementation */}

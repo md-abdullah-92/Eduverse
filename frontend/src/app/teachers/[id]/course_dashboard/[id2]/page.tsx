@@ -1,8 +1,10 @@
 "use client";
 import CourseForm from "@/components/course/CourseForm";
 import LessonForm from "@/components/course/LessonForm";
+import LessonList from "@/components/course/LessonList"; // Import the LessonList component
 import { useCourse } from "@/hooks/useCourse";
-import { Edit2, Plus, Trash2, Video, X } from "lucide-react";
+import { Lesson } from "@/utils/types";
+import { Plus, Video, X } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 
@@ -22,8 +24,8 @@ export default function CourseDashboard() {
     setShowLessonModal,
     editingLessonId,
     setCoverPreview,
-    currentLesson, // Changed from lessonData to currentLesson
-    lessonErrors, // Added lessonErrors
+    currentLesson,
+    lessonErrors,
 
     // Methods
     updateCourseField,
@@ -49,6 +51,21 @@ export default function CourseDashboard() {
     setShowLessonModal(false);
     resetLessonForm();
   }, [setShowLessonModal, resetLessonForm]);
+
+  // Handle lesson reordering
+  const handleLessonReorder = useCallback(
+    (reorderedLessons: Lesson[]) => {
+      // Update the orderIndex values based on new order
+      const updatedLessons = reorderedLessons.map((lesson, index) => ({
+        ...lesson,
+        orderIndex: index,
+      }));
+
+      // Update the course data with reordered lessons
+      updateCourseField("lessons", updatedLessons);
+    },
+    [updateCourseField]
+  );
 
   if (isLoading) {
     return <div className="p-8 text-center">Loading course details...</div>;
@@ -128,42 +145,12 @@ export default function CourseDashboard() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {courseData.lessons.map((lesson, index) => (
-                    <div
-                      key={lesson.id}
-                      className="p-3 bg-gray-50 rounded-md border border-gray-200 flex items-center"
-                    >
-                      <div className="mr-3 h-8 w-8 flex items-center justify-center bg-teal-100 text-teal-700 rounded-full">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium">{lesson.title}</div>
-                        {lesson.description && (
-                          <div className="text-sm text-gray-500 truncate">
-                            {lesson.description}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex space-x-1">
-                        <button
-                          onClick={() => lessonHandlers.edit(lesson.id!)}
-                          className="text-gray-400 hover:text-teal-600"
-                          aria-label="Edit lesson"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => lessonHandlers.delete(lesson.id!)}
-                          className="text-gray-400 hover:text-red-500"
-                          aria-label="Delete lesson"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <LessonList
+                  lessons={courseData.lessons}
+                  onEdit={lessonHandlers.edit}
+                  onDelete={lessonHandlers.delete}
+                  onReorder={handleLessonReorder}
+                />
               )}
             </div>
           </div>
