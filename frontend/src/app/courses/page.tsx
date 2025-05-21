@@ -20,7 +20,6 @@ export default function AllCoursesPage() {
       try {
         const res = await fetch(`http://localhost:5001/api/courses/all`);
         const data: CourseData[] = await res.json();
-        console.log(data);
         setCourses(data);
       } catch (error) {
         console.error("Failed to fetch courses:", error);

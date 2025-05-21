@@ -170,7 +170,7 @@ export default function CourseForm({
                   </div>
                   <input
                     type="text"
-                    value={outcome}
+                    value={outcome.outcome}
                     onChange={(e) => onUpdateOutcome(index, e.target.value)}
                     placeholder={`Learning outcome ${index + 1}`}
                     className="flex-1 border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-teal-500 focus:border-teal-500"

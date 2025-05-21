@@ -71,8 +71,10 @@ export class CourseUtils {
       description: data.description || "",
       coverPhotoUrl: data.coverPhotoUrl,
       outcomes: Array.isArray(data.outcomes)
-        ? data.outcomes.map((outcome: { outcome: string }) => outcome.outcome)
-        : [""],
+        ? data.outcomes.map((outcome: { outcome: string }) => ({
+            outcome: outcome.outcome,
+          }))
+        : [{ outcome: "" }],
       lessons: CourseUtils.formatLessons(data.lessons || []),
       averageRating: data.averageRating || 0.0,
       instructorId: data.instructorId || "",
@@ -129,8 +131,10 @@ export class CourseUtils {
       // Handle lessons
       await this.handleLessons(data.lessons);
 
-      // Handle outcomes
-      await this.handleOutcomes(data.outcomes);
+      // Handle outcomes - map the Outcome objects to strings for the API
+      await this.handleOutcomes(
+        data.outcomes.map((outcome) => outcome.outcome)
+      );
 
       return {
         ...data,

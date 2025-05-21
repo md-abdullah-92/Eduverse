@@ -20,8 +20,12 @@ export interface CourseFormData {
   averageRating: number;
 }
 
+export interface Outcome {
+  outcome: string;
+}
+
 export interface CourseData extends CourseFormData {
   id: number;
   lessons: Lesson[];
-  outcomes: string[];
+  outcomes: Outcome[];
 }

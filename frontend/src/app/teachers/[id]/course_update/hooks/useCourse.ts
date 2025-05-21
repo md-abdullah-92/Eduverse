@@ -14,7 +14,7 @@ interface UseCourseProps {
 }
 
 const INITIAL_COURSE_DATA: CourseData = {
-  id: "",
+  id: 0,
   title: "",
   price: "0.00",
   level: "",
@@ -23,7 +23,7 @@ const INITIAL_COURSE_DATA: CourseData = {
   coverPhotoUrl: null,
   instructorId: "",
   averageRating: 0.0,
-  outcomes: [""],
+  outcomes: [],
   lessons: [],
 };
 
@@ -113,13 +113,13 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
   // Learning outcomes handlers
   const outcomeHandlers = {
     add: useCallback(() => {
-      updateCourseField("outcomes", [...courseData.outcomes, ""]);
+      updateCourseField("outcomes", [...courseData.outcomes, { outcome: "" }]);
     }, [courseData.outcomes, updateCourseField]),
 
     update: useCallback(
       (index: number, value: string) => {
         const updatedOutcomes = [...courseData.outcomes];
-        updatedOutcomes[index] = value;
+        updatedOutcomes[index] = { outcome: value };
         updateCourseField("outcomes", updatedOutcomes);
       },
       [courseData.outcomes, updateCourseField]

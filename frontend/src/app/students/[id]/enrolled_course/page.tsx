@@ -3,7 +3,7 @@
 
 import StudentCourseCard from "@/app/students/components/StudentCourseCard";
 import { CourseData } from "@/utils/types";
-import { BookOpen, ChevronDown, Filter, Search } from "lucide-react";
+import { BookOpen, ChevronDown, Filter, Link, Search } from "lucide-react";
 import { use, useEffect, useState } from "react";
 
 export default function StudentEnrolledCoursesPage({
@@ -105,7 +105,7 @@ export default function StudentEnrolledCoursesPage({
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 pb-20">
       {/* Student Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16 px-4">
+      <div className="bg-gradient-to-r from-teal-700 to-purple-600 text-white py-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
@@ -207,12 +207,12 @@ export default function StudentEnrolledCoursesPage({
               Try adjusting your search or filter criteria, or enroll in new
               courses
             </p>
-            <a
+            <Link
               href="/courses/explore"
               className="mt-6 inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               Explore Available Courses
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
