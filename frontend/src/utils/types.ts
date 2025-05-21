@@ -21,7 +21,7 @@ export interface CourseFormData {
 }
 
 export interface CourseData extends CourseFormData {
-  id: string;
+  id: number;
   lessons: Lesson[];
   outcomes: string[];
 }

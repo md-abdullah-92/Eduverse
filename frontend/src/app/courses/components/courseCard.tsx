@@ -1,13 +1,31 @@
-import { Course } from "@/utils/types";
+import { useAuth } from "@/app/auth/context";
+import { useToast } from "@/components/ui_elements/toast";
+import { EnrollmentUtils } from "@/utils/enrollmentUtils";
+import { CourseData } from "@/utils/types";
 import { StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
 interface CourseCardProps {
-  course: Course;
+  course: CourseData;
 }
 
 export default function CourseCard({ course }: CourseCardProps) {
+  const { user } = useAuth();
+  const isStudent = user?.role === "STUDENT";
+  const { showToast } = useToast();
+  const router = useRouter();
+
+  const enrollmentUtils = new EnrollmentUtils({
+    userId: user!.id,
+    onSuccess: (message) => {
+      showToast(message, "success");
+      router.push(`/students/${user!.id}/enrolled_course`);
+    },
+    onFailure: (message) => {
+      showToast(message, "error");
+    },
+  });
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center">
@@ -21,9 +39,6 @@ export default function CourseCard({ course }: CourseCardProps) {
             }`}
           />
         ))}
-        <span className="text-gray-600 text-sm ml-2">
-          {/* {rating.toFixed(1)} ({course.reviews?.length || 0} reviews) */}
-        </span>
       </div>
     );
   };
@@ -70,8 +85,9 @@ export default function CourseCard({ course }: CourseCardProps) {
 
         {/* Course Info */}
         <div className="p-4">
-          <div className="text-sm font-medium text-teal-700 mb-2">
+          <div className="text-sm font-medium text-teal-700 mb-2 flex items-center justify-between">
             {course.level || "INTERMEDIATE"}
+            {renderStars(course.averageRating)}
           </div>
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
             {course.title}
@@ -83,21 +99,32 @@ export default function CourseCard({ course }: CourseCardProps) {
             {"Instructor University"}
           </div>
 
-          {renderStars(course.averageRating)}
-
           <div className="text-lg font-bold text-green-600 mt-3 mb-3">
-            ৳{course.price ? course.price.toFixed(2) : "Free"}
+            ৳{course.price ? course.price : "Free"}
           </div>
 
-          <button
-            className="w-full py-2 px-4 bg-teal-700 text-white font-medium rounded-md cursor-not-allowed"
-            onClick={(e) => {
-              e.preventDefault(); // Prevent the link from navigating
-              // You could add additional functionality here like adding to cart
-            }}
-          >
-            Add to Cart
-          </button>
+          {isStudent && course.price ? (
+            <button
+              className="w-full py-2 px-4 bg-teal-700 text-white font-medium rounded-md hover:bg-teal-600 transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                // implement add to cart logic here
+                // I am not implementing it now
+                // I am directly adding an enrollment
+                enrollmentUtils.enrollInCourse(course.id);
+                console.log("Adding course to cart:", course.id);
+              }}
+            >
+              Add to Cart
+            </button>
+          ) : (
+            <button
+              className="w-full py-2 px-4 bg-gray-200 text-gray-500 font-medium rounded-md cursor-not-allowed"
+              disabled
+            >
+              {course.price ? "Available for students" : "Free"}
+            </button>
+          )}
         </div>
       </div>
     </Link>

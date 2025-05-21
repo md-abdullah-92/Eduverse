@@ -92,6 +92,12 @@ const Sidebar: React.FC<{
         }
         break;
 
+      case "Enrolled Courses":
+        if (userId) {
+          router.push(`/students/${userId}/enrolled_course`);
+        }
+        break;
+
       default:
         console.warn(`Unhandled label: ${label}`);
         break;
@@ -213,7 +219,7 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar userId={userId} role={role} onLogout={handleLogout} />
+      <Sidebar userId={userId!} role={role} onLogout={handleLogout} />
       <main className="flex-1 p-6 space-y-6">
         {/* Cover Section */}
         <div className="relative w-full h-64 rounded-xl overflow-hidden">

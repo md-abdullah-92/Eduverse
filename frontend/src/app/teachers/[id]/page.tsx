@@ -144,7 +144,11 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
       return;
     }
     if (label === "My Courses") {
-      router.push(role === "TEACHER" ? `/teachers/${userId}/all/` : "");
+      router.push(
+        role === "TEACHER"
+          ? `/teachers/${userId}/all/`
+          : `/students/${userId}/enrolled_course`
+      );
       return;
     }
     if (label === "Create Course") {
@@ -302,7 +306,7 @@ const DashboardPage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role={role} userId={userId} />
+      <Sidebar role={role} userId={userId!} />
       <main className="flex-1 p-6 space-y-6">
         <div className="relative w-full h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden">
           <Image

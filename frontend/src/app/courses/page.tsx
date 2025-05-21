@@ -1,11 +1,15 @@
 "use client";
 
-import CourseCard from "@/components/ui_elements/courseCard";
+import { useAuth } from "@/app/auth/context";
+import CourseCard from "@/app/courses/components/courseCard";
 import { CourseData } from "@/utils/types";
 import { BookOpen, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function AllCoursesPage() {
+  const { user } = useAuth();
+  const isStudent = user?.role === "STUDENT";
+
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -16,6 +20,7 @@ export default function AllCoursesPage() {
       try {
         const res = await fetch(`http://localhost:5001/api/courses/all`);
         const data: CourseData[] = await res.json();
+        console.log(data);
         setCourses(data);
       } catch (error) {
         console.error("Failed to fetch courses:", error);
@@ -61,9 +66,17 @@ export default function AllCoursesPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Discover Your Next Skill
-              </h1>
+              {isStudent ? (
+                <h1 className="text-4xl md:text-5xl font-medium mb-4">
+                  Assalamu Alaikum, Discover Next Skills
+                </h1>
+              ) : (
+                <h1 className="text-4xl md:text-5xl font-medium mb-4">
+                  Assalamu Alaikum, Explore Courses
+                </h1>
+              )}
+              <br />
+
               <p className="text-purple-100 text-lg max-w-xl">
                 Browse our library of top-rated courses taught by industry
                 experts and take your skills to the next level.

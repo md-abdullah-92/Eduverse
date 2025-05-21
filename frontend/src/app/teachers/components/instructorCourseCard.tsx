@@ -74,8 +74,9 @@ export default function InstructorCourseCard({
 
         {/* Course Info */}
         <div className="p-4">
-          <div className="text-sm font-medium text-teal-700 mb-2">
+          <div className="text-sm font-medium text-teal-700 mb-2 flex items-center justify-between">
             {course.level || "INTERMEDIATE"}
+            {renderStars(course.averageRating)}
           </div>
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
             {course.title}
@@ -86,8 +87,6 @@ export default function InstructorCourseCard({
           <div className="text-xs text-gray-500 mb-1">
             {"Instructor University"}
           </div>
-
-          {renderStars(course.averageRating)}
 
           <div className="text-lg font-bold text-green-600 mt-3 mb-3">
             ৳{course.price ? course.price : "Free"}

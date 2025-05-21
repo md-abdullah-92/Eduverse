@@ -1,20 +1,38 @@
-
 const prisma = require('../prismaClient');
 
 // Enroll a student into a course
 exports.enrollStudent = async (req, res) => {
-  const { studentId, courseId } = req.body;
-
   try {
+    const { studentId, courseId } = req.body;
+    
+
+    // Check if enrollment already exists
+    const existingEnrollment = await prisma.enrollment.findFirst({
+      where: {
+        studentId,
+        courseId,
+      }
+    });
+
+    if (existingEnrollment) {
+      return res.status(400).json({ error: 'Student is already enrolled in this course' });
+    }
+
+    // Create enrollment
     const enrollment = await prisma.enrollment.create({
       data: {
         studentId,
-        courseId: parseInt(courseId),
+        courseId,
       },
     });
+
     res.status(201).json(enrollment);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to enroll student', details: error.message });
+    console.log('Error in enrollStudent:', error);
+    res.status(500).json({ 
+      error: 'Failed to enroll student', 
+      details: error.message 
+    });
   }
 };
 
@@ -43,10 +61,11 @@ exports.getStudentEnrollments = async (req, res) => {
       where: { studentId },
       include: { course: true },
     });
+    // console.log(enrollments)
     res.status(200).json(enrollments);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch enrollments', details: error.message });
-  }
+  } 
 };
 
 // Get all enrollments in a course
@@ -55,7 +74,7 @@ exports.getCourseEnrollments = async (req, res) => {
 
   try {
     const enrollments = await prisma.enrollment.findMany({
-      where: { courseId: parseInt(courseId) },
+      where: { courseId },
     });
     res.status(200).json(enrollments);
   } catch (error) {

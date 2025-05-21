@@ -1,3 +1,4 @@
+import { AuthProvider } from "@/app/auth/context";
 import Footer from "@/components/layout/footer";
 import Header from "@/components/layout/header";
 import { ToastProvider } from "@/components/ui_elements/toast";
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={poppins.className}>
         <Header />
-        <ToastProvider>{children}</ToastProvider>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
         <Footer />
       </body>
     </html>

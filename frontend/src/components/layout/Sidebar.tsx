@@ -10,24 +10,28 @@ type SidebarLink = {
 };
 
 type SidebarProps = {
-  role: "student" | "teacher" | "admin";
+  role: "STUDENT" | "TEACHER" | "ADMIN";
 };
 
 export const Sidebar = ({ role }: SidebarProps) => {
   const pathname = usePathname();
+  const userId = pathname.split("/")[2];
 
   const links: Record<string, SidebarLink[]> = {
-    student: [
+    STUDENT: [
       { href: "/dashboard/students", label: "Dashboard" },
-      { href: "/dashboard/students/courses", label: "My Courses" },
+      {
+        href: `/students/${userId}/enrolled_course`,
+        label: "My Courses",
+      },
       { href: "/certificates", label: "Certificates" },
     ],
-    teacher: [
-      { href: "/dashboard/teachers", label: "Dashboard" },
+    TEACHER: [
+      { href: `/dashboard/teachers/${userId}`, label: "Dashboard" },
       { href: "/dashboard/teachers/create-course", label: "Create Course" },
       { href: "/dashboard/teachers/courses", label: "My Courses" },
     ],
-    admin: [
+    ADMIN: [
       { href: "/dashboard/admin", label: "Dashboard" },
       { href: "/dashboard/admin/users", label: "Users" },
       { href: "/dashboard/admin/courses", label: "Courses" },
