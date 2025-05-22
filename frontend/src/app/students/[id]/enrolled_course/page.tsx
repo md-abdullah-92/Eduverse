@@ -17,7 +17,6 @@ export default function StudentEnrolledCoursesPage({
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("All Topics");
-  //   const [progress, setProgress] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
@@ -30,29 +29,11 @@ export default function StudentEnrolledCoursesPage({
         const enrollments = await res.json();
 
         // Extract course data from each enrollment object
-        const courseData = enrollments.map(
-          (enrollment: any) => enrollment.course
-        );
+        const courseData = enrollments.map((enrollment: any) => ({
+          ...enrollment.course,
+          progress: Number(enrollment.progressPercentage) || 0,
+        }));
         setCourses(courseData);
-
-        // Fetch progress data for each enrolled course
-        // const progressData: Record<string, number> = {};
-        // for (const course of courseData) {
-        //   try {
-        //     const progressRes = await fetch(
-        //       `http://localhost:5001/api/progress/student/${userId}/course/${course.id}`
-        //     );
-        //     const progressInfo = await progressRes.json();
-        //     progressData[course.id] = progressInfo.percentComplete || 0;
-        //   } catch (err) {
-        //     console.log(
-        //       `Failed to fetch progress for course ${course.id}:`,
-        //       err
-        //     );
-        //     progressData[course.id] = 0;
-        //   }
-        // }
-        // setProgress(progressData);
       } catch (error) {
         console.log("Failed to fetch enrolled courses:", error);
       } finally {
@@ -220,7 +201,7 @@ export default function StudentEnrolledCoursesPage({
               <CourseCard
                 key={`course-${course.id}`}
                 course={course}
-                progress={5} // gojamil
+                progress={Number(course.progress?.toFixed(2))} // gojamil
                 isEnrolled={true}
               />
             ))}

@@ -3,7 +3,7 @@
 
 import { useAuth } from "@/app/auth/context";
 import CourseCard from "@/app/courses/components/courseCard";
-import { CourseData } from "@/utils/types";
+import { CourseData, CourseInfo } from "@/utils/types";
 import { BookOpen, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,9 @@ export default function AllCoursesPage() {
   const isLoggedIn = !!user;
 
   const [courses, setCourses] = useState<CourseData[]>([]);
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState<number[]>([]);
+  const [enrolledCourseInfo, setEnrolledCourseInfo] = useState<CourseInfo[]>(
+    []
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [enrollmentLoading, setEnrollmentLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -49,10 +51,11 @@ export default function AllCoursesPage() {
         if (res.ok) {
           const enrollments = await res.json();
           // Extract course IDs from enrollments
-          const courseIds = enrollments.map(
-            (enrollment: any) => enrollment.courseId
-          );
-          setEnrolledCourseIds(courseIds);
+          const courseInfo = enrollments.map((enrollment: any) => ({
+            id: enrollment.courseId,
+            progress: Number(enrollment.progressPercentage) || 0,
+          }));
+          setEnrolledCourseInfo(courseInfo);
         } else {
           console.error("Failed to fetch enrollments");
         }
@@ -145,7 +148,7 @@ export default function AllCoursesPage() {
                   <p className="text-2xl font-bold">{courses.length} Courses</p>
                   {isLoggedIn && isStudent && (
                     <p className="text-sm text-purple-200">
-                      {enrolledCourseIds.length} Enrolled
+                      {enrolledCourseInfo.length} Enrolled
                     </p>
                   )}
                 </div>
@@ -212,7 +215,7 @@ export default function AllCoursesPage() {
             Showing {filteredCourses.length} of {courses.length} courses
             {isLoggedIn && isStudent && !enrollmentLoading && (
               <span className="ml-2 text-purple-600">
-                • {enrolledCourseIds.length} enrolled
+                • {enrolledCourseInfo.length} enrolled
               </span>
             )}
           </div>
@@ -234,7 +237,14 @@ export default function AllCoursesPage() {
               <CourseCard
                 key={course.id}
                 course={course}
-                isEnrolled={enrolledCourseIds.includes(course.id)}
+                isEnrolled={enrolledCourseInfo
+                  .map((info) => info.id === course.id)
+                  .includes(true)}
+                progress={Number(
+                  enrolledCourseInfo
+                    .find((info) => info.id === course.id)
+                    ?.progress?.toFixed(2)
+                )}
               />
             ))}
           </div>

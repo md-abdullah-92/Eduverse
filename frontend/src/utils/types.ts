@@ -28,4 +28,10 @@ export interface CourseData extends CourseFormData {
   id: number;
   lessons: Lesson[];
   outcomes: Outcome[];
+  progress?: number;
+}
+
+export interface CourseInfo {
+  id: number;
+  progress: number;
 }
