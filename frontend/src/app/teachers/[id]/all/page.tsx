@@ -1,6 +1,6 @@
 "use client";
 
-import InstructorCourseCard from "@/app/teachers/components/instructorCourseCard";
+import CourseCard from "@/app/courses/components/courseCard";
 import { CourseData } from "@/utils/types";
 import { BarChart2, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -171,11 +171,7 @@ export default function AllCoursesByInstructorPage({
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
-              <InstructorCourseCard
-                key={course.id}
-                course={course}
-                instructorId={userId}
-              />
+              <CourseCard key={course.id} course={course} isEnrolled={false} />
             ))}
           </div>
         )}

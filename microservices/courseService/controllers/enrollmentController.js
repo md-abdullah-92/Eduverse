@@ -61,7 +61,6 @@ exports.getStudentEnrollments = async (req, res) => {
       where: { studentId },
       include: { course: true },
     });
-    // console.log(enrollments)
     res.status(200).json(enrollments);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch enrollments', details: error.message });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useAuth } from "@/app/auth/context";
@@ -9,9 +10,12 @@ import { useEffect, useState } from "react";
 export default function AllCoursesPage() {
   const { user } = useAuth();
   const isStudent = user?.role === "STUDENT";
+  const isLoggedIn = !!user;
 
   const [courses, setCourses] = useState<CourseData[]>([]);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<number[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [enrollmentLoading, setEnrollmentLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("All Topics");
 
@@ -30,6 +34,37 @@ export default function AllCoursesPage() {
 
     fetchCourses();
   }, []);
+
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      if (!isLoggedIn || !isStudent || !user?.id) {
+        return;
+      }
+
+      setEnrollmentLoading(true);
+      try {
+        const res = await fetch(
+          `http://localhost:5001/api/enrollments/student/${user.id}`
+        );
+        if (res.ok) {
+          const enrollments = await res.json();
+          // Extract course IDs from enrollments
+          const courseIds = enrollments.map(
+            (enrollment: any) => enrollment.courseId
+          );
+          setEnrolledCourseIds(courseIds);
+        } else {
+          console.error("Failed to fetch enrollments");
+        }
+      } catch (error) {
+        console.error("Error fetching enrollments:", error);
+      } finally {
+        setEnrollmentLoading(false);
+      }
+    };
+
+    fetchEnrollments();
+  }, [isLoggedIn, isStudent, user?.id]);
 
   // Extract unique topics from courses
   const topics = [
@@ -58,6 +93,23 @@ export default function AllCoursesPage() {
     );
   }
 
+  const getGreeting = () => {
+    if (!isLoggedIn) {
+      return "Discover Amazing Courses";
+    }
+    if (isStudent) {
+      return "Assalamu Alaikum, Discover Next Skills";
+    }
+    return "Assalamu Alaikum, Explore Courses";
+  };
+
+  const getSubtitle = () => {
+    if (!isLoggedIn) {
+      return "Browse our library of top-rated courses taught by industry experts. Sign up to start learning!";
+    }
+    return "Browse our library of top-rated courses taught by industry experts and take your skills to the next level.";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-20">
       {/* Hero Banner */}
@@ -65,21 +117,25 @@ export default function AllCoursesPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
-              {isStudent ? (
-                <h1 className="text-4xl md:text-5xl font-medium mb-4">
-                  Assalamu Alaikum, Discover Next Skills
-                </h1>
-              ) : (
-                <h1 className="text-4xl md:text-5xl font-medium mb-4">
-                  Assalamu Alaikum, Explore Courses
-                </h1>
-              )}
+              <h1 className="text-4xl md:text-5xl font-medium mb-4">
+                {getGreeting()}
+              </h1>
               <br />
-
               <p className="text-purple-100 text-lg max-w-xl">
-                Browse our library of top-rated courses taught by industry
-                experts and take your skills to the next level.
+                {getSubtitle()}
               </p>
+
+              {/* Show login prompt for non-logged in users */}
+              {!isLoggedIn && (
+                <div className="mt-6">
+                  <a
+                    href="/auth/login"
+                    className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm border border-white/30 text-white rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    Sign In to Start Learning
+                  </a>
+                </div>
+              )}
             </div>
             <div className="mt-8 md:mt-0">
               <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg inline-flex items-center">
@@ -87,6 +143,11 @@ export default function AllCoursesPage() {
                 <div>
                   <p className="text-sm text-purple-100">Our collection</p>
                   <p className="text-2xl font-bold">{courses.length} Courses</p>
+                  {isLoggedIn && isStudent && (
+                    <p className="text-sm text-purple-200">
+                      {enrolledCourseIds.length} Enrolled
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -126,6 +187,20 @@ export default function AllCoursesPage() {
         </div>
       </div>
 
+      {/* Loading indicator for enrollments */}
+      {enrollmentLoading && isLoggedIn && isStudent && (
+        <div className="max-w-7xl mx-auto px-4 mt-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-600 mr-2"></div>
+              <p className="text-blue-700 text-sm">
+                Loading your enrollment status...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Course Listings */}
       <div className="max-w-7xl mx-auto px-4 mt-12">
         <div className="flex justify-between items-center mb-8">
@@ -135,6 +210,11 @@ export default function AllCoursesPage() {
           </h2>
           <div className="text-gray-500 text-sm">
             Showing {filteredCourses.length} of {courses.length} courses
+            {isLoggedIn && isStudent && !enrollmentLoading && (
+              <span className="ml-2 text-purple-600">
+                • {enrolledCourseIds.length} enrolled
+              </span>
+            )}
           </div>
         </div>
 
@@ -151,11 +231,45 @@ export default function AllCoursesPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
+              <CourseCard
+                key={course.id}
+                course={course}
+                isEnrolled={enrolledCourseIds.includes(course.id)}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {/* Footer message for non-logged in users */}
+      {!isLoggedIn && (
+        <div className="max-w-7xl mx-auto px-4 mt-16">
+          <div className="bg-gradient-to-r from-teal-50 to-purple-50 border border-teal-200 rounded-xl p-8 text-center">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+              Ready to Start Learning?
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+              Join thousands of students already learning with our expert-led
+              courses. Create your account to access course materials, track
+              progress, and earn certificates.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="/auth/signup"
+                className="px-8 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors font-medium"
+              >
+                Create Account
+              </a>
+              <a
+                href="/auth/login"
+                className="px-8 py-3 border border-teal-600 text-teal-600 rounded-lg hover:bg-teal-50 transition-colors font-medium"
+              >
+                Sign In
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

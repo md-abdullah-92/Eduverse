@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { storage } from "@/firebaseConfig";
-import { CourseData, CourseFormData, Lesson } from "@/utils/types";
+import { CourseData, CourseFormData, Lesson, Outcome } from "@/utils/types";
 import axios from "axios";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
@@ -131,10 +131,8 @@ export class CourseUtils {
       // Handle lessons
       await this.handleLessons(data.lessons);
 
-      // Handle outcomes - map the Outcome objects to strings for the API
-      await this.handleOutcomes(
-        data.outcomes.map((outcome) => outcome.outcome)
-      );
+      // Handle outcomes
+      await this.handleOutcomes(data.outcomes);
 
       return {
         ...data,
@@ -177,7 +175,9 @@ export class CourseUtils {
   }
 
   // Handle outcomes update
-  private async handleOutcomes(outcomes: string[]): Promise<void> {
+  private async handleOutcomes(outcomes: Outcome[]): Promise<void> {
+    if (!this.courseId) return;
+
     // Fetch existing outcomes
     const existingOutcomesResponse = await axios.get(
       `${API_BASE_URL}/outcomes/get/${this.courseId}`
@@ -187,10 +187,10 @@ export class CourseUtils {
       (outcome: { outcome: string }) => outcome.outcome
     );
 
-    // Delete outcomes that are no longer needed
+    // Delete outcomes that are no longer present
     const outcomesToDelete = existingOutcomes.filter(
       (outcome: { outcome: string; id: string }) =>
-        !outcomes.includes(outcome.outcome)
+        !outcomes.some((o) => o.outcome === outcome.outcome)
     );
 
     await Promise.all(
@@ -201,14 +201,15 @@ export class CourseUtils {
 
     // Add new outcomes
     const newOutcomes = outcomes.filter(
-      (outcome: string) =>
-        !existingOutcomeTexts.includes(outcome) && outcome.trim() !== ""
+      (outcome) =>
+        !existingOutcomeTexts.includes(outcome.outcome) &&
+        outcome.outcome.trim() !== ""
     );
 
     await Promise.all(
       newOutcomes.map((outcome) =>
         axios.post(`${API_BASE_URL}/outcomes/add/${this.courseId}`, {
-          outcome,
+          outcome: outcome.outcome,
         })
       )
     );

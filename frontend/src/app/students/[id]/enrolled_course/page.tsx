@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import StudentCourseCard from "@/app/students/components/StudentCourseCard";
+import CourseCard from "@/app/courses/components/courseCard";
 import { CourseData } from "@/utils/types";
 import { BookOpen, ChevronDown, Filter, Link, Search } from "lucide-react";
 import { use, useEffect, useState } from "react";
@@ -93,8 +93,8 @@ export default function StudentEnrolledCoursesPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 flex items-center justify-center flex-col">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+      <div className="min-h-screen bg-gradient-to-b from-white to-teal-50 flex items-center justify-center flex-col">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-teal-600 mb-4"></div>
         <p className="text-xl font-semibold text-gray-700">
           Loading your enrolled courses...
         </p>
@@ -103,7 +103,7 @@ export default function StudentEnrolledCoursesPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-white to-teal-50 pb-20">
       {/* Student Banner */}
       <div className="bg-gradient-to-r from-teal-700 to-purple-600 text-white py-16 px-4">
         <div className="max-w-7xl mx-auto">
@@ -112,7 +112,7 @@ export default function StudentEnrolledCoursesPage({
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
                 My Enrolled Courses
               </h1>
-              <p className="text-blue-100 text-lg max-w-xl">
+              <p className="text-teal-100 text-lg max-w-xl">
                 Track your progress and continue learning where you left off.
               </p>
             </div>
@@ -120,7 +120,7 @@ export default function StudentEnrolledCoursesPage({
               <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg inline-flex items-center">
                 <BookOpen className="h-12 w-12 text-white mr-3" />
                 <div>
-                  <p className="text-sm text-blue-100">Enrolled courses</p>
+                  <p className="text-sm text-teal-100">Enrolled courses</p>
                   <p className="text-2xl font-bold">{courses.length}</p>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function StudentEnrolledCoursesPage({
               placeholder="Search enrolled courses..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-3 rounded-lg border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-3 rounded-lg border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
             />
           </div>
 
@@ -148,7 +148,7 @@ export default function StudentEnrolledCoursesPage({
               <select
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
-                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg py-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg py-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 {topics.map((topic, index) => (
                   <option key={`topic-${index}`} value={topic}>
@@ -165,7 +165,7 @@ export default function StudentEnrolledCoursesPage({
 
       {/* Student Dashboard Link */}
       <div className="max-w-7xl mx-auto px-4 mt-8">
-        <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-600">
+        <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-teal-600">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
               <h2 className="text-xl font-bold text-gray-800">
@@ -177,7 +177,7 @@ export default function StudentEnrolledCoursesPage({
             </div>
             <a
               href={`/students/dashboard/${userId}`}
-              className="mt-4 md:mt-0 px-6 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition-colors"
+              className="mt-4 md:mt-0 px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"
             >
               Open Dashboard
             </a>
@@ -209,7 +209,7 @@ export default function StudentEnrolledCoursesPage({
             </p>
             <Link
               href="/courses/explore"
-              className="mt-6 inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+              className="mt-6 inline-block px-6 py-3 bg-teal-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"
             >
               Explore Available Courses
             </Link>
@@ -217,11 +217,11 @@ export default function StudentEnrolledCoursesPage({
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
-              <StudentCourseCard
+              <CourseCard
                 key={`course-${course.id}`}
                 course={course}
-                progress={0} // gojamil
-                studentId={userId.toString()}
+                progress={5} // gojamil
+                isEnrolled={true}
               />
             ))}
           </div>
