@@ -199,16 +199,16 @@ const Sidebar = ({
   };
 
   const confirmLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userPhoto");
-      localStorage.removeItem("role");
-    }
-    onLogout();
-    setShowLogoutModal(false);
-    console.log("Logout confirmed - Navigate to: /");
-  };
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userPhoto");
+    localStorage.removeItem("role");
+  }
+  onLogout();
+  setShowLogoutModal(false);
+  router.push("/"); // Actually navigate to home
+};
 
   return (
     <>

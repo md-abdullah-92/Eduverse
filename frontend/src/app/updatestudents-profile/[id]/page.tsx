@@ -129,66 +129,7 @@ export default function EditProfile() {
     }
   };
 
-  const handleSubmit1 = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      setError("");
-      setLoading(true);
-
-      const response = await fetch(
-        `http://localhost:5000/api/profile/student/${userId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            ...formData,
-            coverPhoto: coverImage,
-            profilePhoto: profileImage,
-          }),
-        }
-      );
-
-      // Check if response is JSON
-      const contentType = response.headers.get("content-type");
-      let result;
-
-      if (contentType && contentType.includes("application/json")) {
-        result = await response.json();
-      } else {
-        const text = await response.text();
-        console.error("Non-JSON response:", text);
-        throw new Error("Server returned an invalid response");
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            `Failed to update profile. Status: ${response.status}`
-        );
-      }
-
-      // Update local storage with new profile photo if changed
-      if (profileImage) {
-        localStorage.setItem("userPhoto", profileImage);
-      }
-
-      setShowModal(true);
-      setSuccessMessage("Profile updated successfully!");
-    } catch (error) {
-      console.error("Submit error:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to update profile. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "cover" | "profile"
