@@ -100,8 +100,36 @@ export default function EditProfile() {
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/profile/student`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...formData,
+          coverPhoto: coverImage,
+          profilePhoto: profileImage,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        setShowModal(true);
+      } else {
+        setError('❌ Failed to update: ' + result.message);
+      }
+    } catch (err) {
+      console.error('Submit error:', err);
+      setError('❌ An error occurred while saving changes.');
+    }
+  };
+
+  const handleSubmit1 = async () => {
     try {
       const token = localStorage.getItem("token");
       setError("");

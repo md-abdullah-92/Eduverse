@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 // Types
 type NavigationItem = {
@@ -363,20 +364,20 @@ const SocialIcon = ({ name }: { name: string }) => {
 
 // Main Student Dashboard Component
 export default function ModernStudentDashboard() {
+   const params = useParams();
+  const userId = params?.id;
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [role, setRole] = useState("STUDENT");
 
-  // Get userId from localStorage or use demo value
-  const [userId] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("userId") || "123";
-    }
-    return "123";
-  });
-
   useEffect(() => {
+    if (!userId) {
+      setError("User ID not found");
+      setLoading(false);
+      return;
+    }
+
     const fetchProfile = async () => {
       try {
         const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
