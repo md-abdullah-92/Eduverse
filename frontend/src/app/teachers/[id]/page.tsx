@@ -87,6 +87,7 @@ const menuItems: MenuItem[] = [
   { icon: BadgeCheck, label: "Certificates" },
   { icon: PieChart, label: "Analytics" },
   { icon: Star, label: "Reviews" },
+  { icon: LogOut, label: "Logout" },
 ];
 
 // Sidebar Components
@@ -215,9 +216,9 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   };
 
   const confirmLogout = () => {
-    console.log("Logout confirmed");
-    // Clear localStorage data
+    // Clear all relevant localStorage items
     const keysToRemove = [
+      "token",
       "userPhoto",
       "userName",
       "userId",
@@ -229,13 +230,14 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
     ];
 
     keysToRemove.forEach((key) => {
-      if (typeof window !== "undefined") {
-        // Simulate localStorage behavior in memory
-        console.log(`Clearing ${key} from storage`);
-      }
+      localStorage.removeItem(key);
     });
 
+    // Close the modal
     setShowLogoutModal(false);
+
+    // Redirect to home page and force reload to update UI
+    window.location.href = "/";
   };
 
   return (
