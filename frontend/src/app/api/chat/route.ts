@@ -10,9 +10,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ reply: "Invalid message input." }, { status: 400 });
     }
 
-    // Debug env variables (remove in production)
-    console.log("AZURE_OPENAI_ENDPOINT:", process.env.AZURE_OPENAI_ENDPOINT);
-    console.log("AZURE_OPENAI_KEY:", process.env.AZURE_OPENAI_KEY ? "Loaded" : "Missing");
 
     // Construct endpoint
     const endpoint = `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_ID}/completions?api-version=${process.env.AZURE_OPENAI_API_VERSION}`;

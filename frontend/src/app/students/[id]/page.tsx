@@ -28,12 +28,6 @@ import React, { useEffect, useState } from "react";
 import StudentMarkProgressChart from "../components/StudentMarkProgressChart";
 import StudyTimeBarChart from "../components/StudyTimeBarChart";
 import ChatWidget from "@/components/ChatWidget";
-import dynamic from 'next/dynamic';
-
-// Use dynamic import to avoid hydration mismatch
-const ChatIconDraggable = dynamic(() => import('../components/ChatIconDraggable'), {
-  ssr: false,
-});
 
 
 // Types
@@ -619,9 +613,10 @@ export default function ModernStudentDashboard() {
 
    
 
-
-        {/* Chat Icon Draggable */}
-        <ChatIconDraggable />
+        {/* Chat Icon Draggable Component */}
+        <div className="fixed bottom-8 right-8 z-50">
+         <ChatWidget />
+        </div>
 
 
         
