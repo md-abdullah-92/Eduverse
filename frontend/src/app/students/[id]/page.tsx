@@ -17,14 +17,14 @@ import {
   Play,
   Search,
   Settings,
+  ShoppingCart,
   Star,
   TrendingUp,
   User,
   Users,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 
 // Types
 type NavigationItem = {
@@ -65,6 +65,8 @@ const studentNavigationItems: NavigationItem[] = [
   { icon: FileText, label: "Assignments", badge: 3 },
   { icon: BadgeCheck, label: "Certificates" },
   { icon: History, label: "Order History" },
+  { icon: ShoppingCart, label: "Cart" },
+  { icon: LogOut, label: "Logout" },
 ];
 
 // Sidebar Components
@@ -159,11 +161,9 @@ const LogoutModal = ({
 const Sidebar = ({
   userId,
   role,
-  onLogout,
 }: {
   userId: string | string[];
   role: string;
-  onLogout: () => void;
 }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeItem, setActiveItem] = useState("Dashboard");
@@ -196,19 +196,26 @@ const Sidebar = ({
       router.push(`/teachers/${userId}/create_course/`);
       return;
     }
+    if (label === "Cart") {
+      router.push(`/cart/${userId}`);
+      return;
+    }
+    if (label === "Logout") {
+      setShowLogoutModal(true);
+      return;
+    }
   };
 
   const confirmLogout = () => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    localStorage.removeItem("userPhoto");
-    localStorage.removeItem("role");
-  }
-  onLogout();
-  setShowLogoutModal(false);
-  router.push("/"); // Actually navigate to home
-};
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userPhoto");
+      localStorage.removeItem("role");
+    }
+    setShowLogoutModal(false);
+    router.push("/"); // Actually navigate to home
+  };
 
   return (
     <>
@@ -239,12 +246,6 @@ const Sidebar = ({
                 onClick={() => handleClick(item.label)}
               />
             ))}
-            <SidebarItem
-              icon={LogOut}
-              label="Logout"
-              isActive={false}
-              onClick={() => handleClick("Logout")}
-            />
           </nav>
         </div>
       </aside>
@@ -364,7 +365,7 @@ const SocialIcon = ({ name }: { name: string }) => {
 
 // Main Student Dashboard Component
 export default function ModernStudentDashboard() {
-   const params = useParams();
+  const params = useParams();
   const userId = params?.id;
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -435,10 +436,6 @@ export default function ModernStudentDashboard() {
     fetchProfile();
   }, [userId]);
 
-  const handleLogout = () => {
-    console.log("Logout clicked");
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
@@ -487,7 +484,7 @@ export default function ModernStudentDashboard() {
         style={{ animationDelay: "4s" }}
       />
 
-      <Sidebar userId={userId} role={role} onLogout={handleLogout} />
+      <Sidebar userId={userId} role={role} />
 
       <main className="flex-1 p-8 space-y-8 relative z-10">
         {/* Header */}
