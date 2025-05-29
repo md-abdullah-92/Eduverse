@@ -1,8 +1,8 @@
-// app/api/chat/route.ts
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
+    // Parse request body
     const body = await req.json();
     const userMessage = body.message;
 
@@ -10,12 +10,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ reply: "Invalid message input." }, { status: 400 });
     }
 
+    // Debug env variables (remove in production)
+    console.log("AZURE_OPENAI_ENDPOINT:", process.env.AZURE_OPENAI_ENDPOINT);
+    console.log("AZURE_OPENAI_KEY:", process.env.AZURE_OPENAI_KEY ? "Loaded" : "Missing");
+
+    // Construct endpoint
     const endpoint = `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT_ID}/completions?api-version=${process.env.AZURE_OPENAI_API_VERSION}`;
 
+    // Prompt format for instruct models
     const systemPrompt = "You are Eduverse Assistant, a helpful and friendly chatbot for students and teachers.";
     const fullPrompt = `${systemPrompt}\nUser: ${userMessage}\nAssistant:`;
 
-    const azureResponse = await fetch(endpoint, {
+    // Call Azure OpenAI
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,21 +32,22 @@ export async function POST(req: Request) {
         prompt: fullPrompt,
         max_tokens: 300,
         temperature: 0.7,
-        stop: ["User:", "Assistant:"]
+        stop: ["User:", "Assistant:"],
       }),
     });
 
-    const data = await azureResponse.json();
+    const text = await response.text();
 
-    if (!azureResponse.ok) {
+    if (!response.ok) {
       console.error("Azure OpenAI error:", {
-        status: azureResponse.status,
-        statusText: azureResponse.statusText,
-        body: data,
+        status: response.status,
+        statusText: response.statusText,
+        body: text,
       });
       return NextResponse.json({ reply: "Assistant error. Check Azure settings." }, { status: 500 });
     }
 
+    const data = JSON.parse(text);
     const reply = data.choices?.[0]?.text?.trim() ?? "Sorry, I didn’t get that.";
     return NextResponse.json({ reply });
 
