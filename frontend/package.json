@@ -21,6 +21,10 @@
     "frontend": "file:",
     "heroicon": "^0.0.2",
     "heroicons": "^2.2.0",
+    "highlight.js": "^11.11.1",
+    "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.10.3",
+    "jspdf": "^3.0.1",
     "lucide-react": "^0.487.0",
     "next": "15.2.4",
     "react": "^19.0.0",
@@ -29,7 +33,10 @@
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "react-rnd": "^10.5.2",
-    "recharts": "^2.15.3"
+    "react-syntax-highlighter": "^15.6.1",
+    "recharts": "^2.15.3",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -38,6 +45,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4",
