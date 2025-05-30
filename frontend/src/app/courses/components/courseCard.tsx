@@ -51,6 +51,11 @@ export default function CourseCard({
     );
   };
 
+  const getCourseUrl = () => {
+    const baseUrl = `/courses/${course.id}`;
+    return isEnrolled ? `${baseUrl}?enrolled=true` : baseUrl;
+  };
+
   const handleButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
@@ -58,12 +63,18 @@ export default function CourseCard({
       router.push(`/teachers/${user.id}/course_update/${course.id}`);
     } else if (isEnrolled) {
       // Navigate to the course learning page
-      router.push(`/courses/${course.id}`);
+      router.push(getCourseUrl());
     } else {
-      // Add to cart or enroll logic
-      enrollmentUtils.enrollInCourse(course.id);
-      showToast("Course added to cart", "success");
-      console.log("Adding course to cart:", course.id);
+      // Handle enrollment or cart logic
+      if (course.price && Number(course.price) > 0) {
+        // Paid course - add to cart
+        showToast("Course added to cart", "success");
+        // Add cart logic here
+      } else {
+        // Free course - direct enrollment
+        enrollmentUtils.enrollInCourse(course.id);
+        showToast("Successfully Enrolled in Free course", "success");
+      }
     }
   };
 
@@ -87,7 +98,8 @@ export default function CourseCard({
       return {
         text: progress > 0 ? "Continue Learning" : "Start Course",
         className:
-          "w-full py-2 px-4 bg-purple-800 text-white font-medium rounded-md hover:bg-purple-700 transition-colors",
+          "w-full py-2 px-4 bg-gray-300 text-black font-medium rounded-md hover:bg-gray-400 transition-colors",
+
         disabled: false,
       };
     }
@@ -104,7 +116,8 @@ export default function CourseCard({
     return {
       text: "Enroll Free",
       className:
-        "w-full py-2 px-4 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors",
+        "w-full py-2 px-4 bg-purple-800 text-white font-medium rounded-md hover:bg-purple-700 transition-colors",
+
       disabled: false,
     };
   };
@@ -112,7 +125,7 @@ export default function CourseCard({
   const buttonConfig = getButtonContent();
 
   return (
-    <Link href={`/courses/${course.id}`} className="block">
+    <Link href={getCourseUrl()} className="block">
       <div className="rounded-lg overflow-hidden bg-white transition-all duration-300 hover:shadow-xl border border-gray-200 h-full">
         {/* Cover Image */}
         <div className="w-full h-48 relative">

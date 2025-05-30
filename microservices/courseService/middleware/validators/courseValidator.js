@@ -16,7 +16,7 @@ const courseValidator = [
   // Price - Floating point number (positive)
   check('price')
     .notEmpty().withMessage('Price is required')
-    .isFloat({ gt: 0 }).withMessage('Price must be a valid positive number'),
+    .isFloat({ gt: -0.0001 }).withMessage('Price must be a valid positive number'),
 
   // Level (enum style)
   check('level')

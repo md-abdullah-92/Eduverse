@@ -1,52 +1,246 @@
 "use client";
 
+import { useAuth } from "@/app/auth/context";
+import { useToast } from "@/components/ui_elements/toast";
 import { CourseData } from "@/utils/types";
-import { PhotoIcon } from "@heroicons/react/24/outline";
+import { StarIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
-import { FiAward, FiBook, FiClock, FiStar } from "react-icons/fi";
+import {
+  FiAward,
+  FiBook,
+  FiClock,
+  FiPlay,
+  FiStar,
+  FiUsers,
+} from "react-icons/fi";
 
 interface CourseDetailsProps {
   params: Promise<{ id: string }>;
 }
 
+interface LoadingState {
+  course: boolean;
+  enrollment: boolean;
+}
+
+// Enrollment utility class
+class EnrollmentUtils {
+  private userId: string;
+  private onSuccess: (message: string) => void;
+  private onFailure: (message: string) => void;
+
+  constructor(config: {
+    userId: string;
+    onSuccess: (message: string) => void;
+    onFailure: (message: string) => void;
+  }) {
+    this.userId = config.userId;
+    this.onSuccess = config.onSuccess;
+    this.onFailure = config.onFailure;
+  }
+
+  async enrollInCourse(courseId: string) {
+    try {
+      const response = await fetch(
+        `http://localhost:5001/api/courses/${courseId}/enroll`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Add authentication headers as needed
+        }
+      );
+
+      if (response.ok) {
+        this.onSuccess("Successfully enrolled in course!");
+      } else {
+        throw new Error("Enrollment failed");
+      }
+    } catch (error) {
+      this.onFailure(
+        error instanceof Error ? error.message : "Enrollment failed"
+      );
+    }
+  }
+}
+
 export default function CourseDetails({ params }: CourseDetailsProps) {
   const resolvedParams = use(params);
-  const [course, setCourse] = useState<CourseData>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user } = useAuth();
 
+  const [course, setCourse] = useState<CourseData | null>(null);
+  const [loading, setLoading] = useState<LoadingState>({
+    course: true,
+    enrollment: false,
+  });
+  const [error, setError] = useState<string | null>(null);
+  const [progress] = useState<number>(0); // Add progress tracking logic as needed
+
+  // Get enrollment status from URL params
+  const isEnrolled = searchParams.get("enrolled") === "true";
+  const isTeacher = user?.role === "TEACHER";
+  const isLoggedIn = !!user;
+  const { showToast } = useToast();
+
+  // Initialize enrollment utilities
+  const enrollmentUtils = new EnrollmentUtils({
+    userId: user?.id || "",
+    onSuccess: (message) => {
+      showToast(message, "success");
+      router.push(`/students/${user!.id}/enrolled_course`);
+    },
+    onFailure: (message) => {
+      showToast(message, "error");
+    },
+  });
+
+  // Utility functions
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+          <StarIcon
+            key={i}
+            className={`w-4 h-4 ${
+              i < Math.floor(rating)
+                ? "text-yellow-400 fill-yellow-400"
+                : "text-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  const getCourseUrl = () => {
+    const baseUrl = `/courses/${course?.id}`;
+    return isEnrolled ? `${baseUrl}?enrolled=true` : baseUrl;
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!course || !user) return;
+
+    if (isTeacher) {
+      router.push(`/teachers/${user.id}/course_update/${course.id}`);
+    } else if (isEnrolled) {
+      // Navigate to the course learning page
+      router.push(getCourseUrl());
+    } else {
+      // Handle enrollment or cart logic
+      if (course.price && Number(course.price) > 0) {
+        // Paid course - add to cart
+        showToast("Course added to cart", "success");
+        // Add cart logic here
+      } else {
+        // Free course - direct enrollment
+        enrollmentUtils.enrollInCourse(course.id.toString());
+        showToast("Successfully Enrolled in Free course", "success");
+      }
+    }
+  };
+
+  const getButtonContent = () => {
+    if (!course) return { text: "Loading...", className: "", disabled: true };
+
+    if (isTeacher) {
+      return {
+        text:
+          course.instructorId == user?.id
+            ? "Edit Course"
+            : "Available for students",
+        className:
+          course.instructorId == user?.id
+            ? "w-full py-2 px-4 border border-blue-500 text-blue-500 font-semibold rounded-md hover:bg-blue-50 transition"
+            : "w-full py-2 px-4 bg-gray-200 text-gray-500 font-medium rounded-md cursor-not-allowed",
+        disabled: course.instructorId != user?.id,
+      };
+    }
+
+    if (isEnrolled) {
+      return {
+        text: progress > 0 ? "Continue Learning" : "Start Course",
+        className:
+          "w-full py-2 px-4 bg-gray-300 text-black font-medium rounded-md hover:bg-gray-400 transition-colors",
+        disabled: false,
+      };
+    }
+
+    if (course.price) {
+      return {
+        text: "Add to Cart",
+        className:
+          "w-full py-2 px-4 bg-teal-700 text-white font-medium rounded-md hover:bg-teal-600 transition-colors",
+        disabled: false,
+      };
+    }
+
+    return {
+      text: "Enroll Free",
+      className:
+        "w-full py-2 px-4 bg-purple-800 text-white font-medium rounded-md hover:bg-purple-700 transition-colors",
+      disabled: false,
+    };
+  };
+
+  const buttonConfig = getButtonContent();
+
+  // Fetch course data
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        console.log("Fetching course:", resolvedParams.id);
-        const url = `http://localhost:5001/api/courses/get/${resolvedParams.id}`;
-        console.log("Fetch URL:", url);
+        const response = await fetch(
+          `http://localhost:5001/api/courses/get/${resolvedParams.id}`
+        );
 
-        const response = await fetch(url);
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Response not OK:", response.status, errorText);
-          throw new Error(
-            `Failed to fetch course details: ${response.status} ${errorText}`
-          );
+          throw new Error(`Failed to fetch course: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("Course data:", data);
         setCourse(data);
       } catch (err) {
-        console.error("Fetch error:", err);
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : "Failed to load course");
       } finally {
-        setLoading(false);
+        setLoading((prev) => ({ ...prev, course: false }));
       }
     };
 
     fetchCourse();
   }, [resolvedParams.id]);
 
-  if (loading) {
+  // Render action button based on user state
+  const renderActionButton = () => {
+    if (!isLoggedIn) {
+      return (
+        <button
+          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 rounded-lg transition-colors"
+          onClick={() => router.push("/auth/login")}
+        >
+          Login to Enroll
+        </button>
+      );
+    }
+
+    return (
+      <button
+        className={buttonConfig.className}
+        onClick={handleButtonClick}
+        disabled={buttonConfig.disabled}
+      >
+        {buttonConfig.text}
+      </button>
+    );
+  };
+
+  // Loading state
+  if (loading.course) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
@@ -54,19 +248,27 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
     );
   }
 
+  // Error state
   if (error || !course) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-red-500">{error || "Course not found"}</div>
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <div className="text-red-500 text-lg mb-4">
+          {error || "Course not found"}
+        </div>
+        <button
+          className="text-teal-600 hover:text-teal-700"
+          onClick={() => router.back()}
+        >
+          Go Back
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        {/* Full-width image background */}
+      <div className="relative h-96 overflow-hidden">
         <div className="absolute inset-0">
           {course.coverPhotoUrl ? (
             <Image
@@ -77,180 +279,185 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
               priority
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full bg-gradient-to-r from-gray-200 to-gray-300">
-              <PhotoIcon className="h-16 w-16 text-gray-400" />
-              <p className="mt-2 text-lg font-medium text-gray-500">
-                No cover photo available
-              </p>
+            <div className="flex flex-col items-center justify-center h-full bg-gradient-to-r from-teal-400 to-teal-600">
+              <FiBook className="h-16 w-16 text-white mb-4" />
+              <p className="text-lg font-medium text-white">Course Content</p>
             </div>
           )}
         </div>
-        {/* Dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/60"></div>
-        {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-20">
-          <div className="max-w-3xl backdrop-blur-sm bg-black/30 p-8 rounded-2xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+        <div className="absolute inset-0 bg-black/50"></div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 h-full flex items-center">
+          <div className="max-w-3xl text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
               {course.title}
             </h1>
-            <p className="text-gray-100 text-lg mb-8">{course.description}</p>
+            <p className="text-xl mb-6 opacity-90">{course.description}</p>
 
-            <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-wrap gap-4">
               <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                 <FiClock className="text-white" />
-                <span className="text-white">
-                  {course.lessons.length} Lessons
-                </span>
+                <span>{course.lessons?.length || 0} Lessons</span>
               </div>
               <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                 <FiBook className="text-white" />
-                <span className="text-white capitalize">
-                  {course.level.toLowerCase()}
+                <span className="capitalize">
+                  {course.level?.toLowerCase() || "Beginner"}
                 </span>
               </div>
-              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                <FiStar className="text-white" />
-                <span className="text-white">
-                  {course.averageRating?.toFixed(1) || "No ratings"}
-                </span>
-              </div>
+              {course.averageRating && (
+                <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+                  <FiStar className="text-white" />
+                  <span>{course.averageRating.toFixed(1)}</span>
+                  {renderStars(course.averageRating)}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
-            {/* Course Outcomes */}
-            <div className="bg-white rounded-xl shadow-sm p-8 mb-12 border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <FiAward className="mr-3 text-teal-600" />
-                What you&apos;ll learn
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {course.outcomes.map((outcome, index) => (
-                  <div
-                    key={`${outcome}-${index}`}
-                    className="flex items-start space-x-3 p-4 rounded-lg bg-teal-50/50 border border-teal-100"
-                  >
-                    <svg
-                      className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+          <div className="lg:col-span-2 space-y-8">
+            {/* Learning Outcomes */}
+            {course.outcomes?.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm p-8 border">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <FiAward className="mr-3 text-teal-600" />
+                  What you&apos;ll learn
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {course.outcomes.map((outcome, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start space-x-3 p-3 rounded-lg bg-teal-50 border border-teal-100"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span className="text-gray-700">{outcome.outcome}</span>
-                  </div>
-                ))}
+                      <svg
+                        className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span className="text-gray-700">{outcome.outcome}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Course Content */}
-            <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-100">
+            {/* Course Curriculum */}
+            <div className="bg-white rounded-xl shadow-sm p-8 border">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                 <FiBook className="mr-3 text-teal-600" />
                 Course Curriculum
               </h2>
-              <div className="space-y-4">
-                {course.lessons
-                  .sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map((lesson, index) => (
-                    <div
-                      key={lesson.id}
-                      className="border border-gray-100 rounded-lg p-4 hover:border-teal-500 transition-all duration-200 hover:shadow-md group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3">
-                            <span className="text-teal-600 font-medium">
-                              Lesson {index + 1}
-                            </span>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">
-                              {lesson.title}
-                            </h3>
+
+              {course.lessons?.length > 0 ? (
+                <div className="space-y-3">
+                  {course.lessons
+                    .sort((a, b) => a.orderIndex - b.orderIndex)
+                    .map((lesson, index) => (
+                      <div
+                        key={lesson.id}
+                        className="border rounded-lg p-4 hover:border-teal-200 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3">
+                              <span className="text-teal-600 font-medium text-sm">
+                                Lesson {index + 1}
+                              </span>
+                              <h3 className="font-semibold text-gray-900">
+                                {lesson.title}
+                              </h3>
+                            </div>
+                            {lesson.description && (
+                              <p className="text-gray-600 text-sm mt-2 ml-20">
+                                {lesson.description}
+                              </p>
+                            )}
                           </div>
-                          {lesson.description && (
-                            <p className="text-gray-500 text-sm mt-2 ml-16">
-                              {lesson.description}
-                            </p>
+                          {lesson.videoUrl && (
+                            <div className="flex items-center space-x-2 text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
+                              <FiPlay className="text-sm" />
+                              <span className="text-sm font-medium">Video</span>
+                            </div>
                           )}
                         </div>
-                        {lesson.videoUrl && (
-                          <div className="flex items-center space-x-2 text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
-                            <FiBook className="text-sm" />
-                            <span className="text-sm font-medium">Video</span>
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  ))}
-              </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">
+                  No lessons available yet.
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Course Meta */}
-          <div>
-            <div className="bg-white p-8 rounded-xl shadow-sm sticky top-4 border border-gray-100">
-              <div className="flex items-center justify-between mb-8">
-                <div className="text-3xl font-bold text-gray-900">
-                  ${course.price}
-                </div>
-                <div className="px-4 py-2 bg-teal-100 text-teal-800 rounded-full text-sm font-medium">
-                  {course.level}
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-teal-50 rounded-lg">
-                    <FiClock className="text-teal-600 text-xl" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      Course Length
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {course.lessons.length} lessons
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-teal-50 rounded-lg">
-                    <FiStar className="text-teal-600 text-xl" />
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      Course Rating
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {course.averageRating} average rating
-                    </div>
-                  </div>
-                </div>
-
-                {course.topic && (
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-teal-50 rounded-lg">
-                      <FiBook className="text-teal-600 text-xl" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">Topic</div>
-                      <div className="text-sm text-gray-500 capitalize">
-                        {course.topic}
-                      </div>
-                    </div>
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-xl shadow-sm border sticky top-6">
+              {/* Course Preview */}
+              <div className="aspect-video mb-6 bg-gray-100 rounded-lg overflow-hidden">
+                {course.coverPhotoUrl ? (
+                  <Image
+                    src={course.coverPhotoUrl}
+                    alt={course.title}
+                    width={400}
+                    height={225}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-gray-200">
+                    <FiBook className="h-12 w-12 text-gray-400" />
                   </div>
                 )}
+              </div>
+
+              {/* Price */}
+              <div className="text-center mb-6">
+                <span className="text-3xl font-bold text-gray-900">
+                  {course.price ? `$${course.price}` : "Free"}
+                </span>
+              </div>
+
+              {/* Action Button */}
+              {renderActionButton()}
+
+              {/* Course Features */}
+              <div className="pt-6 border-t border-gray-100">
+                <h3 className="font-medium text-gray-900 mb-4">
+                  This course includes:
+                </h3>
+                <ul className="space-y-3 text-gray-600">
+                  <li className="flex items-center gap-3">
+                    <FiClock className="text-teal-600 flex-shrink-0" />
+                    <span>Lifetime access</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <FiAward className="text-teal-600 flex-shrink-0" />
+                    <span>Certificate of completion</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <FiBook className="text-teal-600 flex-shrink-0" />
+                    <span>{course.lessons?.length || 0} lessons</span>
+                  </li>
+                  <li className="flex items-center gap-3">
+                    <FiUsers className="text-teal-600 flex-shrink-0" />
+                    <span>Community access</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
