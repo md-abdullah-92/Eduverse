@@ -1,16 +1,12 @@
-
-// services/purchaseService.js
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const prisma = require('../lib/prisma');
 const CartService = require('./cartService');
 const EventService = require('./eventService');
-const { v4: uuidv4 } = require('uuid');
 
 class PurchaseService {
   constructor() {
     this.cartService = new CartService();
     this.eventService = new EventService();
-    // In-memory storage for demo purposes
-    this.purchases = new Map();
   }
 
   async createPaymentIntent({ userId, amount, currency, metadata }) {
@@ -30,15 +26,16 @@ class PurchaseService {
         },
       });
 
-      // Store payment intent locally
-      this.purchases.set(paymentIntent.id, {
-        id: paymentIntent.id,
-        userId,
-        amount,
-        currency,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        metadata
+      // Store payment intent in database
+      await prisma.purchase.create({
+        data: {
+          userId,
+          paymentIntentId: paymentIntent.id,
+          amount,
+          currency,
+          status: 'PENDING',
+          metadata: metadata || {}
+        }
       });
 
       return paymentIntent;
@@ -56,37 +53,90 @@ class PurchaseService {
       });
 
       if (paymentIntent.status === 'succeeded') {
-        // Update local purchase record
-        const purchase = this.purchases.get(paymentIntentId);
-        if (purchase) {
-          purchase.status = 'completed';
-          purchase.completedAt = new Date().toISOString();
-          purchase.paymentMethodId = paymentMethodId;
-        }
+        // Start transaction
+        const result = await prisma.$transaction(async (tx) => {
+          // Update purchase record
+          const purchase = await tx.purchase.update({
+            where: { paymentIntentId },
+            data: {
+              status: 'COMPLETED',
+              paymentMethodId,
+              completedAt: new Date()
+            }
+          });
 
-        // Get user's cart for enrollment
-        const cart = await this.cartService.getCart(userId);
-        
-        // Emit enrollment events for each course
-        for (const item of cart.items) {
+          // Get user's cart
+          const cart = await tx.cart.findFirst({
+            where: { userId },
+            include: {
+              items: {
+                include: {
+                  course: true
+                }
+              }
+            }
+          });
+
+          if (cart && cart.items.length > 0) {
+            // Create purchase items
+            const purchaseItems = cart.items.map(item => ({
+              purchaseId: purchase.id,
+              courseId: item.courseId,
+              price: item.course.price
+            }));
+
+            await tx.purchaseItem.createMany({
+              data: purchaseItems
+            });
+
+            // Create enrollments
+            const enrollments = cart.items.map(item => ({
+              userId,
+              courseId: item.courseId,
+              purchaseId: purchase.id
+            }));
+
+            await tx.enrollment.createMany({
+              data: enrollments,
+              skipDuplicates: true
+            });
+
+            // Clear cart
+            await tx.cartItem.deleteMany({
+              where: { cartId: cart.id }
+            });
+
+            await tx.cart.update({
+              where: { id: cart.id },
+              data: { subtotal: 0, tax: 0, total: 0 }
+            });
+
+            return {
+              purchase,
+              enrollments: cart.items.map(item => ({
+                courseId: item.courseId,
+                title: item.course.title
+              }))
+            };
+          }
+
+          return { purchase, enrollments: [] };
+        });
+
+        // Emit enrollment events
+        for (const enrollment of result.enrollments) {
           await this.eventService.emitEnrollmentEvent({
             userId,
-            courseId: item.courseId,
+            courseId: enrollment.courseId,
             purchaseId: paymentIntentId,
-            price: item.price
+            price: result.purchase.amount
           });
         }
-
-        // Clear the cart after successful payment
-        await this.cartService.clearCart(userId);
 
         return {
           paymentIntentId,
           status: 'completed',
-          enrollments: cart.items.map(item => ({
-            courseId: item.courseId,
-            title: item.title
-          }))
+          enrollments: result.enrollments
         };
       } else {
         throw new Error(`Payment failed with status: ${paymentIntent.status}`);
@@ -94,13 +144,15 @@ class PurchaseService {
     } catch (error) {
       console.error('Error confirming payment:', error);
       
-      // Update local purchase record with error
-      const purchase = this.purchases.get(paymentIntentId);
-      if (purchase) {
-        purchase.status = 'failed';
-        purchase.error = error.message;
-        purchase.failedAt = new Date().toISOString();
-      }
+      // Update purchase record with error
+      await prisma.purchase.update({
+        where: { paymentIntentId },
+        data: {
+          status: 'FAILED',
+          errorMessage: error.message,
+          failedAt: new Date()
+        }
+      }).catch(console.error);
       
       throw error;
     }
@@ -108,28 +160,49 @@ class PurchaseService {
 
   async getPaymentStatus(paymentIntentId, userId) {
     try {
-      // Get from local storage first
-      const localPurchase = this.purchases.get(paymentIntentId);
-      
-      // Also get fresh data from Stripe
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      // Get from database
+      const purchase = await prisma.purchase.findUnique({
+        where: { paymentIntentId },
+        include: {
+          items: {
+            include: {
+              course: {
+                select: {
+                  id: true,
+                  title: true
+                }
+              }
+            }
+          }
+        }
+      });
 
-      // Verify user owns this payment intent
-      if (localPurchase && localPurchase.userId !== userId) {
+      if (!purchase) {
+        throw new Error('Purchase not found');
+      }
+
+      // Verify user owns this purchase
+      if (purchase.userId !== userId) {
         throw new Error('Unauthorized access to payment information');
       }
+
+      // Also get fresh data from Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
       return {
         id: paymentIntentId,
         status: paymentIntent.status,
-        amount: paymentIntent.amount / 100, // Convert back from cents
-        currency: paymentIntent.currency,
-        created: new Date(paymentIntent.created * 1000).toISOString(),
-        ...(localPurchase && {
-          completedAt: localPurchase.completedAt,
-          failedAt: localPurchase.failedAt,
-          error: localPurchase.error
-        })
+        amount: parseFloat(purchase.amount),
+        currency: purchase.currency,
+        created: purchase.createdAt,
+        completedAt: purchase.completedAt,
+        failedAt: purchase.failedAt,
+        error: purchase.errorMessage,
+        items: purchase.items.map(item => ({
+          courseId: item.courseId,
+          title: item.course.title,
+          price: parseFloat(item.price)
+        }))
       };
     } catch (error) {
       console.error('Error getting payment status:', error);
