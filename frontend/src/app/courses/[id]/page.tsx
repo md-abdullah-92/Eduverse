@@ -3,7 +3,6 @@
 import { useAuth } from "@/app/auth/context";
 import { useToast } from "@/components/ui_elements/toast";
 import { CourseData } from "@/utils/types";
-import { StarIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -25,47 +24,13 @@ interface LoadingState {
   enrollment: boolean;
 }
 
-// Enrollment utility class
-class EnrollmentUtils {
-  private userId: string;
-  private onSuccess: (message: string) => void;
-  private onFailure: (message: string) => void;
-
-  constructor(config: {
-    userId: string;
-    onSuccess: (message: string) => void;
-    onFailure: (message: string) => void;
-  }) {
-    this.userId = config.userId;
-    this.onSuccess = config.onSuccess;
-    this.onFailure = config.onFailure;
-  }
-
-  async enrollInCourse(courseId: string) {
-    try {
-      const response = await fetch(
-        `http://localhost:5001/api/courses/${courseId}/enroll`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // Add authentication headers as needed
-        }
-      );
-
-      if (response.ok) {
-        this.onSuccess("Successfully enrolled in course!");
-      } else {
-        throw new Error("Enrollment failed");
-      }
-    } catch (error) {
-      this.onFailure(
-        error instanceof Error ? error.message : "Enrollment failed"
-      );
-    }
-  }
-}
+// Import utilities
+import { CourseUtils } from "@/utils/courseUtils"; // Import CourseUtils
+import {
+  getButtonConfig,
+  handleButtonAction,
+  renderStars,
+} from "../../courses/utils/couseCardUtils";
 
 export default function CourseDetails({ params }: CourseDetailsProps) {
   const resolvedParams = use(params);
@@ -82,129 +47,29 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   const [progress] = useState<number>(0); // Add progress tracking logic as needed
 
   // Get enrollment status from URL params
-  const isEnrolled = searchParams.get("enrolled") === "true";
+  const enrollId = searchParams.get("enrolled");
+  const isEnrolled = enrollId !== null;
   const isTeacher = user?.role === "TEACHER";
-  const isLoggedIn = !!user;
   const { showToast } = useToast();
 
-  // Initialize enrollment utilities
-  const enrollmentUtils = new EnrollmentUtils({
-    userId: user?.id || "",
-    onSuccess: (message) => {
-      showToast(message, "success");
-      router.push(`/students/${user!.id}/enrolled_course`);
-    },
-    onFailure: (message) => {
-      showToast(message, "error");
-    },
-  });
-
-  // Utility functions
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        {[...Array(5)].map((_, i) => (
-          <StarIcon
-            key={i}
-            className={`w-4 h-4 ${
-              i < Math.floor(rating)
-                ? "text-yellow-400 fill-yellow-400"
-                : "text-gray-300"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const getCourseUrl = () => {
-    const baseUrl = `/courses/${course?.id}`;
-    return isEnrolled ? `${baseUrl}?enrolled=true` : baseUrl;
-  };
-
-  const handleButtonClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    if (!course || !user) return;
-
-    if (isTeacher) {
-      router.push(`/teachers/${user.id}/course_update/${course.id}`);
-    } else if (isEnrolled) {
-      // Navigate to the course learning page
-      router.push(getCourseUrl());
-    } else {
-      // Handle enrollment or cart logic
-      if (course.price && Number(course.price) > 0) {
-        // Paid course - add to cart
-        showToast("Course added to cart", "success");
-        // Add cart logic here
-      } else {
-        // Free course - direct enrollment
-        enrollmentUtils.enrollInCourse(course.id.toString());
-        showToast("Successfully Enrolled in Free course", "success");
-      }
-    }
-  };
-
-  const getButtonContent = () => {
-    if (!course) return { text: "Loading...", className: "", disabled: true };
-
-    if (isTeacher) {
-      return {
-        text:
-          course.instructorId == user?.id
-            ? "Edit Course"
-            : "Available for students",
-        className:
-          course.instructorId == user?.id
-            ? "w-full py-2 px-4 border border-blue-500 text-blue-500 font-semibold rounded-md hover:bg-blue-50 transition"
-            : "w-full py-2 px-4 bg-gray-200 text-gray-500 font-medium rounded-md cursor-not-allowed",
-        disabled: course.instructorId != user?.id,
-      };
-    }
-
-    if (isEnrolled) {
-      return {
-        text: progress > 0 ? "Continue Learning" : "Start Course",
-        className:
-          "w-full py-2 px-4 bg-gray-300 text-black font-medium rounded-md hover:bg-gray-400 transition-colors",
-        disabled: false,
-      };
-    }
-
-    if (course.price) {
-      return {
-        text: "Add to Cart",
-        className:
-          "w-full py-2 px-4 bg-teal-700 text-white font-medium rounded-md hover:bg-teal-600 transition-colors",
-        disabled: false,
-      };
-    }
-
-    return {
-      text: "Enroll Free",
-      className:
-        "w-full py-2 px-4 bg-purple-800 text-white font-medium rounded-md hover:bg-purple-700 transition-colors",
-      disabled: false,
-    };
-  };
-
-  const buttonConfig = getButtonContent();
+  const buttonConfig = getButtonConfig(
+    course,
+    isTeacher,
+    isEnrolled,
+    progress,
+    user?.id || ""
+  );
 
   // Fetch course data
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5001/api/courses/get/${resolvedParams.id}`
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch course: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setCourse(data);
+        const courseUtils = new CourseUtils({
+          userId: user?.id || "",
+          courseId: resolvedParams.id,
+        });
+        const courseData = await courseUtils.fetchCourse();
+        setCourse(courseData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load course");
       } finally {
@@ -213,25 +78,23 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
     };
 
     fetchCourse();
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, user?.id]);
 
   // Render action button based on user state
   const renderActionButton = () => {
-    if (!isLoggedIn) {
-      return (
-        <button
-          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 rounded-lg transition-colors"
-          onClick={() => router.push("/auth/login")}
-        >
-          Login to Enroll
-        </button>
-      );
-    }
-
     return (
       <button
         className={buttonConfig.className}
-        onClick={handleButtonClick}
+        onClick={() =>
+          handleButtonAction({
+            course,
+            user,
+            isTeacher,
+            isEnrolled,
+            router,
+            showToast,
+          })
+        }
         disabled={buttonConfig.disabled}
       >
         {buttonConfig.text}

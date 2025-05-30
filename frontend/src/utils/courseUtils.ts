@@ -39,46 +39,13 @@ export class CourseUtils {
     }
   }
 
-  // Fetch course data from API
   async fetchCourse(): Promise<CourseData> {
-    if (!this.courseId) throw new Error("Course ID is required");
-
-    const response = await axios.get(
-      `${API_BASE_URL}/courses/${this.courseId}`
-    );
-    return response.data;
-  }
-
-  // Fetch course details from API
-  async fetchCourseDetails(): Promise<CourseData> {
     if (!this.courseId) throw new Error("Course ID is required");
 
     const response = await fetch(
       `${API_BASE_URL}/courses/get/${this.courseId}`
     );
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch course details.");
-    }
-
-    const data = await response.json();
-    return {
-      id: data.id || "",
-      title: data.title || "",
-      price: typeof data.price === "number" ? data.price.toFixed(2) : "0.00",
-      level: data.level || "",
-      topic: data.topic || "",
-      description: data.description || "",
-      coverPhotoUrl: data.coverPhotoUrl,
-      outcomes: Array.isArray(data.outcomes)
-        ? data.outcomes.map((outcome: { outcome: string }) => ({
-            outcome: outcome.outcome,
-          }))
-        : [{ outcome: "" }],
-      lessons: CourseUtils.formatLessons(data.lessons || []),
-      averageRating: data.averageRating || 0.0,
-      instructorId: data.instructorId || "",
-    };
+    return response.json();
   }
 
   // Create new course

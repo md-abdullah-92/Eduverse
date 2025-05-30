@@ -49,7 +49,6 @@ body {
 }
 
 @media (prefers-color-scheme: dark) {
-
   body {
     background: #ffffff !important;
     color: #171717;

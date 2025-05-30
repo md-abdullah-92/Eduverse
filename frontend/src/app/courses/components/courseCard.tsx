@@ -1,131 +1,47 @@
 import { useAuth } from "@/app/auth/context";
 import { useToast } from "@/components/ui_elements/toast";
-import { EnrollmentUtils } from "@/utils/enrollmentUtils";
 import { CourseData } from "@/utils/types";
-import { StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  getButtonConfig,
+  getCourseUrl,
+  handleButtonAction,
+  renderStars,
+} from "../utils/couseCardUtils";
 
 interface CourseCardProps {
   course: CourseData;
   isEnrolled?: boolean; // Add this prop to indicate enrollment status
   progress?: number;
+  enrollId?: number;
 }
 
 export default function CourseCard({
   course,
   isEnrolled = false,
   progress = 0,
+  enrollId,
 }: CourseCardProps) {
   const { user } = useAuth();
   const isTeacher = user?.role === "TEACHER";
   const { showToast } = useToast();
   const router = useRouter();
 
-  const enrollmentUtils = new EnrollmentUtils({
-    userId: user!.id,
-    onSuccess: (message) => {
-      showToast(message, "success");
-      router.push(`/students/${user!.id}/enrolled_course`);
-    },
-    onFailure: (message) => {
-      showToast(message, "error");
-    },
-  });
-
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center">
-        {[...Array(5)].map((_, i) => (
-          <StarIcon
-            key={i}
-            className={`w-4 h-4 ${
-              i < Math.floor(rating)
-                ? "text-yellow-400 fill-yellow-400"
-                : "text-gray-300"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const getCourseUrl = () => {
-    const baseUrl = `/courses/${course.id}`;
-    return isEnrolled ? `${baseUrl}?enrolled=true` : baseUrl;
-  };
-
-  const handleButtonClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    if (isTeacher) {
-      router.push(`/teachers/${user.id}/course_update/${course.id}`);
-    } else if (isEnrolled) {
-      // Navigate to the course learning page
-      router.push(getCourseUrl());
-    } else {
-      // Handle enrollment or cart logic
-      if (course.price && Number(course.price) > 0) {
-        // Paid course - add to cart
-        showToast("Course added to cart", "success");
-        // Add cart logic here
-      } else {
-        // Free course - direct enrollment
-        enrollmentUtils.enrollInCourse(course.id);
-        showToast("Successfully Enrolled in Free course", "success");
-      }
-    }
-  };
-
-  const getButtonContent = () => {
-    if (isTeacher) {
-      console.log(course.instructorId, user.id);
-      return {
-        text:
-          course.instructorId == user.id
-            ? "Edit Course"
-            : "Available for students",
-        className:
-          course.instructorId == user.id
-            ? "w-full py-2 px-4 border border-blue-500 text-blue-500 font-semibold rounded-md hover:bg-blue-50 transition"
-            : "w-full py-2 px-4 bg-gray-200 text-gray-500 font-medium rounded-md cursor-not-allowed",
-        disabled: course.instructorId != user.id,
-      };
-    }
-
-    if (isEnrolled) {
-      return {
-        text: progress > 0 ? "Continue Learning" : "Start Course",
-        className:
-          "w-full py-2 px-4 bg-gray-300 text-black font-medium rounded-md hover:bg-gray-400 transition-colors",
-
-        disabled: false,
-      };
-    }
-
-    if (course.price) {
-      return {
-        text: "Add to Cart",
-        className:
-          "w-full py-2 px-4 bg-teal-700 text-white font-medium rounded-md hover:bg-teal-600 transition-colors",
-        disabled: false,
-      };
-    }
-
-    return {
-      text: "Enroll Free",
-      className:
-        "w-full py-2 px-4 bg-purple-800 text-white font-medium rounded-md hover:bg-purple-700 transition-colors",
-
-      disabled: false,
-    };
-  };
-
-  const buttonConfig = getButtonContent();
+  const buttonConfig = getButtonConfig(
+    course,
+    isTeacher,
+    isEnrolled,
+    progress,
+    user?.id || ""
+  );
 
   return (
-    <Link href={getCourseUrl()} className="block">
+    <Link
+      href={getCourseUrl(course.id.toString(), isEnrolled, enrollId)}
+      className="block"
+    >
       <div className="rounded-lg overflow-hidden bg-white transition-all duration-300 hover:shadow-xl border border-gray-200 h-full">
         {/* Cover Image */}
         <div className="w-full h-48 relative">
@@ -210,7 +126,17 @@ export default function CourseCard({
 
           <button
             className={buttonConfig.className}
-            onClick={handleButtonClick}
+            onClick={() =>
+              handleButtonAction({
+                course,
+                user,
+                isTeacher,
+                isEnrolled,
+                router,
+                showToast,
+                enrollId,
+              })
+            }
             disabled={buttonConfig.disabled}
           >
             {buttonConfig.text}

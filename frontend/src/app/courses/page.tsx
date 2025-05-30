@@ -51,11 +51,12 @@ export default function AllCoursesPage() {
         if (res.ok) {
           const enrollments = await res.json();
           // Extract course IDs from enrollments
-          const courseInfo = enrollments.map((enrollment: any) => ({
+          const courseEnrollInfo = enrollments.map((enrollment: any) => ({
             id: enrollment.courseId,
+            enrollId: enrollment.id,
             progress: Number(enrollment.progressPercentage) || 0,
           }));
-          setEnrolledCourseInfo(courseInfo);
+          setEnrolledCourseInfo(courseEnrollInfo);
         } else {
           console.error("Failed to fetch enrollments");
         }
@@ -233,20 +234,20 @@ export default function AllCoursesPage() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCourses.map((course) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                isEnrolled={enrolledCourseInfo
-                  .map((info) => info.id === course.id)
-                  .includes(true)}
-                progress={Number(
-                  enrolledCourseInfo
-                    .find((info) => info.id === course.id)
-                    ?.progress?.toFixed(2)
-                )}
-              />
-            ))}
+            {filteredCourses.map((course) => {
+              const enrollment = enrolledCourseInfo.find(
+                (info) => info.id === course.id
+              );
+              return (
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  isEnrolled={!!enrollment}
+                  progress={Number(enrollment?.progress?.toFixed(2)) || 0}
+                  enrollId={enrollment?.enrollId}
+                />
+              );
+            })}
           </div>
         )}
       </div>

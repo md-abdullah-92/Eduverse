@@ -33,5 +33,6 @@ export interface CourseData extends CourseFormData {
 
 export interface CourseInfo {
   id: number;
+  enrollId: number;
   progress: number;
 }

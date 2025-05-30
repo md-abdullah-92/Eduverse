@@ -67,7 +67,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
         setIsLoading(true);
         setError(null);
 
-        const courseData = await courseUtils.fetchCourseDetails();
+        const courseData = await courseUtils.fetchCourse();
         setCourseData(courseData);
         setCoverPreview(courseData.coverPhotoUrl);
       } catch (err) {
