@@ -8,17 +8,29 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { MessageCircle, MessageSquare, Send, Download, Trash2, Copy } from 'lucide-react';
+import {
+  MessageCircle,
+  MessageSquare,
+  Send,
+  Download,
+  Trash2,
+  Copy,
+} from 'lucide-react';
 
 type Message = {
-  from: 'user' | 'bot';
+  from: 'user' | 'assistant';
   text: string;
 };
 
+interface ChatWidgetProps {
+  title?: string;
+  apiEndpoint?: string;
+}
+
 export default function ChatWidget({
-  title = 'Eduverse Assistant',
+  title = 'EduVerse Assistant',
   apiEndpoint = '/api/chat',
-}) {
+}: ChatWidgetProps) {
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window !== 'undefined') {
       return JSON.parse(localStorage.getItem('eduverse_chat') || '[]');
@@ -26,7 +38,7 @@ export default function ChatWidget({
     return [];
   });
 
-  const [open, setOpen] = useState(() => {
+  const [isOpen, setIsOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       return JSON.parse(localStorage.getItem('eduverse_chat_open') || 'false');
     }
@@ -34,43 +46,49 @@ export default function ChatWidget({
   });
 
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [position, setPosition] = useState({ x: 30, y: 760 });
-  const [dragging, setDragging] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const chatRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
 
+  const [position, setPosition] = useState({ x: 1800, y: 800 });
+  const [dragging, setDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  // Save messages to localStorage on update
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('eduverse_chat', JSON.stringify(messages));
-    }
+    localStorage.setItem('eduverse_chat', JSON.stringify(messages));
   }, [messages]);
 
+  // Manage chat widget open state
   useEffect(() => {
-    localStorage.setItem('eduverse_chat_open', JSON.stringify(open));
-    if (open && inputRef.current) {
+    localStorage.setItem('eduverse_chat_open', JSON.stringify(isOpen));
+    if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [open]);
+  }, [isOpen]);
 
+  // Scroll chat to bottom when messages update
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // Mouse dragging behavior for widget repositioning
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (dragging) {
         setPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
       }
     };
+
     const handleMouseUp = () => setDragging(false);
+
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -87,29 +105,31 @@ export default function ChatWidget({
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    const userText = input;
-    setMessages((prev) => [...prev, { from: 'user', text: userText }]);
+
+    const userMessage = input;
+    setMessages((prev) => [...prev, { from: 'user', text: userMessage }]);
     setInput('');
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      const res = await fetch(apiEndpoint, {
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({ message: userMessage }),
       });
-      const data = await res.json();
+
+      const data = await response.json();
 
       setTimeout(() => {
-        setMessages((prev) => [...prev, { from: 'bot', text: data.reply }]);
-        setLoading(false);
+        setMessages((prev) => [...prev, { from: 'assistant', text: data.reply }]);
+        setIsLoading(false);
       }, 600);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { from: 'bot', text: '❌ Something went wrong. Please try again.' },
+        { from: 'assistant', text: '❌ An error occurred. Please try again.' },
       ]);
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -118,10 +138,11 @@ export default function ChatWidget({
   };
 
   const exportToPDF = async () => {
-    const element = chatContainerRef.current;
+    const element = chatRef.current;
     if (!element) return;
 
-    document.querySelectorAll('*').forEach(el => {
+    // Normalize modern CSS variables (e.g., oklch) for jsPDF
+    document.querySelectorAll('*').forEach((el) => {
       const style = window.getComputedStyle(el);
       if (style.color.includes('oklch')) {
         (el as HTMLElement).style.color = '#000';
@@ -131,24 +152,26 @@ export default function ChatWidget({
       }
     });
 
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-    });
-
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     const width = pdf.internal.pageSize.getWidth();
     const height = (canvas.height * width) / canvas.width;
+
     pdf.addImage(imgData, 'PNG', 0, 0, width, height);
     pdf.save('chat.pdf');
   };
 
   const exportToMarkdown = () => {
-    const content = messages
-      .map((msg) => (msg.from === 'user' ? `**You:** ${msg.text}` : `**Assistant:** ${msg.text}`))
+    const markdown = messages
+      .map((msg) =>
+        msg.from === 'user'
+          ? `**You:** ${msg.text}`
+          : `**Assistant:** ${msg.text}`
+      )
       .join('\n\n');
-    const blob = new Blob([content], { type: 'text/markdown' });
+
+    const blob = new Blob([markdown], { type: 'text/markdown' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = 'chat.md';
@@ -178,52 +201,69 @@ export default function ChatWidget({
       }}
     >
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ type: 'spring', stiffness: 240, damping: 20 }}
-            className="absolute bottom-full mb-4 w-[500px] h-[600px] flex flex-col rounded-2xl border border-gray-300 bg-white shadow-lg"
+            className="absolute bottom-full right-0 mb-4 w-[500px] h-[600px] flex flex-col rounded-2xl border border-gray-300 bg-white shadow-lg"
           >
-            <div className="bg-gray-100 text-gray-800 px-4 py-2 text-sm font-medium border-b border-gray-300 flex justify-between items-center">
+            {/* Header */}
+            <div className="bg-gray-100 px-4 py-2 border-b flex justify-between items-center">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center shadow-md">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center">
                   <MessageSquare size={16} />
                 </div>
-                <span>{title}</span>
+                <span className="font-medium text-gray-800 text-sm">{title}</span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-600">
-                <button onClick={exportToPDF} title="Export to PDF"><Download size={16} /></button>
-                <button onClick={exportToMarkdown} title="Export to Markdown">.md</button>
-                <button onClick={clearChat} title="Clear chat"><Trash2 size={16} /></button>
-                <button onClick={() => setOpen(false)} title="Close">✕</button>
+              <div className="flex gap-2 text-gray-600 text-xs">
+                <button onClick={exportToPDF} title="Download PDF">
+                  <Download size={16} />
+                </button>
+                <button onClick={exportToMarkdown} title="Download Markdown">
+                  .md
+                </button>
+                <button onClick={clearChat} title="Clear Chat">
+                  <Trash2 size={16} />
+                </button>
+                <button onClick={() => setIsOpen(false)} title="Close Chat">
+                  ✕
+                </button>
               </div>
             </div>
 
+            {/* Chat Content */}
             <div
-              ref={chatContainerRef}
+              ref={chatRef}
               className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm bg-white"
             >
               {messages.map((msg, idx) => (
-                <div key={idx} className={`group flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`relative max-w-[80%] px-3 py-2 rounded-md shadow-sm text-sm whitespace-pre-wrap ${
-                    msg.from === 'user' ? 'bg-blue-200 text-blue-900' : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                  }`}>
+                <div
+                  key={idx}
+                  className={`group flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`relative max-w-[80%] px-3 py-2 rounded-md shadow-sm whitespace-pre-wrap ${
+                      msg.from === 'user'
+                        ? 'bg-blue-200 text-blue-900'
+                        : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                    }`}
+                  >
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
                         code({ inline, className, children, ...props }: any) {
                           const match = /language-(\w+)/.exec(className || '');
-                          const codeString = String(children).replace(/\n$/, '');
+                          const code = String(children).replace(/\n$/, '');
 
                           if (!inline && match) {
                             return (
                               <div className="relative group">
                                 <button
-                                  onClick={() => navigator.clipboard.writeText(codeString)}
-                                  className="absolute top-2 right-2 text-xs text-gray-500 hover:text-black opacity-0 group-hover:opacity-100 transition"
-                                  title="Copy code"
+                                  onClick={() => copyToClipboard(code)}
+                                  className="absolute top-2 right-2 text-xs text-gray-500 hover:text-black opacity-0 group-hover:opacity-100"
+                                  title="Copy Code"
                                 >
                                   <Copy size={14} />
                                 </button>
@@ -237,18 +277,17 @@ export default function ChatWidget({
                                     padding: '1rem',
                                     fontSize: '0.875rem',
                                     background: '#fdf6e3',
-                                    overflowX: 'auto',
                                   }}
                                   {...props}
                                 >
-                                  {codeString}
+                                  {code}
                                 </SyntaxHighlighter>
                               </div>
                             );
                           }
 
                           return (
-                            <code className="bg-gray-100 px-1 py-0.5 rounded text-sm" {...props}>
+                            <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">
                               {children}
                             </code>
                           );
@@ -267,11 +306,11 @@ export default function ChatWidget({
                       {msg.text}
                     </ReactMarkdown>
 
-                    {msg.from === 'bot' && (
+                    {msg.from === 'assistant' && (
                       <button
-                        className="absolute right-1 top-1 opacity-0 group-hover:opacity-200 text-xs text-gray-400 hover:text-gray-700"
                         onClick={() => copyToClipboard(msg.text)}
-                        title="Copy"
+                        className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-gray-700"
+                        title="Copy Message"
                       >
                         <Copy size={14} />
                       </button>
@@ -279,9 +318,10 @@ export default function ChatWidget({
                   </div>
                 </div>
               ))}
-              {loading && <div className="text-gray-400 italic">Assistant is typing...</div>}
+              {isLoading && <div className="text-gray-400 italic">Assistant is typing...</div>}
             </div>
 
+            {/* Input Bar */}
             <div className="border-t border-gray-200 p-3 bg-white flex gap-2">
               <input
                 ref={inputRef}
@@ -302,11 +342,12 @@ export default function ChatWidget({
         )}
       </AnimatePresence>
 
+      {/* Toggle Chat Button */}
       <motion.button
         whileTap={{ scale: 0.95 }}
         whileHover={{ scale: 1.04 }}
-        onClick={() => setOpen(!open)}
-        className="bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white p-3 rounded-full shadow-xl"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white p-3 rounded-full shadow-xl"
         aria-label="Toggle Chat"
       >
         <MessageCircle size={20} />
