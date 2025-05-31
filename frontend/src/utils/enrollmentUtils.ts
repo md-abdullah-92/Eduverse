@@ -74,7 +74,7 @@ export class EnrollmentUtils {
       }
 
       const response = await axios.get(
-        `${API_BASE_URL}/enrollments/${this.userId}/${enrollmentId}`,
+        `${API_BASE_URL}/enrollments/${enrollmentId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -84,6 +84,7 @@ export class EnrollmentUtils {
       );
 
       if (response.status === 200) {
+        console.log(response.data);
         return response.data;
       }
       throw new Error("Failed to fetch enrollment");

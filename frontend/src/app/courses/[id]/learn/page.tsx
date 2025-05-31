@@ -17,6 +17,7 @@ import {
   FiPlay,
   FiSkipBack,
   FiSkipForward,
+  FiVideo,
   FiVolume2,
   FiX,
 } from "react-icons/fi";
@@ -37,6 +38,14 @@ interface LessonProgress {
   };
 }
 
+// Dummy video URLs for testing (you can remove these when real videos are added)
+const DEMO_VIDEOS = [
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+];
+
 export default function LearnPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -46,6 +55,7 @@ export default function LearnPage() {
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   // State
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
@@ -66,10 +76,14 @@ export default function LearnPage() {
   });
 
   const enrollmentId = searchParams.get("enrolled");
-  const isEnrolled = enrollmentId !== null;
 
   // Calculate course progress from enrollment
   const courseProgress = enrollment?.progressPercentage || 0;
+
+  // Get demo video URL for testing (remove this when real videos are available)
+  const getDemoVideoUrl = (lessonIndex: number) => {
+    return DEMO_VIDEOS[lessonIndex % DEMO_VIDEOS.length];
+  };
 
   // Fetch enrollment data and set first lesson
   useEffect(() => {
@@ -159,6 +173,38 @@ export default function LearnPage() {
     }
   };
 
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (progressBarRef.current && videoRef.current && videoState.duration) {
+      const rect = progressBarRef.current.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const percentage = clickX / rect.width;
+      const newTime = percentage * videoState.duration;
+
+      videoRef.current.currentTime = newTime;
+      setVideoState((prev) => ({ ...prev, currentTime: newTime }));
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      setVideoState((prev) => ({ ...prev, volume: newVolume }));
+    }
+  };
+
+  const handleFullscreen = () => {
+    if (playerContainerRef.current) {
+      if (!document.fullscreenElement) {
+        playerContainerRef.current.requestFullscreen();
+        setVideoState((prev) => ({ ...prev, isFullscreen: true }));
+      } else {
+        document.exitFullscreen();
+        setVideoState((prev) => ({ ...prev, isFullscreen: false }));
+      }
+    }
+  };
+
   const handleLessonChange = (lesson: Lesson) => {
     setCurrentLesson(lesson);
     setVideoState((prev) => ({ ...prev, currentTime: 0, isPlaying: false }));
@@ -189,9 +235,19 @@ export default function LearnPage() {
   };
 
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Get current lesson index for demo video
+  const getCurrentLessonIndex = () => {
+    if (!enrollment?.course.lessons || !currentLesson) return 0;
+    const sortedLessons = enrollment.course.lessons.sort(
+      (a, b) => a.orderIndex - b.orderIndex
+    );
+    return sortedLessons.findIndex((l) => l.id === currentLesson.id);
   };
 
   if (loading) {
@@ -204,6 +260,20 @@ export default function LearnPage() {
     );
   }
 
+  console.log(error);
+  console.log(enrollment);
+  console.log(currentLesson);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="flex justify-center items-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        </div>
+      </div>
+    );
+  }
   if (error || !enrollment || !currentLesson) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -223,6 +293,11 @@ export default function LearnPage() {
   }
 
   const course = enrollment.course;
+
+  // Check if current lesson has video (for demo, we'll use demo videos)
+  const hasVideo = currentLesson.videoUrl || true; // Set to true for demo
+  const videoUrl =
+    currentLesson.videoUrl || getDemoVideoUrl(getCurrentLessonIndex());
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -336,12 +411,12 @@ export default function LearnPage() {
                           <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
                             {lesson.title}
                           </h3>
-                          {lesson.videoUrl && (
-                            <div className="flex items-center text-xs text-gray-500">
-                              <FiPlay className="h-3 w-3 mr-1" />
-                              <span>Video</span>
-                            </div>
-                          )}
+                          <div className="flex items-center text-xs text-gray-500">
+                            <FiVideo className="h-3 w-3 mr-1" />
+                            <span>
+                              {lesson.videoUrl ? "Video" : "Video (Demo)"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </button>
@@ -355,8 +430,17 @@ export default function LearnPage() {
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
               {/* Video Player */}
               <div ref={playerContainerRef} className="relative bg-black">
-                {currentLesson.videoUrl ? (
+                {hasVideo ? (
                   <div className="relative">
+                    {/* Demo Notice */}
+                    {!currentLesson.videoUrl && (
+                      <div className="absolute top-4 left-4 z-10">
+                        <div className="bg-yellow-500 text-black px-3 py-1 rounded-md text-sm font-medium">
+                          Demo Video
+                        </div>
+                      </div>
+                    )}
+
                     <video
                       ref={videoRef}
                       className="w-full aspect-video"
@@ -376,7 +460,7 @@ export default function LearnPage() {
                         }
                       }}
                     >
-                      <source src={currentLesson.videoUrl} type="video/mp4" />
+                      <source src={videoUrl} type="video/mp4" />
                       Your browser does not support the video tag.
                     </video>
 
@@ -420,7 +504,11 @@ export default function LearnPage() {
                           <span className="text-sm text-white">
                             {formatTime(videoState.currentTime)}
                           </span>
-                          <div className="flex-1 h-1 bg-gray-600 rounded-full overflow-hidden">
+                          <div
+                            ref={progressBarRef}
+                            className="flex-1 h-1 bg-gray-600 rounded-full overflow-hidden cursor-pointer"
+                            onClick={handleProgressBarClick}
+                          >
                             <div
                               className="h-full bg-teal-500 transition-all duration-150"
                               style={{
@@ -437,11 +525,23 @@ export default function LearnPage() {
                           </span>
                         </div>
 
-                        <button className="text-white hover:text-teal-400 transition-colors">
-                          <FiVolume2 className="h-5 w-5" />
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <FiVolume2 className="h-5 w-5 text-white" />
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={videoState.volume}
+                            onChange={handleVolumeChange}
+                            className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
 
-                        <button className="text-white hover:text-teal-400 transition-colors">
+                        <button
+                          onClick={handleFullscreen}
+                          className="text-white hover:text-teal-400 transition-colors"
+                        >
                           <FiMaximize className="h-5 w-5" />
                         </button>
                       </div>
@@ -452,7 +552,10 @@ export default function LearnPage() {
                     <div className="text-center">
                       <FiBook className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-500">
-                        No video available for this lesson
+                        Video will be available soon
+                      </p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        This lesson is currently text-based
                       </p>
                     </div>
                   </div>

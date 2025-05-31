@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import CourseCard from "@/app/courses/components/courseCard";
-import { CourseData } from "@/utils/types";
+import { Enrollment } from "@/utils/types";
 import { BookOpen, ChevronDown, Filter, Link, Search } from "lucide-react";
 import { use, useEffect, useState } from "react";
 
@@ -13,7 +12,7 @@ export default function StudentEnrolledCoursesPage({
 }) {
   const paramsObj = use(params);
   const userId = parseInt(paramsObj.id);
-  const [courses, setCourses] = useState<CourseData[]>([]);
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("All Topics");
@@ -28,13 +27,7 @@ export default function StudentEnrolledCoursesPage({
         );
         const enrollments = await res.json();
 
-        // Extract course data from each enrollment object
-        const courseData = enrollments.map((enrollment: any) => ({
-          ...enrollment.course,
-          progress: Number(enrollment.progressPercentage) || 0,
-        }));
-
-        setCourses(courseData);
+        setEnrollments(enrollments);
       } catch (error) {
         console.log("Failed to fetch enrolled courses:", error);
       } finally {
@@ -47,21 +40,21 @@ export default function StudentEnrolledCoursesPage({
 
   // Extract unique topics from courses
   const topics = ["All Topics"];
-  courses.forEach((course) => {
-    if (course.topic && !topics.includes(course.topic)) {
-      topics.push(course.topic);
+  enrollments.forEach((enrollment) => {
+    if (enrollment.course.topic && !topics.includes(enrollment.course.topic)) {
+      topics.push(enrollment.course.topic);
     }
   });
 
   // Filter courses based on searchTerm and selectedTopic
-  const filteredCourses = courses.filter((course) => {
-    if (!course) return false;
+  const filteredCourses = enrollments.filter((enrollment) => {
+    if (!enrollment.course) return false;
 
     // Handle missing title more gracefully
-    const courseTitle = course.title || "";
+    const courseTitle = enrollment.course.title || "";
 
     // Handle missing topic - consider it a match if "All Topics" is selected
-    const courseTopic = course.topic || "";
+    const courseTopic = enrollment.course.topic || "";
     const matchesTopic =
       selectedTopic === "All Topics" || courseTopic === selectedTopic;
 
@@ -103,7 +96,7 @@ export default function StudentEnrolledCoursesPage({
                 <BookOpen className="h-12 w-12 text-white mr-3" />
                 <div>
                   <p className="text-sm text-teal-100">Enrolled courses</p>
-                  <p className="text-2xl font-bold">{courses.length}</p>
+                  <p className="text-2xl font-bold">{enrollments.length}</p>
                 </div>
               </div>
             </div>
@@ -175,7 +168,7 @@ export default function StudentEnrolledCoursesPage({
             {filteredCourses.length === 1 ? "Course" : "Courses"} Enrolled
           </h2>
           <div className="text-gray-500 text-sm">
-            Showing {filteredCourses.length} of {courses.length} courses
+            Showing {filteredCourses.length} of {enrollments.length} courses
           </div>
         </div>
 
@@ -198,13 +191,13 @@ export default function StudentEnrolledCoursesPage({
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCourses.map((course) => (
+            {filteredCourses.map((enrollment) => (
               <CourseCard
-                key={`course-${course.id}`}
-                course={course}
-                progress={Number(course.progress?.toFixed(2))}
+                key={`course-${enrollment.course.id}`}
+                course={enrollment.course}
+                progress={Number(enrollment.progressPercentage?.toFixed(2))}
                 isEnrolled={true}
-                enrollmentId={course.enrollmentId}
+                enrollmentId={enrollment.id}
               />
             ))}
           </div>

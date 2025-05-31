@@ -87,10 +87,31 @@ exports.getEnrollment = async (req, res) => {
   try {
     const enrollment = await prisma.enrollment.findUnique({
       where: { id: parseInt(id) },
-      include: { course: true, lessonCompletions: true },
+      include: { 
+        course: {
+          include: {
+            lessons: {
+              orderBy: {
+                orderIndex: 'asc'
+              }
+            }
+          }
+        }, 
+        lessonCompletions: {
+          include: {
+            lesson: true // Include lesson details in completions
+          }
+        }
+      },
     });
+    
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Enrollment not found' });
+    }
+    
     res.status(200).json(enrollment);
   } catch (error) {
+    console.error('Error fetching enrollment:', error);
     res.status(500).json({ error: 'Failed to fetch enrollment', details: error.message });
   }
 };
