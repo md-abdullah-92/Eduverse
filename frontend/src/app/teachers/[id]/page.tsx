@@ -23,6 +23,8 @@ import {
   TrendingUp,
   User,
   Users,
+  ClipboardEdit,
+  
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -81,13 +83,14 @@ const menuItems: MenuItem[] = [
   { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "My Courses" },
   { icon: Package, label: "Create Course" },
+  { icon: ClipboardEdit, label: "Create Quiz" },
   { icon: Megaphone, label: "Announcements" },
   { icon: DollarSign, label: "Withdrawals" },
   { icon: FileText, label: "Assignments" },
-  { icon: BadgeCheck, label: "Certificates" },
   { icon: PieChart, label: "Analytics" },
   { icon: Star, label: "Reviews" },
   { icon: LogOut, label: "Logout" },
+ 
 ];
 
 // Sidebar Components
@@ -132,6 +135,7 @@ const SidebarItem = ({
         }`}
       />
     </div>
+    
   </div>
 );
 
@@ -181,7 +185,7 @@ const LogoutModal = ({
 
 const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [activeItem, setActiveItem] = useState("Dashboard");
+  
 
   const router = useRouter();
 
@@ -196,6 +200,12 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
         role === "TEACHER"
           ? `/updatementors-profile/${userId}`
           : `/update-profile/${userId}`
+      );
+      return;
+    }
+    if (label === "Create Quiz") {
+      router.push(
+        `/teachers/${userId}/quiz/create/`
       );
       return;
     }
@@ -265,7 +275,6 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
                 icon={item.icon}
                 label={item.label}
                 badge={item.badge}
-                isActive={activeItem === item.label}
                 onClick={() => handleClick(item.label)}
               />
             ))}
