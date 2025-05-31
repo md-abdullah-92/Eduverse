@@ -81,6 +81,20 @@ exports.getCourseEnrollments = async (req, res) => {
   }
 };
 
+exports.getEnrollment = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { id: parseInt(id) },
+      include: { course: true, lessonCompletions: true },
+    });
+    res.status(200).json(enrollment);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch enrollment', details: error.message });
+  }
+};
+
 // Create an enrollment
 // hit -> post ->  http://localhost:5000/api/enrollments/enroll
 // request body -> 
@@ -97,3 +111,7 @@ exports.getCourseEnrollments = async (req, res) => {
 
 // Get all enrollments in a course
 // hit -> get ->  http://localhost:5000/api/enrollments/course/:courseId
+
+// Get a specific enrollment by ID
+// hit -> get ->  http://localhost:5000/api/enrollments/:id
+

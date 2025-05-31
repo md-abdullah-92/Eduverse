@@ -33,6 +33,7 @@ export default function StudentEnrolledCoursesPage({
           ...enrollment.course,
           progress: Number(enrollment.progressPercentage) || 0,
         }));
+
         setCourses(courseData);
       } catch (error) {
         console.log("Failed to fetch enrolled courses:", error);
@@ -201,8 +202,9 @@ export default function StudentEnrolledCoursesPage({
               <CourseCard
                 key={`course-${course.id}`}
                 course={course}
-                progress={Number(course.progress?.toFixed(2))} // gojamil
+                progress={Number(course.progress?.toFixed(2))}
                 isEnrolled={true}
+                enrollmentId={course.enrollmentId}
               />
             ))}
           </div>

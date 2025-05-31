@@ -1,4 +1,4 @@
-// import { CourseData } from "@/utils/types";
+import { Enrollment } from "@/utils/types";
 import axios from "axios";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001/api";
@@ -62,6 +62,33 @@ export class EnrollmentUtils {
       if (this.onFailure) {
         this.onFailure("Failed to enroll in course");
       }
+      throw error;
+    }
+  }
+
+  async fetchEnrollment(enrollmentId: number): Promise<Enrollment> {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      const response = await axios.get(
+        `${API_BASE_URL}/enrollments/${this.userId}/${enrollmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        return response.data;
+      }
+      throw new Error("Failed to fetch enrollment");
+    } catch (error) {
+      console.error("Error fetching enrollment:", error);
       throw error;
     }
   }

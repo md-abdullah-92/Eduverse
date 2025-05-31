@@ -53,7 +53,7 @@ export default function AllCoursesPage() {
           // Extract course IDs from enrollments
           const courseEnrollInfo = enrollments.map((enrollment: any) => ({
             id: enrollment.courseId,
-            enrollId: enrollment.id,
+            enrollmentId: enrollment.id,
             progress: Number(enrollment.progressPercentage) || 0,
           }));
           setEnrolledCourseInfo(courseEnrollInfo);
@@ -244,7 +244,7 @@ export default function AllCoursesPage() {
                   course={course}
                   isEnrolled={!!enrollment}
                   progress={Number(enrollment?.progress?.toFixed(2)) || 0}
-                  enrollId={enrollment?.enrollId}
+                  enrollmentId={enrollment?.enrollmentId}
                 />
               );
             })}
