@@ -84,12 +84,47 @@ export class EnrollmentUtils {
       );
 
       if (response.status === 200) {
-        console.log(response.data);
         return response.data;
       }
       throw new Error("Failed to fetch enrollment");
     } catch (error) {
       console.error("Error fetching enrollment:", error);
+      throw error;
+    }
+  }
+
+  async markLessonCompleted(
+    lessonId: number,
+    enrollmentId: number
+  ): Promise<void> {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/lessons/mark-completed/${lessonId}/${enrollmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        if (this.onSuccess) {
+          this.onSuccess("Lesson marked as completed successfully");
+        }
+        return;
+      }
+      throw new Error("Failed to mark lesson as completed");
+    } catch (error) {
+      console.error("Error marking lesson as completed:", error);
+      if (this.onFailure) {
+        this.onFailure("Failed to mark lesson as completed");
+      }
       throw error;
     }
   }

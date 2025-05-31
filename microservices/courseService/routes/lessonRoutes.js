@@ -8,5 +8,6 @@ router.post('/add/:courseId', validateLesson, validateResult, lessonController.a
 router.get('/get/:courseId', lessonController.getCourseLessons);
 router.put('/update/:lessonId', validateLesson, validateResult, lessonController.updateLesson);
 router.delete('/delete/:lessonId', lessonController.deleteLesson);
+router.post('/mark-completed/:lessonId/:enrollmentId', lessonController.markLessonCompleted);
 
 module.exports = router;

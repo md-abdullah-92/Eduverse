@@ -84,6 +84,40 @@ exports.deleteLesson = async (req, res) => {
   }
 };
 
+// Mark LEsson as completed
+
+exports.markLessonCompleted = async (req, res) => {
+  const { lessonId, enrollmentId } = req.params;
+  console.log("reached!!")
+  
+  try {
+    const lessonCompletion = await prisma.lessonCompletion.upsert({
+      where: {
+        enrollmentId_lessonId: {
+          lessonId: parseInt(lessonId, 10),
+          enrollmentId: parseInt(enrollmentId, 10)
+        }
+      },
+      update: {},
+      create: {
+        lessonId: parseInt(lessonId, 10),
+        enrollmentId: parseInt(enrollmentId, 10)
+      }
+    });
+    
+    // If we're updating an existing record, it means it was already marked as completed
+    const isNew = lessonCompletion.createdAt === lessonCompletion.updatedAt;
+    
+    res.status(200).json({
+      ...lessonCompletion,
+      isNew
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to mark lesson as completed', details: error.message });
+  }
+};
+
 // create lesson
 // hit -> post ->  http://localhost:5000/api/lessons/add/:courseId
 // request body -> 
@@ -107,3 +141,6 @@ exports.deleteLesson = async (req, res) => {
 
 // get all lessons of a course
 // hit -> get ->  http://localhost:5000/api/lessons/get/:courseId
+
+// mark lesson as completed
+// hit -> post ->  http://localhost:5000/api/lessons/mark-completed/:lessonId/:enrollmentId

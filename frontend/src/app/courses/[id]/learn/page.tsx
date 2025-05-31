@@ -4,7 +4,7 @@ import { useAuth } from "@/app/auth/context";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
 import { Enrollment, Lesson } from "@/utils/types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   FiArrowLeft,
   FiBook,
@@ -56,7 +56,8 @@ export default function LearnPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
-
+  const completedLessonsRef = useRef<Record<string, boolean>>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   // State
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
@@ -87,13 +88,13 @@ export default function LearnPage() {
 
   // Fetch enrollment data and set first lesson
   useEffect(() => {
-    const fetchEnrollment = async () => {
-      if (!user?.id || !enrollmentId) return;
+    if (!user?.id || !enrollmentId) return;
 
+    const enrollmentUtils = new EnrollmentUtils({
+      userId: user.id,
+    });
+    const fetchEnrollment = async () => {
       try {
-        const enrollmentUtils = new EnrollmentUtils({
-          userId: user.id,
-        });
         const enrollmentData = await enrollmentUtils.fetchEnrollment(
           Number(enrollmentId)
         );
@@ -130,7 +131,7 @@ export default function LearnPage() {
     };
 
     fetchEnrollment();
-  }, [enrollmentId, user?.id]);
+  }, [enrollmentId, user?.id, refreshTrigger]);
 
   // Video event handlers
   const handlePlayPause = () => {
@@ -143,19 +144,21 @@ export default function LearnPage() {
     }
   };
 
-  const handleVideoTimeUpdate = () => {
-    if (videoRef.current && currentLesson) {
-      const currentTime = videoRef.current.currentTime;
-      const duration = videoRef.current.duration;
+  const handleVideoTimeUpdate = useCallback(() => {
+    if (!videoRef.current) return;
 
-      setVideoState((prev) => ({
-        ...prev,
-        currentTime,
-        duration,
-      }));
+    const { currentTime, duration } = videoRef.current;
+    setVideoState((prev) => ({
+      ...prev,
+      currentTime,
+      duration,
+    }));
 
-      // Update lesson progress
-      const isCompleted = currentTime / duration > 0.9;
+    // Update lesson progress
+    const isCompleted = currentTime / duration > 0.9;
+
+    // Only proceed if we have current lesson and it's not already marked as completed
+    if (currentLesson?.id && !completedLessonsRef.current[currentLesson.id!]) {
       setLessonProgress((prev) => ({
         ...prev,
         [currentLesson.id!]: {
@@ -166,12 +169,22 @@ export default function LearnPage() {
         },
       }));
 
-      // TODO: Update lesson completion in backend
-      // if (isCompleted) {
-      //   updateLessonCompletion(currentLesson.id!, currentTime);
-      // }
+      // lesson completion in backend
+      if (isCompleted && user?.id && enrollmentId) {
+        // Mark as completed in ref to prevent duplicate calls
+        completedLessonsRef.current[currentLesson.id] = true;
+
+        const enrollmentUtils = new EnrollmentUtils({
+          userId: user.id,
+        });
+        enrollmentUtils.markLessonCompleted(
+          Number(currentLesson.id),
+          Number(enrollmentId)
+        );
+        setRefreshTrigger((prev) => prev + 1);
+      }
     }
-  };
+  }, [currentLesson?.id, user?.id, enrollmentId]);
 
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (progressBarRef.current && videoRef.current && videoState.duration) {
@@ -260,10 +273,6 @@ export default function LearnPage() {
     );
   }
 
-  console.log(error);
-  console.log(enrollment);
-  console.log(currentLesson);
-
   // Show loading state
   if (loading) {
     return (
@@ -274,19 +283,104 @@ export default function LearnPage() {
       </div>
     );
   }
+
   if (error || !enrollment || !currentLesson) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex flex-col justify-center items-center py-20">
-          <div className="text-red-500 text-lg mb-4">
-            {error || "Enrollment or lesson not found"}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all duration-300 hover:scale-105">
+          {/* Icon */}
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center animate-pulse">
+              <svg
+                className="w-8 h-8 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
           </div>
-          <button
-            className="text-teal-600 hover:text-teal-700 font-medium"
-            onClick={() => router.back()}
-          >
-            Go Back
-          </button>
+
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">
+            Oops! Something went wrong
+          </h2>
+
+          {/* Error Message */}
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-lg mb-6">
+            <p className="text-red-700 text-center font-medium">
+              {error || "Enrollment or lesson not found"}
+            </p>
+          </div>
+
+          {/* Description */}
+          <p className="text-gray-600 text-center mb-8 leading-relaxed">
+            We couldn&apos;t load the content you&apos;re looking for. This
+            might be a temporary issue.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <button
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-200"
+              onClick={() => router.back()}
+            >
+              <span className="flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                Go Back
+              </span>
+            </button>
+
+            <button
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-gray-200"
+              onClick={() => window.location.reload()}
+            >
+              <span className="flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                Try Again
+              </span>
+            </button>
+          </div>
+
+          {/* Help Link */}
+          <div className="mt-6 text-center">
+            <a
+              href="#"
+              className="text-sm text-gray-500 hover:text-teal-600 transition-colors duration-200"
+            >
+              Need help? Contact support
+            </a>
+          </div>
         </div>
       </div>
     );
