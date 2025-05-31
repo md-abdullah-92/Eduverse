@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String   // Reference to external user service
+  subtotal  Decimal  @default(0) @db.Decimal(10, 2)
+  total     Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id       String   @id @default(cuid())
+  cartId   String
+  courseId String   // Reference to external course service
+  price    Decimal  @db.Decimal(10, 2) // Cache price at time of adding
+  addedAt  DateTime @default(now())
+
+  // Relations
+  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, courseId])
+  @@map("cart_items")
+}
+
+model Purchase {
+  id                String         @id @default(cuid())
+  userId            String         // Reference to external user service
+  paymentIntentId   String         @unique
+  paymentMethodId   String?
+  amount            Decimal        @db.Decimal(10, 2)
+  currency          String         @default("usd")
+  status            PurchaseStatus @default(PENDING)
+  metadata          Json?
+  createdAt         DateTime       @default(now())
+  completedAt       DateTime?
+  failedAt          DateTime?
+  errorMessage      String?        @db.Text
+
+  // Relations
+  items PurchaseItem[]
+
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id         String   @id @default(cuid())
+  purchaseId String
+  courseId   String   // Reference to external course service
+  price      Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  // Relations
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_items")
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
