@@ -7,11 +7,20 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import {
+  FiArrowLeft,
   FiAward,
   FiBook,
+  FiCalendar,
+  FiCheckCircle,
   FiClock,
+  FiDownload,
+  FiHeart,
+  FiLock,
   FiPlay,
+  FiPlayCircle,
+  FiShare2,
   FiStar,
+  FiTrendingUp,
   FiUsers,
 } from "react-icons/fi";
 
@@ -25,7 +34,7 @@ interface LoadingState {
 }
 
 // Import utilities
-import { CourseUtils } from "@/utils/courseUtils"; // Import CourseUtils
+import { CourseUtils } from "@/utils/courseUtils";
 import {
   getButtonConfig,
   handleButtonAction,
@@ -44,7 +53,15 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
     enrollment: false,
   });
   const [error, setError] = useState<string | null>(null);
-  const [progress] = useState<number>(0); // Add progress tracking logic as needed
+  const [progress] = useState<number>(0);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [enrollmentDate, setEnrollmentDate] = useState<Date | null>(null);
+  const [lastAccessedLesson, setLastAccessedLesson] = useState<string | null>(
+    null
+  );
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "curriculum" | "reviews"
+  >("overview");
 
   // Get enrollment status from URL params
   const enrollmentId = searchParams.get("enrolled");
@@ -70,6 +87,22 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
         });
         const courseData = await courseUtils.fetchCourse();
         setCourse(courseData);
+
+        // If enrolled, fetch enrollment progress
+        if (isEnrolled && enrollmentId) {
+          // Mock progress data - replace with actual API call
+          const mockProgress = {
+            completedLessons: ["lesson-1", "lesson-2"], // Replace with actual completed lesson IDs
+            enrollmentDate: new Date("2024-01-15"),
+            lastAccessedLesson: "lesson-2",
+            overallProgress: 40, // percentage
+          };
+
+          setCompletedLessons(mockProgress.completedLessons);
+          setEnrollmentDate(mockProgress.enrollmentDate);
+          setLastAccessedLesson(mockProgress.lastAccessedLesson);
+          // Update progress state if you need to modify the useState declaration
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load course");
       } finally {
@@ -78,13 +111,18 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
     };
 
     fetchCourse();
-  }, [resolvedParams.id, user?.id]);
+  }, [resolvedParams.id, user?.id, isEnrolled, enrollmentId]);
 
   // Loading state
   if (loading.course) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex justify-center items-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-200 border-t-emerald-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">
+            Loading course details...
+          </p>
+        </div>
       </div>
     );
   }
@@ -92,25 +130,36 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   // Error state
   if (error || !course) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-screen">
-        <div className="text-red-500 text-lg mb-4">
-          {error || "Course not found"}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col justify-center items-center">
+        <div className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiBook className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">
+            Course Not Found
+          </h2>
+          <p className="text-slate-600 mb-6">
+            {error ||
+              "The course you're looking for doesn't exist or has been removed."}
+          </p>
+          <button
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105"
+            onClick={() => router.back()}
+          >
+            <FiArrowLeft className="inline mr-2" />
+            Go Back
+          </button>
         </div>
-        <button
-          className="text-teal-600 hover:text-teal-700"
-          onClick={() => router.back()}
-        >
-          Go Back
-        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="relative h-96 overflow-hidden">
-        <div className="absolute inset-0">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Enhanced Hero Section */}
+      <div className="relative overflow-hidden">
+        {/* Background with improved overlay */}
+        <div className="absolute inset-0 h-[70vh]">
           {course.coverPhotoUrl ? (
             <Image
               src={course.coverPhotoUrl}
@@ -120,38 +169,94 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
               priority
             />
           ) : (
-            <div className="flex flex-col items-center justify-center h-full bg-gradient-to-r from-teal-400 to-teal-600">
-              <FiBook className="h-16 w-16 text-white mb-4" />
-              <p className="text-lg font-medium text-white">Course Content</p>
+            <div className="h-full bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
             </div>
           )}
         </div>
-        <div className="absolute inset-0 bg-black/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
+
+        {/* Navigation Bar */}
+        <div className="relative z-20 bg-white/10 backdrop-blur-md border-b border-white/20">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => router.back()}
+                className="flex items-center space-x-2 text-white hover:text-emerald-300 transition-colors"
+              >
+                <FiArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Back to Courses</span>
+              </button>
+
+              <div className="flex items-center space-x-4">
+                <button className="p-2 text-white hover:text-emerald-300 transition-colors">
+                  <FiShare2 className="w-5 h-5" />
+                </button>
+                <button className="p-2 text-white hover:text-emerald-300 transition-colors">
+                  <FiHeart className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 h-full flex items-center">
-          <div className="max-w-3xl text-white">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 pt-16 pb-32">
+          <div className="max-w-4xl">
+            {/* Course Category Badge */}
+            <div className="inline-flex items-center bg-emerald-500/20 backdrop-blur-sm text-emerald-100 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <FiBook className="w-4 h-4 mr-2" />
+              {course.level?.toLowerCase() || "Course"}
+            </div>
+
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
               {course.title}
             </h1>
-            <p className="text-xl mb-6 opacity-90">{course.description}</p>
 
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                <FiClock className="text-white" />
-                <span>{course.lessons?.length || 0} Lessons</span>
+            <p className="text-xl text-white/90 mb-8 leading-relaxed max-w-3xl">
+              {course.description}
+            </p>
+
+            {/* Enhanced Stats */}
+            <div className="flex flex-wrap gap-6 mb-8">
+              <div className="flex items-center space-x-3 bg-white/15 backdrop-blur-sm px-6 py-3 rounded-2xl">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <FiClock className="text-white w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Lessons</p>
+                  <p className="text-white font-semibold">
+                    {course.lessons?.length || 0}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                <FiBook className="text-white" />
-                <span className="capitalize">
-                  {course.level?.toLowerCase() || "Beginner"}
-                </span>
+
+              <div className="flex items-center space-x-3 bg-white/15 backdrop-blur-sm px-6 py-3 rounded-2xl">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <FiUsers className="text-white w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm">Students</p>
+                  <p className="text-white font-semibold">1,234</p>
+                </div>
               </div>
+
               {course.averageRating && (
-                <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <FiStar className="text-white" />
-                  <span>{course.averageRating.toFixed(1)}</span>
-                  {renderStars(course.averageRating)}
+                <div className="flex items-center space-x-3 bg-white/15 backdrop-blur-sm px-6 py-3 rounded-2xl">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <FiStar className="text-white w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-sm">Rating</p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-white font-semibold">
+                        {course.averageRating.toFixed(1)}
+                      </span>
+                      <div className="flex">
+                        {renderStars(course.averageRating)}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -159,163 +264,475 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Learning Outcomes */}
-            {course.outcomes?.length > 0 && (
-              <div className="bg-white rounded-xl shadow-sm p-8 border">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                  <FiAward className="mr-3 text-teal-600" />
-                  What you&apos;ll learn
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {course.outcomes.map((outcome, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start space-x-3 p-3 rounded-lg bg-teal-50 border border-teal-100"
-                    >
-                      <svg
-                        className="w-5 h-5 text-teal-600 mt-0.5 flex-shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="text-gray-700">{outcome.outcome}</span>
-                    </div>
-                  ))}
+      {/* Course Card Overlay */}
+      <div className="relative -mt-20 z-30 max-w-7xl mx-auto px-6">
+        {/* Enrollment Progress Banner */}
+        {isEnrolled && (
+          <div className="mb-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-xl text-white overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <FiTrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">Your Progress</h3>
+                    <p className="text-emerald-100">
+                      {completedLessons.length} of{" "}
+                      {course?.lessons?.length || 0} lessons completed
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold mb-1">
+                    {course?.lessons?.length
+                      ? Math.round(
+                          (completedLessons.length / course.lessons.length) *
+                            100
+                        )
+                      : 0}
+                    %
+                  </div>
+                  <p className="text-emerald-100 text-sm">Complete</p>
                 </div>
               </div>
-            )}
 
-            {/* Course Curriculum */}
-            <div className="bg-white rounded-xl shadow-sm p-8 border">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <FiBook className="mr-3 text-teal-600" />
-                Course Curriculum
-              </h2>
+              {/* Progress Bar */}
+              <div className="w-full bg-white/20 rounded-full h-3 mb-4">
+                <div
+                  className="bg-white rounded-full h-3 transition-all duration-500 ease-out"
+                  style={{
+                    width: course?.lessons?.length
+                      ? `${
+                          (completedLessons.length / course.lessons.length) *
+                          100
+                        }%`
+                      : "0%",
+                  }}
+                ></div>
+              </div>
 
-              {course.lessons?.length > 0 ? (
-                <div className="space-y-3">
-                  {course.lessons
-                    .sort((a, b) => a.orderIndex - b.orderIndex)
-                    .map((lesson, index) => (
-                      <div
-                        key={lesson.id}
-                        className="border rounded-lg p-4 hover:border-teal-200 transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <span className="text-teal-600 font-medium text-sm">
-                                Lesson {index + 1}
-                              </span>
-                              <h3 className="font-semibold text-gray-900">
-                                {lesson.title}
-                              </h3>
-                            </div>
-                            {lesson.description && (
-                              <p className="text-gray-600 text-sm mt-2 ml-20">
-                                {lesson.description}
-                              </p>
-                            )}
+              <div className="flex items-center justify-between text-sm text-emerald-100">
+                <div className="flex items-center space-x-2">
+                  <FiCalendar className="w-4 h-4" />
+                  <span>
+                    Enrolled{" "}
+                    {enrollmentDate?.toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </span>
+                </div>
+                {lastAccessedLesson && (
+                  <div className="flex items-center space-x-2">
+                    <FiPlayCircle className="w-4 h-4" />
+                    <span>Continue learning</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Tabs Navigation */}
+            <div className="bg-white rounded-2xl shadow-xl mb-8 overflow-hidden">
+              <div className="border-b border-slate-100">
+                <nav className="flex">
+                  {[
+                    { key: "overview", label: "Overview", icon: FiBook },
+                    { key: "reviews", label: "Reviews", icon: FiStar },
+                  ].map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      onClick={() => setActiveTab(key as any)}
+                      className={`flex items-center space-x-2 px-8 py-4 font-medium transition-all ${
+                        activeTab === key
+                          ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </nav>
+              </div>
+
+              <div className="p-8">
+                {activeTab === "overview" && (
+                  <div className="space-y-8">
+                    {/* Course Description */}
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-6">
+                        About this course
+                      </h3>
+                      <div className="prose prose-slate max-w-none">
+                        <p className="text-slate-600 leading-relaxed text-lg">
+                          {course.description ||
+                            "This comprehensive course will guide you through essential concepts and practical applications, designed to help you master the subject matter effectively."}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Learning Outcomes */}
+                    {course.outcomes?.length > 0 && (
+                      <div>
+                        <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center">
+                          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                            <FiAward className="w-4 h-4 text-emerald-600" />
                           </div>
-                          {lesson.videoUrl && (
-                            <div className="flex items-center space-x-2 text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
-                              <FiPlay className="text-sm" />
-                              <span className="text-sm font-medium">Video</span>
+                          What you&apos;ll learn
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {course.outcomes.map((outcome, index) => (
+                            <div
+                              key={index}
+                              className="flex items-start space-x-4 p-5 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 hover:shadow-md transition-all duration-200"
+                            >
+                              <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <FiCheckCircle className="w-4 h-4 text-white" />
+                              </div>
+                              <span className="text-slate-700 leading-relaxed">
+                                {outcome.outcome}
+                              </span>
                             </div>
-                          )}
+                          ))}
                         </div>
                       </div>
-                    ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-8">
-                  No lessons available yet.
-                </p>
-              )}
+                    )}
+
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-2xl font-bold text-slate-900 flex items-center">
+                          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
+                            <FiPlay className="w-4 h-4 text-emerald-600" />
+                          </div>
+                          Course Curriculum
+                        </h3>
+                        {isEnrolled && (
+                          <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                            {completedLessons.length}/
+                            {course?.lessons?.length || 0} completed
+                          </div>
+                        )}
+                      </div>
+
+                      {course.lessons?.length > 0 ? (
+                        <div className="space-y-4">
+                          {course.lessons
+                            .sort((a, b) => a.orderIndex - b.orderIndex)
+                            .map((lesson, index) => {
+                              const isCompleted = completedLessons.includes(
+                                lesson.id!
+                              );
+                              const isLastAccessed =
+                                lastAccessedLesson === lesson.id;
+                              const isLocked = !isEnrolled && index > 0; // First lesson free for preview
+
+                              return (
+                                <div
+                                  key={lesson.id}
+                                  className={`group border rounded-xl p-6 transition-all duration-300 bg-white ${
+                                    isCompleted
+                                      ? "border-emerald-200 bg-emerald-50/30"
+                                      : isLastAccessed
+                                      ? "border-blue-200 bg-blue-50/30"
+                                      : isLocked
+                                      ? "border-slate-200 bg-slate-50/50"
+                                      : "border-slate-200 hover:border-emerald-200 hover:shadow-lg"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                      <div className="flex items-center space-x-4 mb-3">
+                                        <div
+                                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                                            isCompleted
+                                              ? "bg-emerald-500 text-white"
+                                              : isLastAccessed
+                                              ? "bg-blue-500 text-white"
+                                              : isLocked
+                                              ? "bg-slate-300 text-slate-500"
+                                              : "bg-emerald-100 text-emerald-600"
+                                          }`}
+                                        >
+                                          {isCompleted ? (
+                                            <FiCheckCircle className="w-4 h-4" />
+                                          ) : isLocked ? (
+                                            <FiLock className="w-4 h-4" />
+                                          ) : (
+                                            index + 1
+                                          )}
+                                        </div>
+
+                                        <div className="flex-1">
+                                          <div className="flex items-center space-x-2">
+                                            <h4
+                                              className={`font-semibold transition-colors ${
+                                                isCompleted
+                                                  ? "text-emerald-700"
+                                                  : isLastAccessed
+                                                  ? "text-blue-700"
+                                                  : isLocked
+                                                  ? "text-slate-500"
+                                                  : "text-slate-900 group-hover:text-emerald-600"
+                                              }`}
+                                            >
+                                              {lesson.title}
+                                            </h4>
+                                            {isLastAccessed && (
+                                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                                Continue
+                                              </span>
+                                            )}
+                                            {isCompleted && (
+                                              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">
+                                                Completed
+                                              </span>
+                                            )}
+                                          </div>
+                                          {lesson.description && (
+                                            <p
+                                              className={`mt-2 leading-relaxed ${
+                                                isLocked
+                                                  ? "text-slate-400"
+                                                  : "text-slate-600"
+                                              }`}
+                                            >
+                                              {lesson.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center space-x-3 ml-4">
+                                      {lesson.videoUrl && (
+                                        <div
+                                          className={`flex items-center space-x-2 px-4 py-2 rounded-xl ${
+                                            isCompleted
+                                              ? "text-emerald-600 bg-emerald-50"
+                                              : isLastAccessed
+                                              ? "text-blue-600 bg-blue-50"
+                                              : isLocked
+                                              ? "text-slate-400 bg-slate-100"
+                                              : "text-emerald-600 bg-emerald-50"
+                                          }`}
+                                        >
+                                          <FiPlay className="w-4 h-4" />
+                                          <span className="text-sm font-medium">
+                                            {isLocked ? "Locked" : "Video"}
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      {isEnrolled && !isLocked && (
+                                        <button
+                                          className={`p-2 rounded-lg transition-colors ${
+                                            isCompleted
+                                              ? "text-emerald-600 hover:bg-emerald-100"
+                                              : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                                          }`}
+                                        >
+                                          <FiPlayCircle className="w-5 h-5" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-16">
+                          <FiBook className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                          <p className="text-slate-500 text-lg">
+                            No lessons available yet.
+                          </p>
+                          <p className="text-slate-400">
+                            Check back soon for course content.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "reviews" && (
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-6">
+                      Student Reviews
+                    </h3>
+                    <div className="text-center py-16">
+                      <FiStar className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                      <p className="text-slate-500 text-lg">No reviews yet</p>
+                      <p className="text-slate-400">
+                        Be the first to review this course!
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Enhanced Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-xl shadow-sm border sticky top-6">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden sticky top-6">
               {/* Course Preview */}
-              <div className="aspect-video mb-6 bg-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-video bg-slate-100 relative overflow-hidden">
                 {course.coverPhotoUrl ? (
                   <Image
                     src={course.coverPhotoUrl}
                     alt={course.title}
-                    width={400}
-                    height={225}
-                    className="object-cover w-full h-full"
+                    fill
+                    className="object-cover"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full bg-gray-200">
-                    <FiBook className="h-12 w-12 text-gray-400" />
+                  <div className="h-full bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600">
+                    <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
                   </div>
                 )}
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <button className="bg-white/20 backdrop-blur-sm p-4 rounded-full text-white hover:bg-white/30 transition-colors">
+                    <FiPlay className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
+              <div className="p-6">
+                {/* Enrollment Status */}
+                {isEnrolled ? (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-slate-600">
+                        Your Progress
+                      </span>
+                      <span className="text-sm font-bold text-emerald-600">
+                        {course?.lessons?.length
+                          ? Math.round(
+                              (completedLessons.length /
+                                course.lessons.length) *
+                                100
+                            )
+                          : 0}
+                        %
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2 mb-4">
+                      <div
+                        className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full h-2 transition-all duration-500"
+                        style={{
+                          width: course?.lessons?.length
+                            ? `${
+                                (completedLessons.length /
+                                  course.lessons.length) *
+                                100
+                              }%`
+                            : "0%",
+                        }}
+                      ></div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-slate-600">
+                      <span>{completedLessons.length} lessons completed</span>
+                      <span>
+                        {(course?.lessons?.length || 0) -
+                          completedLessons.length}{" "}
+                        remaining
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Price */}
+                    <div className="text-center mb-6">
+                      <div className="text-4xl font-bold text-slate-900 mb-2">
+                        {course.price ? `${course.price}` : "Free"}
+                      </div>
+                      {course.price && (
+                        <p className="text-slate-500 text-sm">
+                          One-time payment
+                        </p>
+                      )}
+                    </div>
+                  </>
+                )}
 
-              {/* Price */}
-              <div className="text-center mb-6">
-                <span className="text-3xl font-bold text-gray-900">
-                  {course.price ? `$${course.price}` : "Free"}
-                </span>
-              </div>
+                {/* Action Button */}
+                <button
+                  className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 ${buttonConfig.className} shadow-lg mb-6`}
+                  onClick={() =>
+                    handleButtonAction({
+                      course,
+                      user,
+                      isTeacher,
+                      isEnrolled,
+                      router,
+                      showToast,
+                      enrollmentId: Number(enrollmentId),
+                    })
+                  }
+                  disabled={buttonConfig.disabled}
+                >
+                  {isEnrolled ? "Continue Learning" : buttonConfig.text}
+                </button>
 
-              {/* Action Button */}
+                {/* Quick Stats for Enrolled Students */}
+                {isEnrolled && (
+                  <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-slate-900">
+                        {completedLessons.length}
+                      </div>
+                      <div className="text-xs text-slate-600">Completed</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-slate-900">
+                        {enrollmentDate
+                          ? Math.ceil(
+                              (new Date().getTime() -
+                                enrollmentDate.getTime()) /
+                                (1000 * 3600 * 24)
+                            )
+                          : 0}
+                      </div>
+                      <div className="text-xs text-slate-600">
+                        Days enrolled
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-              <button
-                className={buttonConfig.className}
-                onClick={() =>
-                  handleButtonAction({
-                    course,
-                    user,
-                    isTeacher,
-                    isEnrolled,
-                    router,
-                    showToast,
-                    enrollmentId,
-                  })
-                }
-                disabled={buttonConfig.disabled}
-              >
-                {buttonConfig.text}
-              </button>
-
-              {/* Course Features */}
-              <div className="pt-6 border-t border-gray-100">
-                <h3 className="font-medium text-gray-900 mb-4">
-                  This course includes:
-                </h3>
-                <ul className="space-y-3 text-gray-600">
-                  <li className="flex items-center gap-3">
-                    <FiClock className="text-teal-600 flex-shrink-0" />
-                    <span>Lifetime access</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <FiAward className="text-teal-600 flex-shrink-0" />
-                    <span>Certificate of completion</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <FiBook className="text-teal-600 flex-shrink-0" />
-                    <span>{course.lessons?.length || 0} lessons</span>
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <FiUsers className="text-teal-600 flex-shrink-0" />
-                    <span>Community access</span>
-                  </li>
-                </ul>
+                {/* Course Features */}
+                <div className="pt-6 border-t border-slate-100">
+                  <h4 className="font-semibold text-slate-900 mb-4">
+                    {isEnrolled ? "Your benefits:" : "This course includes:"}
+                  </h4>
+                  <ul className="space-y-4">
+                    {[
+                      { icon: FiClock, text: "Lifetime access" },
+                      { icon: FiAward, text: "Certificate of completion" },
+                      {
+                        icon: FiBook,
+                        text: `${course.lessons?.length || 0} lessons`,
+                      },
+                      { icon: FiDownload, text: "Downloadable resources" },
+                      { icon: FiUsers, text: "Community access" },
+                    ].map(({ icon: Icon, text }, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center gap-3 text-slate-600"
+                      >
+                        <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center">
+                          <Icon className="text-emerald-600 w-4 h-4" />
+                        </div>
+                        <span>{text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>

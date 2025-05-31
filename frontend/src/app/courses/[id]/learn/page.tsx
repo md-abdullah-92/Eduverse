@@ -4,7 +4,7 @@ import { useAuth } from "@/app/auth/context";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
 import { Enrollment, Lesson } from "@/utils/types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   FiArrowLeft,
   FiBook,
@@ -27,7 +27,6 @@ interface VideoState {
   currentTime: number;
   duration: number;
   volume: number;
-  isFullscreen: boolean;
 }
 
 interface LessonProgress {
@@ -38,6 +37,15 @@ interface LessonProgress {
   };
 }
 
+interface NavigationButtonProps {
+  direction: "previous" | "next";
+  lesson: Lesson | null;
+  onLessonChange: (lesson: Lesson) => void;
+  disabled: boolean;
+  className?: string;
+  compact?: boolean;
+}
+
 // Dummy video URLs for testing (you can remove these when real videos are added)
 const DEMO_VIDEOS = [
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
@@ -46,18 +54,66 @@ const DEMO_VIDEOS = [
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
 ];
 
+// Reusable Navigation Button Component
+const NavigationButton: React.FC<NavigationButtonProps> = ({
+  direction,
+  lesson,
+  onLessonChange,
+  disabled,
+  className = "",
+  compact = false,
+}) => {
+  const isPrevious = direction === "previous";
+  const baseClasses = disabled
+    ? "disabled:opacity-50 disabled:cursor-not-allowed"
+    : "";
+
+  const handleClick = () => {
+    if (lesson && !disabled) {
+      onLessonChange(lesson);
+    }
+  };
+
+  if (compact) {
+    return (
+      <button
+        onClick={handleClick}
+        disabled={disabled}
+        className={`text-white hover:text-teal-400 transition-colors ${baseClasses} ${className}`}
+      >
+        {isPrevious ? (
+          <FiSkipBack className="h-5 w-5" />
+        ) : (
+          <FiSkipForward className="h-5 w-5" />
+        )}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={disabled}
+      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${baseClasses} ${className}`}
+    >
+      {isPrevious && <FiSkipBack className="h-4 w-4" />}
+      <span>{isPrevious ? "Previous Lesson" : "Next Lesson"}</span>
+      {!isPrevious && <FiSkipForward className="h-4 w-4" />}
+    </button>
+  );
+};
+
 export default function LearnPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
-  // const { showToast } = useToast();
 
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const completedLessonsRef = useRef<Record<string, boolean>>({});
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   // State
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
@@ -67,24 +123,52 @@ export default function LearnPage() {
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState("");
   const [lessonProgress, setLessonProgress] = useState<LessonProgress>({});
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
     currentTime: 0,
     duration: 0,
     volume: 1,
-    isFullscreen: false,
   });
 
   const enrollmentId = searchParams.get("enrolled");
+
+  // Memoized sorted lessons to avoid repeated sorting
+  const sortedLessons = useMemo(() => {
+    return (
+      enrollment?.course.lessons?.sort((a, b) => a.orderIndex - b.orderIndex) ||
+      []
+    );
+  }, [enrollment?.course.lessons]);
+
+  // Memoized navigation lessons
+  const { nextLesson, previousLesson, currentLessonIndex } = useMemo(() => {
+    if (!currentLesson || sortedLessons.length === 0) {
+      return { nextLesson: null, previousLesson: null, currentLessonIndex: 0 };
+    }
+
+    const currentIndex = sortedLessons.findIndex(
+      (l) => l.id === currentLesson.id
+    );
+
+    return {
+      nextLesson:
+        currentIndex < sortedLessons.length - 1
+          ? sortedLessons[currentIndex + 1]
+          : null,
+      previousLesson: currentIndex > 0 ? sortedLessons[currentIndex - 1] : null,
+      currentLessonIndex: currentIndex,
+    };
+  }, [currentLesson, sortedLessons]);
 
   // Calculate course progress from enrollment
   const courseProgress = enrollment?.progressPercentage || 0;
 
   // Get demo video URL for testing (remove this when real videos are available)
-  const getDemoVideoUrl = (lessonIndex: number) => {
+  const getDemoVideoUrl = useCallback((lessonIndex: number) => {
     return DEMO_VIDEOS[lessonIndex % DEMO_VIDEOS.length];
-  };
+  }, []);
 
   // Fetch enrollment data and set first lesson
   useEffect(() => {
@@ -93,6 +177,7 @@ export default function LearnPage() {
     const enrollmentUtils = new EnrollmentUtils({
       userId: user.id,
     });
+
     const fetchEnrollment = async () => {
       try {
         const enrollmentData = await enrollmentUtils.fetchEnrollment(
@@ -105,10 +190,10 @@ export default function LearnPage() {
           enrollmentData.course.lessons &&
           enrollmentData.course.lessons.length > 0
         ) {
-          const sortedLessons = enrollmentData.course.lessons.sort(
+          const firstLesson = enrollmentData.course.lessons.sort(
             (a, b) => a.orderIndex - b.orderIndex
-          );
-          setCurrentLesson(sortedLessons[0]);
+          )[0];
+          setCurrentLesson(firstLesson);
         }
 
         // Initialize lesson progress from lesson completions
@@ -134,7 +219,7 @@ export default function LearnPage() {
   }, [enrollmentId, user?.id, refreshTrigger]);
 
   // Video event handlers
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     if (videoRef.current) {
       if (videoState.isPlaying) {
         videoRef.current.pause();
@@ -142,10 +227,10 @@ export default function LearnPage() {
         videoRef.current.play();
       }
     }
-  };
+  }, [videoState.isPlaying]);
 
   const handleVideoTimeUpdate = useCallback(() => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !currentLesson?.id) return;
 
     const { currentTime, duration } = videoRef.current;
     setVideoState((prev) => ({
@@ -157,8 +242,8 @@ export default function LearnPage() {
     // Update lesson progress
     const isCompleted = currentTime / duration > 0.9;
 
-    // Only proceed if we have current lesson and it's not already marked as completed
-    if (currentLesson?.id && !completedLessonsRef.current[currentLesson.id!]) {
+    // Only proceed if it's not already marked as completed
+    if (!completedLessonsRef.current[currentLesson.id]) {
       setLessonProgress((prev) => ({
         ...prev,
         [currentLesson.id!]: {
@@ -169,7 +254,7 @@ export default function LearnPage() {
         },
       }));
 
-      // lesson completion in backend
+      // Mark lesson completion in backend
       if (isCompleted && user?.id && enrollmentId) {
         // Mark as completed in ref to prevent duplicate calls
         completedLessonsRef.current[currentLesson.id] = true;
@@ -186,83 +271,55 @@ export default function LearnPage() {
     }
   }, [currentLesson?.id, user?.id, enrollmentId]);
 
-  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (progressBarRef.current && videoRef.current && videoState.duration) {
-      const rect = progressBarRef.current.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const percentage = clickX / rect.width;
-      const newTime = percentage * videoState.duration;
+  const handleProgressBarClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (progressBarRef.current && videoRef.current && videoState.duration) {
+        const rect = progressBarRef.current.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percentage = clickX / rect.width;
+        const newTime = percentage * videoState.duration;
 
-      videoRef.current.currentTime = newTime;
-      setVideoState((prev) => ({ ...prev, currentTime: newTime }));
-    }
-  };
+        videoRef.current.currentTime = newTime;
+        setVideoState((prev) => ({ ...prev, currentTime: newTime }));
+      }
+    },
+    [videoState.duration]
+  );
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    if (videoRef.current) {
-      videoRef.current.volume = newVolume;
-      setVideoState((prev) => ({ ...prev, volume: newVolume }));
-    }
-  };
+  const handleVolumeChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newVolume = parseFloat(e.target.value);
+      if (videoRef.current) {
+        videoRef.current.volume = newVolume;
+        setVideoState((prev) => ({ ...prev, volume: newVolume }));
+      }
+    },
+    []
+  );
 
-  const handleFullscreen = () => {
+  const handleFullscreen = useCallback(() => {
     if (playerContainerRef.current) {
       if (!document.fullscreenElement) {
         playerContainerRef.current.requestFullscreen();
-        setVideoState((prev) => ({ ...prev, isFullscreen: true }));
       } else {
         document.exitFullscreen();
-        setVideoState((prev) => ({ ...prev, isFullscreen: false }));
       }
     }
-  };
+  }, []);
 
-  const handleLessonChange = (lesson: Lesson) => {
+  const handleLessonChange = useCallback((lesson: Lesson) => {
     setCurrentLesson(lesson);
     setVideoState((prev) => ({ ...prev, currentTime: 0, isPlaying: false }));
-  };
+  }, []);
 
-  const getNextLesson = () => {
-    if (!enrollment?.course.lessons || !currentLesson) return null;
-    const sortedLessons = enrollment.course.lessons.sort(
-      (a, b) => a.orderIndex - b.orderIndex
-    );
-    const currentIndex = sortedLessons.findIndex(
-      (l) => l.id === currentLesson.id
-    );
-    return currentIndex < sortedLessons.length - 1
-      ? sortedLessons[currentIndex + 1]
-      : null;
-  };
-
-  const getPreviousLesson = () => {
-    if (!enrollment?.course.lessons || !currentLesson) return null;
-    const sortedLessons = enrollment.course.lessons.sort(
-      (a, b) => a.orderIndex - b.orderIndex
-    );
-    const currentIndex = sortedLessons.findIndex(
-      (l) => l.id === currentLesson.id
-    );
-    return currentIndex > 0 ? sortedLessons[currentIndex - 1] : null;
-  };
-
-  const formatTime = (seconds: number) => {
+  const formatTime = useCallback((seconds: number) => {
     if (isNaN(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  }, []);
 
-  // Get current lesson index for demo video
-  const getCurrentLessonIndex = () => {
-    if (!enrollment?.course.lessons || !currentLesson) return 0;
-    const sortedLessons = enrollment.course.lessons.sort(
-      (a, b) => a.orderIndex - b.orderIndex
-    );
-    return sortedLessons.findIndex((l) => l.id === currentLesson.id);
-  };
-
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -273,17 +330,7 @@ export default function LearnPage() {
     );
   }
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
-        </div>
-      </div>
-    );
-  }
-
+  // Error state
   if (error || !enrollment || !currentLesson) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -391,7 +438,7 @@ export default function LearnPage() {
   // Check if current lesson has video (for demo, we'll use demo videos)
   const hasVideo = currentLesson.videoUrl || true; // Set to true for demo
   const videoUrl =
-    currentLesson.videoUrl || getDemoVideoUrl(getCurrentLessonIndex());
+    currentLesson.videoUrl || getDemoVideoUrl(currentLessonIndex);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -401,7 +448,9 @@ export default function LearnPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => router.push(`/courses/${course.id}`)}
+                onClick={() =>
+                  router.push(`/courses/${course.id}?enrolled=${enrollment.id}`)
+                }
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 <FiArrowLeft className="h-5 w-5" />
@@ -471,50 +520,48 @@ export default function LearnPage() {
                     Object.values(lessonProgress).filter((p) => p.completed)
                       .length
                   }{" "}
-                  of {course.lessons?.length || 0} lessons completed
+                  of {sortedLessons.length} lessons completed
                 </div>
               </div>
 
               <div className="max-h-96 overflow-y-auto">
-                {course.lessons
-                  ?.sort((a, b) => a.orderIndex - b.orderIndex)
-                  .map((lesson, index) => (
-                    <button
-                      key={lesson.id}
-                      onClick={() => handleLessonChange(lesson)}
-                      className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                        currentLesson.id === lesson.id
-                          ? "bg-teal-50 border-l-4 border-l-teal-500"
-                          : ""
-                      }`}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 mt-1">
-                          {lessonProgress[lesson.id!]?.completed ? (
-                            <FiCheckCircle className="h-4 w-4 text-green-500" />
-                          ) : currentLesson.id === lesson.id ? (
-                            <div className="h-4 w-4 rounded-full bg-teal-500" />
-                          ) : (
-                            <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
-                          )}
+                {sortedLessons.map((lesson, index) => (
+                  <button
+                    key={lesson.id}
+                    onClick={() => handleLessonChange(lesson)}
+                    className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                      currentLesson.id === lesson.id
+                        ? "bg-teal-50 border-l-4 border-l-teal-500"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 mt-1">
+                        {lessonProgress[lesson.id!]?.completed ? (
+                          <FiCheckCircle className="h-4 w-4 text-green-500" />
+                        ) : currentLesson.id === lesson.id ? (
+                          <div className="h-4 w-4 rounded-full bg-teal-500" />
+                        ) : (
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-teal-600 mb-1 font-medium">
+                          Lesson {index + 1}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs text-teal-600 mb-1 font-medium">
-                            Lesson {index + 1}
-                          </div>
-                          <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-                            {lesson.title}
-                          </h3>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <FiVideo className="h-3 w-3 mr-1" />
-                            <span>
-                              {lesson.videoUrl ? "Video" : "Video (Demo)"}
-                            </span>
-                          </div>
+                        <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+                          {lesson.title}
+                        </h3>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <FiVideo className="h-3 w-3 mr-1" />
+                          <span>
+                            {lesson.videoUrl ? "Video" : "Video (Demo)"}
+                          </span>
                         </div>
                       </div>
-                    </button>
-                  ))}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -572,27 +619,21 @@ export default function LearnPage() {
                           )}
                         </button>
 
-                        <button
-                          onClick={() =>
-                            getPreviousLesson() &&
-                            handleLessonChange(getPreviousLesson()!)
-                          }
-                          disabled={!getPreviousLesson()}
-                          className="text-white hover:text-teal-400 transition-colors disabled:opacity-50"
-                        >
-                          <FiSkipBack className="h-5 w-5" />
-                        </button>
+                        <NavigationButton
+                          direction="previous"
+                          lesson={previousLesson}
+                          onLessonChange={handleLessonChange}
+                          disabled={!previousLesson}
+                          compact
+                        />
 
-                        <button
-                          onClick={() =>
-                            getNextLesson() &&
-                            handleLessonChange(getNextLesson()!)
-                          }
-                          disabled={!getNextLesson()}
-                          className="text-white hover:text-teal-400 transition-colors disabled:opacity-50"
-                        >
-                          <FiSkipForward className="h-5 w-5" />
-                        </button>
+                        <NavigationButton
+                          direction="next"
+                          lesson={nextLesson}
+                          onLessonChange={handleLessonChange}
+                          disabled={!nextLesson}
+                          compact
+                        />
 
                         <div className="flex-1 flex items-center space-x-2">
                           <span className="text-sm text-white">
@@ -687,28 +728,21 @@ export default function LearnPage() {
 
               {/* Navigation */}
               <div className="flex justify-between items-center pt-6 border-t border-gray-200">
-                <button
-                  onClick={() =>
-                    getPreviousLesson() &&
-                    handleLessonChange(getPreviousLesson()!)
-                  }
-                  disabled={!getPreviousLesson()}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <FiSkipBack className="h-4 w-4" />
-                  <span>Previous Lesson</span>
-                </button>
+                <NavigationButton
+                  direction="previous"
+                  lesson={previousLesson}
+                  onLessonChange={handleLessonChange}
+                  disabled={!previousLesson}
+                  className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+                />
 
-                <button
-                  onClick={() =>
-                    getNextLesson() && handleLessonChange(getNextLesson()!)
-                  }
-                  disabled={!getNextLesson()}
-                  className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span>Next Lesson</span>
-                  <FiSkipForward className="h-4 w-4" />
-                </button>
+                <NavigationButton
+                  direction="next"
+                  lesson={nextLesson}
+                  onLessonChange={handleLessonChange}
+                  disabled={!nextLesson}
+                  className="bg-teal-600 text-white hover:bg-teal-700"
+                />
               </div>
             </div>
           </div>
