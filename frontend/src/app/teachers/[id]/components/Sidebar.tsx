@@ -13,6 +13,7 @@ import {
   PieChart,
   Star,
   User,
+  Save,
   
   
 } from "lucide-react";
@@ -24,6 +25,8 @@ const menuItems = [
   { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "My Courses" },
   { icon: Package, label: "Create Course" },
+  { icon: Save, label: "Slide Generator"}, // Example of a badge
+  { icon: ClipboardEdit, label: "Create Assignment" },
   { icon: ClipboardEdit, label: "Create Quiz" },
   { icon: Megaphone, label: "Announcements" },
   { icon: DollarSign, label: "Withdrawals" },
@@ -40,6 +43,10 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   const handleClick = (label: string) => {
     if (label === "Dashboard") return router.push(`/teachers/${userId}`);
     if (label === "Logout") return setShowLogoutModal(true);
+    if (label === "Announcements")
+      return router.push(`/teachers/${userId}/announcements`);
+    if (label === "Slide Generator")
+      return router.push(`/teachers/${userId}/generate-slide`);
     if (label === "Update Profile")
       return router.push(
         role === "TEACHER"

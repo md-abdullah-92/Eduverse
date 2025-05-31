@@ -11,6 +11,7 @@ import remarkGfm from "remark-gfm";
 import "easymde/dist/easymde.min.css";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { merriweather } from "@/utils/font"; // ← apply font
+import Sidebar from "../components/Sidebar";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
@@ -34,8 +35,15 @@ export default function GenerateSlidePage() {
 * **Statistical Inference:** Using sample data to make conclusions about the population.
 `);
   const [showPreview, setShowPreview] = useState(true);
+  const userId = localStorage.getItem("userId") || "12345"; // Fallback for demo purposes
+  console.log(userId);
 
   return (
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
+   
+      
+    <Sidebar role="TEACHER" userId={userId} /> 
+   <main className="flex-1 p-8 space-y-8 relative z-10">
     <div className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 flex flex-col ${merriweather.className}`}>
       <header className="mb-6 pt-8">
         <h1 className="text-4xl font-bold text-teal-800 flex items-center gap-3">
@@ -151,6 +159,8 @@ export default function GenerateSlidePage() {
           </div>
         )}
       </div>
+    </div>
+    </main>
     </div>
   );
 }
