@@ -12,7 +12,7 @@ class CartController {
     const courseData = req.body;
 
     const cart = await this.cartService.addCourse(userId, courseData);
-    
+
     res.status(200).json({
       success: true,
       message: 'Course added to cart',
@@ -48,6 +48,6 @@ class CartController {
       data: cart
     });
   });
-}
+} 
 
 module.exports = new CartController();

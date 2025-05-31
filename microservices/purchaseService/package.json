@@ -13,16 +13,16 @@
     "db:seed": "node prisma/seed.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "stripe": "^14.0.0",
+    "@prisma/client": "^5.22.0",
     "cors": "^2.8.5",
-    "helmet": "^7.0.0",
-    "express-rate-limit": "^7.0.0",
-    "joi": "^17.9.0",
-    "uuid": "^9.0.0",
     "dotenv": "^16.0.0",
-    "prisma": "^5.0.0",
-    "@prisma/client": "^5.0.0"
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.0.0",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.0",
+    "prisma": "^5.22.0",
+    "stripe": "^14.0.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.0"
