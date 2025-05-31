@@ -88,15 +88,6 @@ export const getButtonConfig = (
   };
 };
 
-export const getCourseUrl = (
-  courseId: string,
-  isEnrolled: boolean,
-  enrollId?: number
-) => {
-  const baseUrl = `/courses/${courseId}`;
-  return isEnrolled ? `${baseUrl}?enrolled=${enrollId}` : baseUrl;
-};
-
 // Course action handler
 export const handleButtonAction = async ({
   course,
@@ -105,7 +96,7 @@ export const handleButtonAction = async ({
   isEnrolled,
   router,
   showToast,
-  enrollId,
+  enrollmentId,
 }: {
   course: CourseData | null;
   user: any;
@@ -113,7 +104,7 @@ export const handleButtonAction = async ({
   isEnrolled: boolean;
   router: any;
   showToast: (message: string, type: "success" | "error") => void;
-  enrollId?: number;
+  enrollmentId?: number;
 }) => {
   const isLoggedIn = !!user;
   const enrollmentUtils = new EnrollmentUtils({
@@ -138,7 +129,10 @@ export const handleButtonAction = async ({
     router.push(`/teachers/${user.id}/course_update/${course.id}`);
   } else if (isEnrolled) {
     // Navigate to the course learning page
-    router.push(getCourseUrl(course.id.toString(), isEnrolled, enrollId));
+    const baseUrl = `/courses/${course.id}`;
+    router.push(
+      isEnrolled ? `${baseUrl}/learn/?enrolled=${enrollmentId}` : baseUrl
+    );
   } else {
     // Handle enrollment or cart logic
     if (course.price && Number(course.price) > 0) {
@@ -148,7 +142,6 @@ export const handleButtonAction = async ({
     } else {
       // Free course - direct enrollment
       enrollmentUtils.enrollInCourse(course.id);
-      showToast("Successfully Enrolled in Free course", "success");
     }
   }
 };

@@ -47,8 +47,8 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   const [progress] = useState<number>(0); // Add progress tracking logic as needed
 
   // Get enrollment status from URL params
-  const enrollId = searchParams.get("enrolled");
-  const isEnrolled = enrollId !== null;
+  const enrollmentId = searchParams.get("enrolled");
+  const isEnrolled = enrollmentId !== null;
   const isTeacher = user?.role === "TEACHER";
   const { showToast } = useToast();
 
@@ -79,28 +79,6 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
 
     fetchCourse();
   }, [resolvedParams.id, user?.id]);
-
-  // Render action button based on user state
-  const renderActionButton = () => {
-    return (
-      <button
-        className={buttonConfig.className}
-        onClick={() =>
-          handleButtonAction({
-            course,
-            user,
-            isTeacher,
-            isEnrolled,
-            router,
-            showToast,
-          })
-        }
-        disabled={buttonConfig.disabled}
-      >
-        {buttonConfig.text}
-      </button>
-    );
-  };
 
   // Loading state
   if (loading.course) {
@@ -296,7 +274,24 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
               </div>
 
               {/* Action Button */}
-              {renderActionButton()}
+
+              <button
+                className={buttonConfig.className}
+                onClick={() =>
+                  handleButtonAction({
+                    course,
+                    user,
+                    isTeacher,
+                    isEnrolled,
+                    router,
+                    showToast,
+                    enrollmentId,
+                  })
+                }
+                disabled={buttonConfig.disabled}
+              >
+                {buttonConfig.text}
+              </button>
 
               {/* Course Features */}
               <div className="pt-6 border-t border-gray-100">

@@ -6,23 +6,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   getButtonConfig,
-  getCourseUrl,
   handleButtonAction,
   renderStars,
 } from "../utils/couseCardUtils";
 
 interface CourseCardProps {
   course: CourseData;
-  isEnrolled?: boolean; // Add this prop to indicate enrollment status
+  isEnrolled?: boolean;
   progress?: number;
-  enrollId?: number;
+  enrollmentId?: number;
 }
 
 export default function CourseCard({
   course,
   isEnrolled = false,
   progress = 0,
-  enrollId,
+  enrollmentId,
 }: CourseCardProps) {
   const { user } = useAuth();
   const isTeacher = user?.role === "TEACHER";
@@ -39,7 +38,11 @@ export default function CourseCard({
 
   return (
     <Link
-      href={getCourseUrl(course.id.toString(), isEnrolled, enrollId)}
+      href={
+        isEnrolled
+          ? `/courses/${course.id}?enrolled=${Number(enrollmentId)}`
+          : `/courses/${course.id}`
+      }
       className="block"
     >
       <div className="rounded-lg overflow-hidden bg-white transition-all duration-300 hover:shadow-xl border border-gray-200 h-full">
@@ -126,7 +129,9 @@ export default function CourseCard({
 
           <button
             className={buttonConfig.className}
-            onClick={() =>
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
               handleButtonAction({
                 course,
                 user,
@@ -134,9 +139,9 @@ export default function CourseCard({
                 isEnrolled,
                 router,
                 showToast,
-                enrollId,
-              })
-            }
+                enrollmentId,
+              });
+            }}
             disabled={buttonConfig.disabled}
           >
             {buttonConfig.text}

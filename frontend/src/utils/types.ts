@@ -33,6 +33,32 @@ export interface CourseData extends CourseFormData {
 
 export interface CourseInfo {
   id: number;
-  enrollId: number;
+  enrollmentId: number;
   progress: number;
+}
+
+export interface EnrollmentData {
+  id: number;
+  studentId: string;
+  courseId: number;
+  createdAt: Date;
+  updatedAt: Date;
+  progressPercentage: number;
+}
+
+export interface LessonCompletion {
+  id: number;
+  enrollmentId: number;
+  lessonId: number;
+  completedAt: Date;
+}
+
+export interface LessonCompletionData extends LessonCompletion {
+  completed: boolean;
+  watchTime: number;
+}
+
+export interface Enrollment extends EnrollmentData {
+  course: CourseData;
+  lessonCompletions: LessonCompletion[];
 }
