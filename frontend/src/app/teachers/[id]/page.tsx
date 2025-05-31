@@ -10,12 +10,7 @@ import {
   DollarSign,
   Download,
   Eye,
-  FileText,
   Loader2,
-  LogOut,
-  Megaphone,
-  Package,
-  PieChart,
   Play,
   Search,
   Settings,
@@ -23,18 +18,14 @@ import {
   TrendingUp,
   User,
   Users,
-  ClipboardEdit,
+  
   
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import Sidebar from "./components/Sidebar";
 
-// Types
-type MenuItem = {
-  icon: React.ElementType;
-  label: string;
-  badge?: number;
-};
+
 
 type StatCardProps = {
   label: string;
@@ -50,13 +41,6 @@ type ChartCardProps = {
   data?: number[];
 };
 
-type SidebarItemProps = {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
-  badge?: number;
-  isActive?: boolean;
-};
 
 type TeacherProfile = {
   user: {
@@ -78,218 +62,9 @@ type TeacherProfile = {
   totalOrders: number;
 };
 
-// Menu Data
-const menuItems: MenuItem[] = [
-  { icon: User, label: "Update Profile" },
-  { icon: BookOpen, label: "My Courses" },
-  { icon: Package, label: "Create Course" },
-  { icon: ClipboardEdit, label: "Create Quiz" },
-  { icon: Megaphone, label: "Announcements" },
-  { icon: DollarSign, label: "Withdrawals" },
-  { icon: FileText, label: "Assignments" },
-  { icon: PieChart, label: "Analytics" },
-  { icon: Star, label: "Reviews" },
-  { icon: LogOut, label: "Logout" },
- 
-];
 
-// Sidebar Components
-const SidebarItem = ({
-  icon: Icon,
-  label,
-  onClick,
-  badge,
-  isActive,
-}: SidebarItemProps) => (
-  <div
-    className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-      isActive
-        ? "bg-gradient-to-r from-teal-700 to-purple-600 text-white shadow-lg"
-        : "hover:bg-gray-50 text-gray-700 hover:text-teal-600"
-    }`}
-    onClick={onClick}
-  >
-    <div className="flex items-center space-x-3">
-      <Icon
-        size={20}
-        className={`transition-colors duration-300 ${
-          isActive ? "text-white" : "text-teal-500 group-hover:text-teal-600"
-        }`}
-      />
-      <span className="font-medium text-sm">{label}</span>
-    </div>
-    <div className="flex items-center space-x-2">
-      {badge && (
-        <span
-          className={`px-2 py-1 text-xs rounded-full font-semibold ${
-            isActive ? "bg-white/20 text-white" : "bg-teal-100 text-teal-600"
-          }`}
-        >
-          {badge}
-        </span>
-      )}
-      <ChevronRight
-        size={14}
-        className={`transition-all duration-300 ${
-          isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
-        }`}
-      />
-    </div>
-    
-  </div>
-);
 
-const LogoutModal = ({
-  isOpen,
-  onClose,
-  onConfirm,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-}) => {
-  if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform animate-in zoom-in-95 duration-300">
-        <div className="text-center mb-6">
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <LogOut className="w-8 h-8 text-red-600" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Confirm Logout
-          </h2>
-          <p className="text-gray-600">
-            Are you sure you want to log out of EduVerse?
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 text-sm font-medium bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 px-4 py-3 text-sm font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  
-
-  const router = useRouter();
-
-  const handleClick = (label: string) => {
-    if (label === "Logout") {
-      setShowLogoutModal(true);
-      return;
-    }
-
-    if (label === "Update Profile") {
-      router.push(
-        role === "TEACHER"
-          ? `/updatementors-profile/${userId}`
-          : `/update-profile/${userId}`
-      );
-      return;
-    }
-    if (label === "Create Quiz") {
-      router.push(
-        `/teachers/${userId}/quiz/create/`
-      );
-      return;
-    }
-    if (label === "My Courses") {
-      router.push(
-        role === "TEACHER"
-          ? `/teachers/${userId}/all/`
-          : `/students/${userId}/enrolled_course`
-      );
-      return;
-    }
-    if (label === "Create Course") {
-      router.push(
-        role === "TEACHER" ? `/teachers/${userId}/create_course/` : ""
-      );
-      return;
-    }
-  };
-
-  const confirmLogout = () => {
-    // Clear all relevant localStorage items
-    const keysToRemove = [
-      "token",
-      "userPhoto",
-      "userName",
-      "userId",
-      "role",
-      "userEmail",
-      "userPhone",
-      "userBio",
-      "userCoverPhoto",
-    ];
-
-    keysToRemove.forEach((key) => {
-      localStorage.removeItem(key);
-    });
-
-    // Close the modal
-    setShowLogoutModal(false);
-
-    // Redirect to home page and force reload to update UI
-    window.location.href = "/";
-  };
-
-  return (
-    <>
-      <aside className="w-80 h-full bg-white/80 backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg">
-        {/* Logo/Brand */}
-        <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
-          <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <BookOpen className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
-              EduVerse
-            </h1>
-            <p className="text-xs text-gray-500">Instructor Portal</p>
-          </div>
-        </div>
-
-        {/* User Menu */}
-        <div>
-          <nav className="space-y-2">
-            {menuItems.map((item, i) => (
-              <SidebarItem
-                key={i}
-                icon={item.icon}
-                label={item.label}
-                badge={item.badge}
-                onClick={() => handleClick(item.label)}
-              />
-            ))}
-          </nav>
-        </div>
-      </aside>
-
-      <LogoutModal
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={confirmLogout}
-      />
-    </>
-  );
-};
 
 // Enhanced Stats Card
 const StatCard = ({
@@ -532,8 +307,9 @@ const ModernDashboard = () => {
         className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-green-300 to-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
         style={{ animationDelay: "4s" }}
       />
+      
 
-      <Sidebar role={role} userId={userId} />
+        <Sidebar role={role} userId={userId} />
 
       <main className="flex-1 p-8 space-y-8 relative z-10">
         {/* Header */}
@@ -627,7 +403,8 @@ const ModernDashboard = () => {
             </div>
           </div>
         </div>
-
+        {/* Sidebar */}
+      
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
           <StatCard
