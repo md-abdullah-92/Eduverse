@@ -9,6 +9,7 @@ import { Upload, ArrowRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import GeneratedQuizSection from "@/components/quize";
 import Sidebar from "../../components/Sidebar";
+import ChatWidget from "@/components/ChatWidget";
 
 // Import fonts
 import { raleway, robotoSlab } from "@/utils/font";
@@ -179,6 +180,8 @@ export default function GenerateQuizPage() {
           <GeneratedQuizSection quiz={generatedQuiz} />
         )}
       </div>
+
+      <ChatWidget userId={userId} />
     </div>
   </div>
   </main>

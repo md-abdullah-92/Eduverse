@@ -14,6 +14,15 @@ import {
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Sidebar from "@/app/teachers/[id]/components/Sidebar";
+import {
+  poppins,
+  robotoSlab,
+  reemKufi,
+  karma,
+  raleway,
+  poltawskiNowy,
+} from '@/utils/font'
 
 export default function EditTeacherProfilePage() {
   const { id: userId } = useParams();
@@ -175,21 +184,12 @@ export default function EditTeacherProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-teal-50 py-8 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Edit Teacher Profile
-          </h1>
-          <p className="text-gray-600">
-            Update your professional information and showcase your expertise
-          </p>
-        </div>
-
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
+      <Sidebar role="TEACHER" userId={userId} />
+      <main className="flex-1 p-8 flex justify-center">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
           {/* Cover Section */}
-          <div className="relative h-64 group overflow-hidden">
+          <div className="relative h-80 group overflow-hidden">
             <Image src={coverImage} alt="Cover" fill className="object-cover" />
             <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
               <button
@@ -203,7 +203,7 @@ export default function EditTeacherProfilePage() {
                 type="file"
                 accept="image/*"
                 ref={coverInputRef}
-                onChange={(e) => handleImageUpload(e, "cover")}
+                onChange={(e) => handleImageUpload(e, 'cover')}
                 className="hidden"
               />
             </div>
@@ -212,12 +212,7 @@ export default function EditTeacherProfilePage() {
           {/* Profile Image */}
           <div className="relative px-8">
             <div className="relative w-44 h-44 -mt-20 border-8 border-white rounded-full shadow-xl bg-white group overflow-hidden">
-              <Image
-                src={profileImage}
-                alt="Profile"
-                fill
-                className="rounded-full object-cover"
-              />
+              <Image src={profileImage} alt="Profile" fill className="rounded-full object-cover" />
               <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                 <button
                   onClick={() => profileInputRef.current?.click()}
@@ -229,7 +224,7 @@ export default function EditTeacherProfilePage() {
                   type="file"
                   accept="image/*"
                   ref={profileInputRef}
-                  onChange={(e) => handleImageUpload(e, "profile")}
+                  onChange={(e) => handleImageUpload(e, 'profile')}
                   className="hidden"
                 />
               </div>
@@ -244,34 +239,30 @@ export default function EditTeacherProfilePage() {
                 <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-indigo-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Basic Information
-                </h3>
+                <h3 className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}>Basic Information</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                    <User size={16} />
-                    <span>Full Name</span>
+                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                    <User size={16} /> <span>Full Name</span>
                   </label>
                   <input
                     type="text"
                     value={userInfo.fullName}
                     disabled
-                    className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300"
+                    className={`w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 ${poppins.className}`}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                    <Mail size={16} />
-                    <span>Email Address</span>
+                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                    <Mail size={16} /> <span>Email Address</span>
                   </label>
                   <input
                     type="email"
                     value={userInfo.email}
                     disabled
-                    className="w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300"
+                    className={`w-full px-4 py-3 bg-gray-50 text-gray-700 rounded-xl border border-gray-200 ${poppins.className}`}
                   />
                 </div>
               </div>
@@ -283,67 +274,64 @@ export default function EditTeacherProfilePage() {
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                   <GraduationCap className="w-5 h-5 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  Professional Details
-                </h3>
+                <h3 className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}>Professional Details</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                    <GraduationCap size={16} />
-                    <span>Education</span>
+                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                    <GraduationCap size={16} /> <span>Education</span>
                   </label>
                   <input
                     type="text"
                     name="education"
                     value={formData.education}
                     onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 ${karma.className}`}
                     placeholder="e.g., PhD in Computer Science"
-                    className="w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 hover:border-gray-300"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                    <FileText size={16} />
-                    <span>Specialization</span>
+                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                    <FileText size={16} /> <span>Specialization</span>
                   </label>
                   <input
                     type="text"
                     name="specialization"
                     value={formData.specialization}
                     onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 ${karma.className}`}
                     placeholder="e.g., Machine Learning, Data Science"
-                    className="w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 hover:border-gray-300"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                    <Briefcase size={16} />
-                    <span>Experience (years)</span>
+                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                    <Briefcase size={16} /> <span>Experience (years)</span>
                   </label>
                   <input
                     type="number"
                     name="experience"
                     value={formData.experience}
                     onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 ${karma.className}`}
                     placeholder="e.g., 5"
                     min="0"
-                    className="w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 hover:border-gray-300"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                    <Building size={16} />
-                    <span>Institution</span>
+                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                    <Building size={16} /> <span>Institution</span>
                   </label>
                   <input
                     type="text"
                     name="institution"
                     value={formData.institution}
                     onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 ${karma.className}`}
                     placeholder="e.g., University of Technology"
-                    className="w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 hover:border-gray-300"
                   />
                 </div>
               </div>
@@ -355,23 +343,20 @@ export default function EditTeacherProfilePage() {
                 <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-5 h-5 text-teal-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  About You
-                </h3>
+                <h3 className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}>About You</h3>
               </div>
 
               <div className="space-y-2">
-                <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-                  <FileText size={16} />
-                  <span>Professional Bio</span>
+                <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                  <FileText size={16} /> <span>Professional Bio</span>
                 </label>
                 <textarea
                   name="bio"
                   value={formData.bio}
                   onChange={handleChange}
-                  rows={5}
+                  rows={3}
                   placeholder="Tell us about your teaching philosophy, research interests, and what makes you passionate about education..."
-                  className="w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 hover:border-gray-300 resize-none"
+                  className={`w-full px-4 py-3 bg-white text-gray-900 rounded-xl border border-gray-200 resize-none ${karma.className}`}
                 />
               </div>
             </div>
@@ -382,12 +367,12 @@ export default function EditTeacherProfilePage() {
                 onClick={handleSubmit}
                 className="bg-teal-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-teal-700 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center space-x-2"
               >
-                <span>Save Changes</span>
+                <span className={reemKufi.className}>Save Changes</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
