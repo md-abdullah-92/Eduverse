@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  LayoutDashboard,
   BookOpen,
   LogOut,
   ClipboardEdit,
@@ -12,11 +13,14 @@ import {
   PieChart,
   Star,
   User,
+  
+  
 } from "lucide-react";
 import SidebarItem from "./SidebarItem"; // assume SidebarItem is also a separate file
 import LogoutModal from "./LogoutModal"; // same here if modularized
 
 const menuItems = [
+  { icon: LayoutDashboard, label: "Dashboard" },
   { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "My Courses" },
   { icon: Package, label: "Create Course" },
@@ -32,8 +36,9 @@ const menuItems = [
 const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
-
+  
   const handleClick = (label: string) => {
+    if (label === "Dashboard") return router.push(`/teachers/${userId}`);
     if (label === "Logout") return setShowLogoutModal(true);
     if (label === "Update Profile")
       return router.push(
@@ -83,7 +88,7 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
           </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-6">
           {menuItems.map((item, i) => (
             <SidebarItem
               key={i}

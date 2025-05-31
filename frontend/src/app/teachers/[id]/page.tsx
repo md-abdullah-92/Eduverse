@@ -294,6 +294,8 @@ const ModernDashboard = () => {
 
   const userInfo = profile.user || {};
   const role = userInfo.role || "TEACHER";
+  localStorage.setItem("role", role);
+  localStorage.setItem("userId", userId?.toString() || "12345"); // Fallback for demo purposes
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
@@ -307,7 +309,6 @@ const ModernDashboard = () => {
         className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-green-300 to-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
         style={{ animationDelay: "4s" }}
       />
-      
 
         <Sidebar role={role} userId={userId} />
 

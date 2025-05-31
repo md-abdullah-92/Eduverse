@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, ArrowRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import GeneratedQuizSection from "@/components/quize";
+import Sidebar from "../../components/Sidebar";
 
 // Import fonts
 import { raleway, robotoSlab } from "@/utils/font";
@@ -19,6 +20,8 @@ const dummyFiles = [
 ];
 
 export default function GenerateQuizPage() {
+  const userId = localStorage.getItem("userId") || "12345"; // Fallback for demo purposes
+  console.log(userId);
   const [search, setSearch] = useState("");
   const [selectedTypes, setSelectedTypes] = useState({ mcq: true, cq: false });
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -50,108 +53,138 @@ export default function GenerateQuizPage() {
   );
 
   return (
-    <div className={`${raleway.className} text-gray-800`}>
-      <div className={`${robotoSlab.className} flex flex-col lg:flex-row gap-6 px-0 py-10 max-w-screen-xl mx-auto w-full`}>
-  
+ <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
+   
+      
+    <Sidebar role="TEACHER" userId={userId} /> 
+   <main className="flex-1 p-8 space-y-8 relative z-10">
 
-        <div className="w-full lg:w-7/12 space-y-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-purple-700 tracking-tight">💡 Generate Quiz</h1>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              Quickly create quizzes from your saved or uploaded documents.
-            </p>
-          </div>
+  <div className={`${raleway.className} text-gray-800`}>
+    <div className={`${robotoSlab.className} flex flex-col lg:flex-row gap-3 px-0 py-3 max-w-screen-xl mx-auto w-full`}>
+      
+      {/* Left Panel: Quiz Generator */}
+    {/* Left Panel: Quiz Generator */}
+<div className="w-full lg:w-[55%] space-y-6">
+  <div>
+    <h1 className="text-3xl font-bold text-teal-700">💡 Generate Quiz</h1>
+    <p className="text-sm text-muted-foreground">
+      Quickly create quizzes from your saved or uploaded documents.
+    </p>
+  </div>
 
-          <Card className="border shadow-md bg-gradient-to-br from-purple-50 to-white rounded-2xl">
-            <CardContent className="p-8 space-y-12">
+  <Card className="border border-teal-200 shadow-md bg-white/70 backdrop-blur-md rounded-2xl">
+    <CardContent className="p-6 space-y-6">
 
-              {/* Section: Search and Upload */}
-              <div className="space-y-1">
-                <h2 className="text-2xl font-semibold text-purple-700 tracking-tight flex items-center gap-2">
-                  📂 Select Documents
-                </h2>
-                <p className="text-sm text-muted-foreground leading-snug">
-                  Choose files to generate questions from.
-                </p>
+      {/* Section: File Selection */}
+      <div>
+        <h2 className="text-xl font-semibold text-teal-700 flex items-center gap-2">
+          📂 Select Documents
+        </h2>
+        <p className="text-sm text-muted-foreground mb-3">
+          Choose one or more documents to generate questions from.
+        </p>
 
-                <div className="flex flex-wrap items-center gap-3 pt-3">
-                  <Input
-                    placeholder="🔍 Search files"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="max-w-xs shadow-sm"
-                  />
-                  <Button variant="outline" size="sm" className="bg-white shadow hover:bg-gray-100">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
-                  </Button>
-                  <Button variant="secondary" size="sm">
-                    View Library
-                  </Button>
-                </div>
-              </div>
-
-              {/* Section: File List */}
-              <ScrollArea className="h-72 border rounded-lg bg-white/60 shadow-inner">
-                <div className="divide-y">
-                  {filteredFiles.length ? (
-                    filteredFiles.map((file) => (
-                      <div
-                        key={file.id}
-                        className="flex items-start gap-4 p-4 hover:bg-purple-50 transition-all duration-200 ease-in-out cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={selectedFiles.includes(file.id)}
-                          onCheckedChange={() => handleFileSelect(file.id)}
-                          className="mt-1"
-                        />
-                        <div className="space-y-1 text-sm leading-tight">
-                          <p className="font-medium text-purple-800">{file.name}</p>
-                          <p className="text-gray-500 text-xs">{file.id}.pdf</p>
-                          <p className="text-gray-400 text-xs">{file.date}</p>
-                          <p className={file.status === "Indexed" ? "text-green-600" : "text-red-500"}>
-                            {file.status === "Indexed" ? "✅ Indexed" : "❌ Not Indexed"}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-sm text-gray-500">No files match your search.</div>
-                  )}
-                </div>
-              </ScrollArea>
-
-              {/* Section: Quiz Options + Generate Button */}
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center gap-6">
-                  <label className="flex items-center gap-2">
-                    <Checkbox checked={selectedTypes.mcq} onCheckedChange={() => toggleType("mcq")} />
-                    <span className="text-sm font-medium">MCQ</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <Checkbox checked={selectedTypes.cq} onCheckedChange={() => toggleType("cq")} />
-                    <span className="text-sm font-medium">CQ</span>
-                  </label>
-                </div>
-
-                <Button
-                  onClick={handleGenerateQuiz}
-                  className="rounded-full h-12 w-12 p-0 bg-gradient-to-br from-purple-600 to-purple-800 shadow-lg hover:scale-105 transition-transform"
-                >
-                  <ArrowRight className="h-6 w-6 text-white" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right: Generated Quiz */}
-        <div className="w-full lg:w-5/12">
-          {generatedQuiz.length > 0 && (
-            <GeneratedQuizSection quiz={generatedQuiz} />
-          )}
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            placeholder="🔍 Search files"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-xs shadow-sm"
+          />
+          <Button variant="outline" size="sm" className="bg-white shadow hover:bg-gray-100">
+            <Upload className="h-4 w-4 mr-2" />
+            Upload
+          </Button>
+          <Button variant="secondary" size="sm">
+            View Library
+          </Button>
         </div>
       </div>
+
+      <hr className="border-gray-200" />
+
+      {/* Section: File List */}
+      <div>
+        <h3 className="text-sm font-medium text-gray-600 mb-2">Your Files</h3>
+        <ScrollArea className="h-72 border rounded-md bg-white/50 shadow-inner">
+          <div className="divide-y">
+            {filteredFiles.length ? (
+              filteredFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className="flex items-start gap-4 p-3 hover:bg-teal-50 transition-colors cursor-pointer"
+                >
+                  <Checkbox
+                    checked={selectedFiles.includes(file.id)}
+                    onCheckedChange={() => handleFileSelect(file.id)}
+                    className="mt-1"
+                  />
+                  <div className="text-sm space-y-0.5">
+                    <p className="font-medium text-teal-800">{file.name}</p>
+                    <p className="text-xs text-gray-500">{file.id}.pdf</p>
+                    <p className="text-xs text-gray-400">{file.date}</p>
+                    <p className={file.status === "Indexed" ? "text-green-600" : "text-red-500"}>
+                      {file.status === "Indexed" ? "✅ Indexed" : "❌ Not Indexed"}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 text-sm text-gray-500">No files match your search.</div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+
+      <hr className="border-gray-200" />
+
+      {/* Section: Quiz Type Selection */}
+      <div className="p-4 bg-teal-50 rounded-lg border border-teal-200 shadow-sm">
+        <h4 className="text-sm font-semibold text-teal-700 mb-2">Question Types</h4>
+        <div className="flex items-center gap-6">
+          <label className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedTypes.mcq}
+              onCheckedChange={() => toggleType("mcq")}
+            />
+            <span className="text-sm font-medium">MCQ</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedTypes.cq}
+              onCheckedChange={() => toggleType("cq")}
+            />
+            <span className="text-sm font-medium">CQ</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Generate Button */}
+      <div className="flex justify-end pt-1">
+        <Button
+          onClick={handleGenerateQuiz}
+          className="rounded-full h-12 w-12 p-0 bg-gradient-to-br from-emerald-500 to-teal-700 shadow-md hover:scale-105"
+        >
+          <ArrowRight className="h-6 w-6 text-white" />
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+</div>
+
+
+      {/* Right Panel: Generated Quiz Preview */}
+      <div className="w-full lg:w-1/2 space-y-4">
+        {generatedQuiz.length > 0 && (
+          <GeneratedQuizSection quiz={generatedQuiz} />
+        )}
+      </div>
     </div>
-  );
+  </div>
+  </main>
+  </div>
+  
+  
+
+);
 }
