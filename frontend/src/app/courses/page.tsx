@@ -3,6 +3,8 @@
 
 import { useAuth } from "@/app/auth/context";
 import CourseCard from "@/app/courses/components/courseCard";
+import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
+import { LoadingSpinner } from "@/components/ui_elements/LoadingSpinner";
 import { CourseData, CourseInfo } from "@/utils/types";
 import { BookOpen, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,6 +19,7 @@ export default function AllCoursesPage() {
     []
   );
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [enrollmentLoading, setEnrollmentLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("All Topics");
@@ -25,10 +28,16 @@ export default function AllCoursesPage() {
     const fetchCourses = async () => {
       try {
         const res = await fetch(`http://localhost:5001/api/courses/all`);
+        if (!res.ok) {
+          throw new Error(`Server responded with status: ${res.status}`);
+        }
         const data: CourseData[] = await res.json();
         setCourses(data);
+        setError(null);
       } catch (error) {
         console.error("Failed to fetch courses:", error);
+        setError("Unable to connect to the server. Please try again later.");
+        setCourses([]);
       } finally {
         setLoading(false);
       }
@@ -89,10 +98,26 @@ export default function AllCoursesPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center flex-col">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600 mb-4"></div>
+        <LoadingSpinner />
         <p className="text-xl font-semibold text-gray-700">
           Loading amazing courses for you...
         </p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pt-20">
+        <div className="max-w-7xl mx-auto px-4">
+          <ErrorDisplay
+            error={error}
+            title="Connection Error"
+            description="We're having trouble connecting to our courses. Please check your internet connection and try again."
+            showRetryButton={true}
+            onRetry={() => window.location.reload()}
+          />
+        </div>
       </div>
     );
   }
@@ -224,7 +249,6 @@ export default function AllCoursesPage() {
 
         {filteredCourses.length === 0 ? (
           <div className="text-center py-16 bg-gray-50 rounded-lg p-8">
-            <div className="text-gray-400 text-7xl mb-4">😢</div>
             <h3 className="text-xl font-semibold text-gray-700">
               No courses found
             </h3>

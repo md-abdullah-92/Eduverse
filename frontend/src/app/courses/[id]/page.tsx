@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/auth/context";
+import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import { useToast } from "@/components/ui_elements/toast";
 import { CourseData, Enrollment } from "@/utils/types";
 import Image from "next/image";
@@ -39,6 +40,7 @@ import {
   renderStars,
 } from "../../courses/utils/couseCardUtils";
 
+import { CourseUtils } from "@/utils/courseUtils";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
 export default function CourseDetails({ params }: CourseDetailsProps) {
   const resolvedParams = use(params);
@@ -77,6 +79,21 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
+        setLoading((prev) => ({ ...prev, course: true }));
+        const courseUtils = new CourseUtils({
+          userId: user?.id || "",
+          courseId: resolvedParams.id,
+        });
+        const course = await courseUtils.fetchCourse();
+        setCourse(course);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load course");
+      } finally {
+        setLoading((prev) => ({ ...prev, course: false }));
+      }
+    };
+    const fetchEnrollment = async () => {
+      try {
         if (!isEnrolled || !enrollmentId || !user?.id) return;
 
         const enrollmentUtils = new EnrollmentUtils({
@@ -94,7 +111,15 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
       }
     };
 
-    fetchCourse();
+    const loadData = async () => {
+      if (isEnrolled) {
+        await fetchEnrollment();
+      } else {
+        await fetchCourse();
+      }
+    };
+
+    loadData();
   }, [resolvedParams.id, user?.id, isEnrolled, enrollmentId]);
 
   // Loading state
@@ -114,27 +139,14 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   // Error state
   if (error || !course) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col justify-center items-center">
-        <div className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiBook className="w-8 h-8 text-red-600" />
-          </div>
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">
-            Course Not Found
-          </h2>
-          <p className="text-slate-600 mb-6">
-            {error ||
-              "The course you're looking for doesn't exist or has been removed."}
-          </p>
-          <button
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105"
-            onClick={() => router.back()}
-          >
-            <FiArrowLeft className="inline mr-2" />
-            Go Back
-          </button>
-        </div>
-      </div>
+      <ErrorDisplay
+        error={error}
+        title="Course Not Found"
+        description={
+          error ||
+          "The course you're looking for doesn't exist or has been removed."
+        }
+      />
     );
   }
 
