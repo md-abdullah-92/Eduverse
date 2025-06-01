@@ -1,5 +1,6 @@
 "use client";
 
+import ChatWidget from "@/app/chatbot/components/ChatWidget";
 import {
   Award,
   BadgeCheck,
@@ -27,8 +28,6 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import StudentMarkProgressChart from "../components/StudentMarkProgressChart";
 import StudyTimeBarChart from "../components/StudyTimeBarChart";
-import ChatWidget from "@/components/ChatWidget";
-
 
 // Types
 type NavigationItem = {
@@ -45,7 +44,6 @@ type StatCardProps = {
   trend?: string;
   trendUp?: boolean;
 };
-
 
 type SidebarItemProps = {
   icon: React.ElementType;
@@ -604,22 +602,15 @@ export default function ModernStudentDashboard() {
           />
         </div>
 
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <StudyTimeBarChart />
-      <StudentMarkProgressChart />
-    </div>
-
-      
-
-   
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <StudyTimeBarChart />
+          <StudentMarkProgressChart />
+        </div>
 
         {/* Chat Icon Draggable Component */}
         <div className="fixed bottom-8 right-8 z-50">
-         <ChatWidget />
+          <ChatWidget />
         </div>
-
-
-        
 
         {/* Recent Courses Section */}
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/20">
