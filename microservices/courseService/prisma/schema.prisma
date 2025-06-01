@@ -28,7 +28,6 @@ model Course {
   lessons       Lesson[]
   instructorId  String           // reference to user service
   reviews       Review[]
-  ratings       Rating[]
   averageRating Float?           @default(0)
   
   @@index([instructorId])
@@ -124,29 +123,15 @@ model Option {
 
 model Review {
   id        Int      @id @default(autoincrement())
-  studentId String   // reference to user service
+  studentId String   // reference to user service  
   courseId  Int
   rating    Int      @default(0)    // 1-5 scale
-  comment   String?
+  comment   String?  // Optional comment
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   course    Course   @relation(fields: [courseId], references: [id])
   
   @@index([courseId])
-  @@index([studentId])
+  @@index([studentId]) 
   @@unique([courseId, studentId])  // One review per student per course
-}
-
-model Rating {
-  id        Int      @id @default(autoincrement())
-  studentId String   // reference to user service
-  courseId  Int
-  rating    Int      @default(0)    // 1-5 scale
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  course    Course   @relation(fields: [courseId], references: [id])
-  
-  @@index([courseId])
-  @@index([studentId])
-  @@unique([courseId, studentId])  // One rating per student per course
 }
