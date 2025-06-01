@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/app/auth/context";
 import { useToast } from "@/components/ui_elements/toast";
-import { CourseData } from "@/utils/types";
+import { CourseData, Enrollment } from "@/utils/types";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
@@ -15,7 +15,6 @@ import {
   FiClock,
   FiDownload,
   FiHeart,
-  FiLock,
   FiPlay,
   FiPlayCircle,
   FiShare2,
@@ -34,13 +33,13 @@ interface LoadingState {
 }
 
 // Import utilities
-import { CourseUtils } from "@/utils/courseUtils";
 import {
   getButtonConfig,
   handleButtonAction,
   renderStars,
 } from "../../courses/utils/couseCardUtils";
 
+import { EnrollmentUtils } from "@/utils/enrollmentUtils";
 export default function CourseDetails({ params }: CourseDetailsProps) {
   const resolvedParams = use(params);
   const searchParams = useSearchParams();
@@ -48,20 +47,17 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   const { user } = useAuth();
 
   const [course, setCourse] = useState<CourseData | null>(null);
+  const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [loading, setLoading] = useState<LoadingState>({
     course: true,
     enrollment: false,
   });
   const [error, setError] = useState<string | null>(null);
   const [progress] = useState<number>(0);
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
-  const [enrollmentDate, setEnrollmentDate] = useState<Date | null>(null);
-  const [lastAccessedLesson, setLastAccessedLesson] = useState<string | null>(
-    null
+
+  const [activeTab, setActiveTab] = useState<"overview" | "reviews">(
+    "overview"
   );
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "curriculum" | "reviews"
-  >("overview");
 
   // Get enrollment status from URL params
   const enrollmentId = searchParams.get("enrolled");
@@ -81,28 +77,16 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const courseUtils = new CourseUtils({
-          userId: user?.id || "",
-          courseId: resolvedParams.id,
+        if (!isEnrolled || !enrollmentId || !user?.id) return;
+
+        const enrollmentUtils = new EnrollmentUtils({
+          userId: user?.id,
         });
-        const courseData = await courseUtils.fetchCourse();
-        setCourse(courseData);
-
-        // If enrolled, fetch enrollment progress
-        if (isEnrolled && enrollmentId) {
-          // Mock progress data - replace with actual API call
-          const mockProgress = {
-            completedLessons: ["lesson-1", "lesson-2"], // Replace with actual completed lesson IDs
-            enrollmentDate: new Date("2024-01-15"),
-            lastAccessedLesson: "lesson-2",
-            overallProgress: 40, // percentage
-          };
-
-          setCompletedLessons(mockProgress.completedLessons);
-          setEnrollmentDate(mockProgress.enrollmentDate);
-          setLastAccessedLesson(mockProgress.lastAccessedLesson);
-          // Update progress state if you need to modify the useState declaration
-        }
+        const enrollment = await enrollmentUtils.fetchEnrollment(
+          Number(enrollmentId)
+        );
+        setEnrollment(enrollment);
+        setCourse(enrollment.course);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load course");
       } finally {
@@ -278,7 +262,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                   <div>
                     <h3 className="text-xl font-semibold">Your Progress</h3>
                     <p className="text-emerald-100">
-                      {completedLessons.length} of{" "}
+                      {enrollment?.lessonCompletions.length} of{" "}
                       {course?.lessons?.length || 0} lessons completed
                     </p>
                   </div>
@@ -286,10 +270,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                 <div className="text-right">
                   <div className="text-3xl font-bold mb-1">
                     {course?.lessons?.length
-                      ? Math.round(
-                          (completedLessons.length / course.lessons.length) *
-                            100
-                        )
+                      ? Math.round(enrollment?.progressPercentage || 0)
                       : 0}
                     %
                   </div>
@@ -303,10 +284,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                   className="bg-white rounded-full h-3 transition-all duration-500 ease-out"
                   style={{
                     width: course?.lessons?.length
-                      ? `${
-                          (completedLessons.length / course.lessons.length) *
-                          100
-                        }%`
+                      ? `${enrollment?.progressPercentage || 0}%`
                       : "0%",
                   }}
                 ></div>
@@ -317,19 +295,16 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                   <FiCalendar className="w-4 h-4" />
                   <span>
                     Enrolled{" "}
-                    {enrollmentDate?.toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {new Date(enrollment!.createdAt).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}
                   </span>
                 </div>
-                {lastAccessedLesson && (
-                  <div className="flex items-center space-x-2">
-                    <FiPlayCircle className="w-4 h-4" />
-                    <span>Continue learning</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -414,7 +389,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                         </h3>
                         {isEnrolled && (
                           <div className="text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
-                            {completedLessons.length}/
+                            {enrollment?.lessonCompletions.length}/
                             {course?.lessons?.length || 0} completed
                           </div>
                         )}
@@ -425,23 +400,17 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                           {course.lessons
                             .sort((a, b) => a.orderIndex - b.orderIndex)
                             .map((lesson, index) => {
-                              const isCompleted = completedLessons.includes(
-                                lesson.id!
-                              );
-                              const isLastAccessed =
-                                lastAccessedLesson === lesson.id;
-                              const isLocked = !isEnrolled && index > 0; // First lesson free for preview
-
+                              const isCompleted =
+                                enrollment?.lessonCompletions.some(
+                                  (completion) =>
+                                    completion.lessonId === Number(lesson.id)
+                                );
                               return (
                                 <div
                                   key={lesson.id}
                                   className={`group border rounded-xl p-6 transition-all duration-300 bg-white ${
                                     isCompleted
                                       ? "border-emerald-200 bg-emerald-50/30"
-                                      : isLastAccessed
-                                      ? "border-blue-200 bg-blue-50/30"
-                                      : isLocked
-                                      ? "border-slate-200 bg-slate-50/50"
                                       : "border-slate-200 hover:border-emerald-200 hover:shadow-lg"
                                   }`}
                                 >
@@ -452,17 +421,11 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                                           className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                                             isCompleted
                                               ? "bg-emerald-500 text-white"
-                                              : isLastAccessed
-                                              ? "bg-blue-500 text-white"
-                                              : isLocked
-                                              ? "bg-slate-300 text-slate-500"
                                               : "bg-emerald-100 text-emerald-600"
                                           }`}
                                         >
                                           {isCompleted ? (
                                             <FiCheckCircle className="w-4 h-4" />
-                                          ) : isLocked ? (
-                                            <FiLock className="w-4 h-4" />
                                           ) : (
                                             index + 1
                                           )}
@@ -474,20 +437,11 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                                               className={`font-semibold transition-colors ${
                                                 isCompleted
                                                   ? "text-emerald-700"
-                                                  : isLastAccessed
-                                                  ? "text-blue-700"
-                                                  : isLocked
-                                                  ? "text-slate-500"
                                                   : "text-slate-900 group-hover:text-emerald-600"
                                               }`}
                                             >
                                               {lesson.title}
                                             </h4>
-                                            {isLastAccessed && (
-                                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                                                Continue
-                                              </span>
-                                            )}
                                             {isCompleted && (
                                               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium">
                                                 Completed
@@ -496,11 +450,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                                           </div>
                                           {lesson.description && (
                                             <p
-                                              className={`mt-2 leading-relaxed ${
-                                                isLocked
-                                                  ? "text-slate-400"
-                                                  : "text-slate-600"
-                                              }`}
+                                              className={`mt-2 leading-relaxed ${"text-slate-600"}`}
                                             >
                                               {lesson.description}
                                             </p>
@@ -515,21 +465,17 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                                           className={`flex items-center space-x-2 px-4 py-2 rounded-xl ${
                                             isCompleted
                                               ? "text-emerald-600 bg-emerald-50"
-                                              : isLastAccessed
-                                              ? "text-blue-600 bg-blue-50"
-                                              : isLocked
-                                              ? "text-slate-400 bg-slate-100"
                                               : "text-emerald-600 bg-emerald-50"
                                           }`}
                                         >
                                           <FiPlay className="w-4 h-4" />
                                           <span className="text-sm font-medium">
-                                            {isLocked ? "Locked" : "Video"}
+                                            Video
                                           </span>
                                         </div>
                                       )}
 
-                                      {isEnrolled && !isLocked && (
+                                      {isEnrolled && (
                                         <button
                                           className={`p-2 rounded-lg transition-colors ${
                                             isCompleted
@@ -613,9 +559,8 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                       <span className="text-sm font-bold text-emerald-600">
                         {course?.lessons?.length
                           ? Math.round(
-                              (completedLessons.length /
-                                course.lessons.length) *
-                                100
+                              (enrollment?.lessonCompletions.length ||
+                                0 / course.lessons.length) * 100
                             )
                           : 0}
                         %
@@ -626,20 +571,19 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                         className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full h-2 transition-all duration-500"
                         style={{
                           width: course?.lessons?.length
-                            ? `${
-                                (completedLessons.length /
-                                  course.lessons.length) *
-                                100
-                              }%`
+                            ? `${enrollment?.progressPercentage || 0}%`
                             : "0%",
                         }}
                       ></div>
                     </div>
                     <div className="flex items-center justify-between text-sm text-slate-600">
-                      <span>{completedLessons.length} lessons completed</span>
+                      <span>
+                        {enrollment?.lessonCompletions.length || 0} lessons
+                        completed
+                      </span>
                       <span>
                         {(course?.lessons?.length || 0) -
-                          completedLessons.length}{" "}
+                          (enrollment?.lessonCompletions.length || 0)}{" "}
                         remaining
                       </span>
                     </div>
@@ -684,16 +628,16 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                   <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-xl">
                     <div className="text-center">
                       <div className="text-xl font-bold text-slate-900">
-                        {completedLessons.length}
+                        {enrollment?.lessonCompletions.length || 0}
                       </div>
                       <div className="text-xs text-slate-600">Completed</div>
                     </div>
                     <div className="text-center">
                       <div className="text-xl font-bold text-slate-900">
-                        {enrollmentDate
+                        {enrollment?.createdAt
                           ? Math.ceil(
                               (new Date().getTime() -
-                                enrollmentDate.getTime()) /
+                                new Date(enrollment.createdAt).getTime()) /
                                 (1000 * 3600 * 24)
                             )
                           : 0}
