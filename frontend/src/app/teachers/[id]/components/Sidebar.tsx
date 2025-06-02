@@ -14,6 +14,7 @@ import {
   Star,
   User,
   Save,
+  ClipboardEditIcon,
   
   
 } from "lucide-react";
@@ -26,7 +27,7 @@ const menuItems = [
   { icon: BookOpen, label: "My Courses" },
   { icon: Package, label: "Create Course" },
   { icon: Save, label: "Study Note Generator"}, // Example of a badge
-  { icon: ClipboardEdit, label: "Create Assignment" },
+  { icon: ClipboardEditIcon, label: "Create Assignment" },
   { icon: ClipboardEdit, label: "Create Quiz" },
   { icon: Megaphone, label: "Announcements" },
   { icon: DollarSign, label: "Withdrawals" },
@@ -45,6 +46,8 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
     if (label === "Logout") return setShowLogoutModal(true);
     if (label === "Announcements")
       return router.push(`/teachers/${userId}/announcements`);
+    if (label === "Create Assignment")
+      return router.push(`/teachers/${userId}/assignments/generate`);
     if (label === "Study Note Generator")
       return router.push(`/teachers/${userId}/generate-study-notes`);
     if (label === "Update Profile")
