@@ -1,16 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useToast } from "@/components/ui_elements/toast";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-
-// Define proper interfaces for better type safety
+import { videoAPI } from "@/lib/api";
 import { CourseUtils } from "@/utils/courseUtils";
 import { CourseData, Lesson } from "@/utils/types";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface UseCourseProps {
   courseId: string;
   instructorId: string;
+}
+
+interface VideoState {
+  selectedFile: File | null;
+  error: string | null;
+  isDragActive: boolean;
+  isUploading: boolean;
+  uploadProgress: number;
 }
 
 const INITIAL_COURSE_DATA: CourseData = {
@@ -36,6 +43,14 @@ const INITIAL_LESSON_DATA: Lesson = {
   orderIndex: 0,
 };
 
+const INITIAL_VIDEO_STATE: VideoState = {
+  selectedFile: null,
+  error: null,
+  isDragActive: false,
+  isUploading: false,
+  uploadProgress: 0,
+};
+
 export function useCourse({ courseId, instructorId }: UseCourseProps) {
   const router = useRouter();
   const { showToast } = useToast();
@@ -47,13 +62,12 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
-
-  // Changed from array to single object
   const [currentLesson, setCurrentLesson] =
     useState<Lesson>(INITIAL_LESSON_DATA);
-
-  // Form validation
   const [lessonErrors, setLessonErrors] = useState<Record<string, string>>({});
+
+  // Consolidated video state
+  const [videoState, setVideoState] = useState<VideoState>(INITIAL_VIDEO_STATE);
 
   const courseUtils = useMemo(
     () => new CourseUtils({ courseId, userId: instructorId }),
@@ -136,11 +150,119 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     ),
   };
 
-  // Reset lesson form
+  // Video validation
+  const validateVideoFile = useCallback((file: File): string | null => {
+    const allowedTypes = [
+      "video/mp4",
+      "video/webm",
+      "video/ogg",
+      "video/avi",
+      "video/mov",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      return "Please select a valid video file (MP4, WebM, OGG, AVI, MOV)";
+    }
+
+    const maxSize = 500 * 1024 * 1024; // 500MB
+    if (file.size > maxSize) {
+      return "File size should not exceed 500MB";
+    }
+
+    return null;
+  }, []);
+
+  // Video file selection (no upload yet)
+  const handleVideoFileSelect = useCallback(
+    (file: File) => {
+      const validationError = validateVideoFile(file);
+
+      setVideoState((prev) => ({
+        ...prev,
+        selectedFile: validationError ? null : file,
+        error: validationError,
+        isDragActive: false,
+      }));
+    },
+    [validateVideoFile]
+  );
+
+  // Video drag and drop handlers
+  const handleVideoDragEvents = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.type === "dragenter" || e.type === "dragover") {
+        setVideoState((prev) => ({ ...prev, isDragActive: true }));
+      } else if (e.type === "dragleave") {
+        setVideoState((prev) => ({ ...prev, isDragActive: false }));
+      }
+    },
+    []
+  );
+
+  const handleVideoDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const file = e.dataTransfer.files?.[0];
+      if (file) {
+        handleVideoFileSelect(file);
+      }
+    },
+    [handleVideoFileSelect]
+  );
+
+  // Remove selected video file
+  const handleVideoRemove = useCallback(() => {
+    setVideoState(INITIAL_VIDEO_STATE);
+    setCurrentLesson((prev) => ({ ...prev, videoUrl: "" }));
+  }, []);
+
+  // Upload video to server (called during lesson save)
+  const uploadVideoFile = useCallback(
+    async (file: File, lessonId: string): Promise<string> => {
+      setVideoState((prev) => ({
+        ...prev,
+        isUploading: true,
+        uploadProgress: 0,
+        error: null,
+      }));
+
+      try {
+        const formData = new FormData();
+        formData.append("video", file);
+        formData.append("courseId", courseId);
+        formData.append("lessonId", lessonId);
+
+        const result = await videoAPI.upload(formData, (progress: number) => {
+          setVideoState((prev) => ({ ...prev, uploadProgress: progress }));
+        });
+
+        setVideoState((prev) => ({ ...prev, uploadProgress: 100 }));
+        return result.data.url;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to upload video. Please try again.";
+        setVideoState((prev) => ({ ...prev, error: errorMessage }));
+        throw new Error(errorMessage);
+      } finally {
+        setVideoState((prev) => ({ ...prev, isUploading: false }));
+      }
+    },
+    [courseId]
+  );
+
+  // Reset lesson form and video state
   const resetLessonForm = useCallback(() => {
     setCurrentLesson(INITIAL_LESSON_DATA);
     setEditingLessonId(null);
     setLessonErrors({});
+    setVideoState(INITIAL_VIDEO_STATE);
     setShowLessonModal(false);
   }, []);
 
@@ -162,29 +284,13 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     []
   );
 
-  // Update lesson order after drag and drop
-  const updateLessonOrder = useCallback(
-    (reorderedLessons: Lesson[]) => {
-      // Update the orderIndex for all lessons
-      const updatedLessons = reorderedLessons.map((lesson, index) => ({
-        ...lesson,
-        orderIndex: index,
-      }));
-
-      updateCourseField("lessons", updatedLessons);
-    },
-    [updateCourseField]
-  );
-
   // Lesson form handlers
   const lessonHandlers = {
-    // Update the current lesson being edited
     change: useCallback(
       (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setCurrentLesson((prev) => ({ ...prev, [name]: value }));
 
-        // Clear error for this field if it exists
         if (lessonErrors[name]) {
           setLessonErrors((prev) => ({ ...prev, [name]: "" }));
         }
@@ -192,12 +298,6 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
       [lessonErrors]
     ),
 
-    videoChange: useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      // Placeholder for video handling
-      // Will be implemented later
-    }, []),
-
-    // Load lesson data into form for editing
     edit: useCallback(
       (lessonId: string) => {
         const lessonToEdit = courseData.lessons.find(
@@ -215,6 +315,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
           });
 
           setEditingLessonId(lessonId);
+          setVideoState(INITIAL_VIDEO_STATE); // Reset video state for editing
           setShowLessonModal(true);
         }
       },
@@ -253,31 +354,35 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
         }
 
         try {
-          // Place for video upload logic (to be implemented later)
-          const videoUrl = currentLesson.videoUrl;
+          setIsSaving(true);
+          let finalVideoUrl = currentLesson.videoUrl;
+
+          // Upload video if a new file is selected
+          if (videoState.selectedFile) {
+            const lessonId = editingLessonId || CourseUtils.generateId();
+            finalVideoUrl = await uploadVideoFile(
+              videoState.selectedFile,
+              lessonId
+            );
+          }
 
           if (editingLessonId) {
             // Update existing lesson
             const updatedLessons = courseData.lessons.map((lesson) =>
               lesson.id === editingLessonId
-                ? {
-                    ...currentLesson,
-                    videoUrl: videoUrl || lesson.videoUrl,
-                  }
+                ? { ...currentLesson, videoUrl: finalVideoUrl }
                 : lesson
             );
-
             updateCourseField("lessons", updatedLessons);
           } else {
-            // Add new lesson with the next order index
+            // Add new lesson
             const nextOrderIndex = courseData.lessons.length;
             const newLesson: Lesson = {
               ...currentLesson,
               id: CourseUtils.generateId(),
               orderIndex: nextOrderIndex,
-              videoUrl: videoUrl || "",
+              videoUrl: finalVideoUrl,
             };
-
             updateCourseField("lessons", [...courseData.lessons, newLesson]);
           }
 
@@ -291,6 +396,8 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
         } catch (error) {
           console.error("Error saving lesson:", error);
           showToast("Failed to save lesson. Please try again.", "error");
+        } finally {
+          setIsSaving(false);
         }
       },
       [
@@ -301,9 +408,23 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
         showToast,
         updateCourseField,
         validateLesson,
+        videoState.selectedFile,
+        uploadVideoFile,
       ]
     ),
   };
+
+  // Handle lesson reordering
+  const handleLessonReorder = useCallback(
+    (reorderedLessons: Lesson[]) => {
+      const updatedLessons = reorderedLessons.map((lesson, index) => ({
+        ...lesson,
+        orderIndex: index,
+      }));
+      updateCourseField("lessons", updatedLessons);
+    },
+    [updateCourseField]
+  );
 
   // Process API error responses
   const handleApiError = useCallback((error: any): string => {
@@ -340,25 +461,39 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
   ]);
 
   return {
+    // Course data
     courseData,
     isLoading,
     error,
     isSaving,
+
+    // Cover image
     coverFile,
     setCoverFile,
     coverPreview,
     setCoverPreview,
+
+    // Lesson modal
     showLessonModal,
     setShowLessonModal,
     currentLesson,
     editingLessonId,
     lessonErrors,
 
+    // Video state (consolidated)
+    videoState,
+
     // Methods
     updateCourseField,
     saveCourse,
     resetLessonForm,
-    updateLessonOrder,
+    handleLessonReorder,
+
+    // Video handlers (consolidated)
+    handleVideoFileSelect,
+    handleVideoDragEvents,
+    handleVideoDrop,
+    handleVideoRemove,
 
     // Grouped handlers
     outcomeHandlers: {
@@ -369,7 +504,6 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
 
     lessonHandlers: {
       change: lessonHandlers.change,
-      videoChange: lessonHandlers.videoChange,
       submit: lessonHandlers.submit,
       edit: lessonHandlers.edit,
       delete: lessonHandlers.delete,

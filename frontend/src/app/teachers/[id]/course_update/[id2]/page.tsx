@@ -1,7 +1,7 @@
 "use client";
 import CourseForm from "@/app/teachers/[id]/course_update/components/CourseForm";
 import LessonForm from "@/app/teachers/[id]/course_update/components/LessonForm";
-import LessonList from "@/app/teachers/[id]/course_update/components/LessonList"; // Import the LessonList component
+import LessonList from "@/app/teachers/[id]/course_update/components/LessonList";
 import { useCourse } from "@/app/teachers/[id]/course_update/hooks/useCourse";
 import { Lesson } from "@/utils/types";
 import { Plus, Video, X } from "lucide-react";
@@ -27,10 +27,19 @@ export default function CourseDashboard() {
     currentLesson,
     lessonErrors,
 
+    // Video state (consolidated)
+    videoState,
+
     // Methods
     updateCourseField,
     saveCourse,
     resetLessonForm,
+
+    // Video handlers (consolidated)
+    handleVideoFileSelect,
+    handleVideoDragEvents,
+    handleVideoDrop,
+    handleVideoRemove,
 
     // Grouped handlers
     outcomeHandlers,
@@ -175,11 +184,17 @@ export default function CourseDashboard() {
             <LessonForm
               initialData={currentLesson}
               editingId={editingLessonId}
+              courseId={courseId}
               onChange={lessonHandlers.change}
-              onVideoChange={lessonHandlers.videoChange}
               onSubmit={lessonHandlers.submit}
               onCancel={handleCloseModal}
               errors={lessonErrors}
+              // Video handling props from hook
+              videoState={videoState}
+              onVideoFileSelect={handleVideoFileSelect}
+              onVideoDragEvents={handleVideoDragEvents}
+              onVideoDrop={handleVideoDrop}
+              onVideoRemove={handleVideoRemove}
             />
           </div>
         </div>
