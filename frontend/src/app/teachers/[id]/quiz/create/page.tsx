@@ -1,14 +1,14 @@
 "use client";
 
 import ChatWidget from "@/app/chatbot/components/ChatWidget";
-import GeneratedQuizSection from "@/app/chatbot/components/quize";
+import GeneratedQuizSection from "@/app/teachers/[id]/quiz/create/components/quize";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowRight, Upload } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar";
 
 // Import fonts
@@ -36,8 +36,14 @@ const dummyFiles = [
 ];
 
 export default function GenerateQuizPage() {
-  const userId = localStorage.getItem("userId") || "12345"; // Fallback for demo purposes
-  console.log(userId);
+  const [userId, setUserId] = useState<string>("12345");
+
+  useEffect(() => {
+    const localUserId = localStorage.getItem("userId");
+    if (localUserId) {
+      setUserId(localUserId);
+    }
+  }, []);
   const [search, setSearch] = useState("");
   const [selectedTypes, setSelectedTypes] = useState({ mcq: true, cq: false });
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
@@ -74,8 +80,10 @@ export default function GenerateQuizPage() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      <Sidebar role="TEACHER" userId={userId} />
-      <main className="flex-1 p-8 space-y-8 relative z-10">
+      {userId && (
+        <>
+          <Sidebar role="TEACHER" userId={userId} />
+          <main className="flex-1 p-8 space-y-8 relative z-10">
         <div className={`${raleway.className} text-gray-800`}>
           <div
             className={`${robotoSlab.className} flex flex-col lg:flex-row gap-3 px-0 py-3 max-w-screen-xl mx-auto w-full`}
@@ -227,7 +235,9 @@ export default function GenerateQuizPage() {
             <ChatWidget userId={userId} />
           </div>
         </div>
-      </main>
+        </main>
+        </>
+      )}
     </div>
   );
 }

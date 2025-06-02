@@ -4,7 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { FaFileAlt } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
-import { Save, Type, Eye, EyeOff } from "lucide-react";
+import {  Type, Eye, EyeOff } from "lucide-react";
 import { Combobox } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { merriweather } from "@/utils/font";
 import Sidebar from "../components/Sidebar";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import SaveSlideButton from "./components/PrintButton";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
@@ -70,10 +71,10 @@ export default function GenerateSlidePage() {
           <header className="mb-6 pt-8">
             <h1 className="text-4xl font-bold text-teal-800 flex items-center gap-3">
               <FaFileAlt />
-              Slide Generator
+              Generate Study Notes
             </h1>
             <p className="text-gray-600 mt-2 text-base">
-              Create beautifully formatted learning slides from your notes.
+              Create beautifully formatted Study Notes for your students.
             </p>
           </header>
 
@@ -91,7 +92,7 @@ export default function GenerateSlidePage() {
               allowCustom={true}
             />
             <Button onClick={handleGenerateMarkdown} className="mt-4 bg-teal-600 hover:bg-teal-700 text-white">
-              Generate Slide
+              Generate Study Note
             </Button>
           </div>
 
@@ -119,10 +120,7 @@ export default function GenerateSlidePage() {
                     {showPreview ? "Hide Preview" : "Show Preview"}
                   </Button>
 
-                  <Button className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-md shadow-md">
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Slide
-                  </Button>
+                    <SaveSlideButton title={selectedTopic} />
                 </div>
               </div>
 
@@ -153,9 +151,10 @@ export default function GenerateSlidePage() {
 
                 {/* MARKDOWN PREVIEW */}
                 {showPreview && (
-                  <Card className="h-[calc(100vh-300px)] flex flex-col bg-white rounded-xl border border-teal-200 shadow-md overflow-hidden">
+                  <Card id="slide-preview"  
+                  className="h-[calc(100vh-300px)] flex flex-col bg-white rounded-xl border border-teal-200 shadow-md overflow-hidden">
                     <div className="p-4 border-b border-teal-100">
-                      <h2 className="text-lg font-semibold text-teal-700">Slide Preview</h2>
+                      <h2 className="text-lg font-semibold text-teal-700">Note Preview</h2>
                     </div>
                     <ScrollArea className="flex-1 overflow-auto px-4 py-2">
                       <h2 className="text-2xl font-bold text-teal-700 mb-4">{selectedTopic}</h2>
