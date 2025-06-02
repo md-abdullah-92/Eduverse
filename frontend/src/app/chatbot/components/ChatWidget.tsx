@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import solarizedlight from "react-syntax-highlighter/dist/esm/styles/prism/solarizedlight";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   MessageCircle,
   MessageSquare,
@@ -15,55 +15,64 @@ import {
   Download,
   Trash2,
   Copy,
-} from 'lucide-react';
+} from "lucide-react";
 
 type Message = {
-  from: 'user' | 'assistant';
+  from: "user" | "assistant";
   text: string;
 };
 
 interface ChatWidgetProps {
   title?: string;
   apiEndpoint?: string;
+  userId?: string;
 }
 
 export default function ChatWidget({
-  title = 'EduVerse Assistant',
-  apiEndpoint = '/api/chat',
+  title = "EduVerse Assistant",
+  apiEndpoint = "/api/chat",
 }: ChatWidgetProps) {
   const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window !== 'undefined') {
-      return JSON.parse(localStorage.getItem('eduverse_chat') || '[]');
+    if (typeof window !== "undefined") {
+      return JSON.parse(localStorage.getItem("eduverse_chat") || "[]");
     }
     return [];
   });
 
   const [isOpen, setIsOpen] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return JSON.parse(localStorage.getItem('eduverse_chat_open') || 'false');
+    if (typeof window !== "undefined") {
+      return JSON.parse(localStorage.getItem("eduverse_chat_open") || "false");
     }
     return false;
   });
 
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
 
-  const [position, setPosition] = useState({ x: 1800, y: 800 });
+  const [position, setPosition] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return { 
+        x: Math.max(20, window.innerWidth - 500), // 500px from right or 20px from left if screen is too small
+        y: Math.max(20, window.innerHeight - 100) // 100px from bottom or 20px from top
+      };
+    }
+    return { x: 20, y: 20 }; // Fallback position
+  });
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   // Save messages to localStorage on update
   useEffect(() => {
-    localStorage.setItem('eduverse_chat', JSON.stringify(messages));
+    localStorage.setItem("eduverse_chat", JSON.stringify(messages));
   }, [messages]);
 
   // Manage chat widget open state
   useEffect(() => {
-    localStorage.setItem('eduverse_chat_open', JSON.stringify(isOpen));
+    localStorage.setItem("eduverse_chat_open", JSON.stringify(isOpen));
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
@@ -86,12 +95,12 @@ export default function ChatWidget({
 
     const handleMouseUp = () => setDragging(false);
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [dragging, offset]);
 
@@ -107,34 +116,37 @@ export default function ChatWidget({
     if (!input.trim()) return;
 
     const userMessage = input;
-    setMessages((prev) => [...prev, { from: 'user', text: userMessage }]);
-    setInput('');
+    setMessages((prev) => [...prev, { from: "user", text: userMessage }]);
+    setInput("");
     setIsLoading(true);
 
     try {
       const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMessage }),
       });
 
       const data = await response.json();
 
       setTimeout(() => {
-        setMessages((prev) => [...prev, { from: 'assistant', text: data.reply }]);
+        setMessages((prev) => [
+          ...prev,
+          { from: "assistant", text: data.reply },
+        ]);
         setIsLoading(false);
       }, 600);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { from: 'assistant', text: '❌ An error occurred. Please try again.' },
+        { from: "assistant", text: "❌ An error occurred. Please try again." },
       ]);
       setIsLoading(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') sendMessage();
+    if (e.key === "Enter") sendMessage();
   };
 
   const exportToPDF = async () => {
@@ -142,45 +154,45 @@ export default function ChatWidget({
     if (!element) return;
 
     // Normalize modern CSS variables (e.g., oklch) for jsPDF
-    document.querySelectorAll('*').forEach((el) => {
+    document.querySelectorAll("*").forEach((el) => {
       const style = window.getComputedStyle(el);
-      if (style.color.includes('oklch')) {
-        (el as HTMLElement).style.color = '#000';
+      if (style.color.includes("oklch")) {
+        (el as HTMLElement).style.color = "#000";
       }
-      if (style.backgroundColor.includes('oklch')) {
-        (el as HTMLElement).style.backgroundColor = '#fff';
+      if (style.backgroundColor.includes("oklch")) {
+        (el as HTMLElement).style.backgroundColor = "#fff";
       }
     });
 
     const canvas = await html2canvas(element, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
     const width = pdf.internal.pageSize.getWidth();
     const height = (canvas.height * width) / canvas.width;
 
-    pdf.addImage(imgData, 'PNG', 0, 0, width, height);
-    pdf.save('chat.pdf');
+    pdf.addImage(imgData, "PNG", 0, 0, width, height);
+    pdf.save("chat.pdf");
   };
 
   const exportToMarkdown = () => {
     const markdown = messages
       .map((msg) =>
-        msg.from === 'user'
+        msg.from === "user"
           ? `**You:** ${msg.text}`
           : `**Assistant:** ${msg.text}`
       )
-      .join('\n\n');
+      .join("\n\n");
 
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const link = document.createElement('a');
+    const blob = new Blob([markdown], { type: "text/markdown" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = 'chat.md';
+    link.download = "chat.md";
     link.click();
   };
 
   const clearChat = () => {
     setMessages([]);
-    localStorage.removeItem('eduverse_chat');
+    localStorage.removeItem("eduverse_chat");
   };
 
   const copyToClipboard = (text: string) => {
@@ -192,12 +204,12 @@ export default function ChatWidget({
       ref={widgetRef}
       onMouseDown={handleMouseDown}
       style={{
-        position: 'fixed',
+        position: "fixed",
         left: `${position.x}px`,
         top: `${position.y}px`,
         zIndex: 150,
-        cursor: dragging ? 'grabbing' : 'grab',
-        userSelect: 'none',
+        cursor: dragging ? "grabbing" : "grab",
+        userSelect: "none",
       }}
     >
       <AnimatePresence>
@@ -206,7 +218,7 @@ export default function ChatWidget({
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ type: 'spring', stiffness: 240, damping: 20 }}
+            transition={{ type: "spring", stiffness: 240, damping: 20 }}
             className="absolute bottom-full right-0 mb-4 w-[500px] h-[600px] flex flex-col rounded-2xl border border-gray-300 bg-white shadow-lg"
           >
             {/* Header */}
@@ -215,7 +227,9 @@ export default function ChatWidget({
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center">
                   <MessageSquare size={16} />
                 </div>
-                <span className="font-medium text-gray-800 text-sm">{title}</span>
+                <span className="font-medium text-gray-800 text-sm">
+                  {title}
+                </span>
               </div>
               <div className="flex gap-2 text-gray-600 text-xs">
                 <button onClick={exportToPDF} title="Download PDF">
@@ -241,21 +255,23 @@ export default function ChatWidget({
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`group flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`group flex ${
+                    msg.from === "user" ? "justify-end" : "justify-start"
+                  }`}
                 >
                   <div
                     className={`relative max-w-[80%] px-3 py-2 rounded-md shadow-sm whitespace-pre-wrap ${
-                      msg.from === 'user'
-                        ? 'bg-blue-200 text-blue-900'
-                        : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                      msg.from === "user"
+                        ? "bg-blue-200 text-blue-900"
+                        : "bg-gray-200 text-gray-800 rounded-bl-none"
                     }`}
                   >
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
                         code({ inline, className, children, ...props }: any) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const code = String(children).replace(/\n$/, '');
+                          const match = /language-(\w+)/.exec(className || "");
+                          const code = String(children).replace(/\n$/, "");
 
                           if (!inline && match) {
                             return (
@@ -273,10 +289,10 @@ export default function ChatWidget({
                                   PreTag="div"
                                   showLineNumbers
                                   customStyle={{
-                                    borderRadius: '0.5rem',
-                                    padding: '1rem',
-                                    fontSize: '0.875rem',
-                                    background: '#fdf6e3',
+                                    borderRadius: "0.5rem",
+                                    padding: "1rem",
+                                    fontSize: "0.875rem",
+                                    background: "#fdf6e3",
                                   }}
                                   {...props}
                                 >
@@ -293,7 +309,9 @@ export default function ChatWidget({
                           );
                         },
                         strong: ({ children }) => (
-                          <strong className="font-semibold text-black">{children}</strong>
+                          <strong className="font-semibold text-black">
+                            {children}
+                          </strong>
                         ),
                         em: ({ children }) => (
                           <em className="italic text-gray-700">{children}</em>
@@ -306,7 +324,7 @@ export default function ChatWidget({
                       {msg.text}
                     </ReactMarkdown>
 
-                    {msg.from === 'assistant' && (
+                    {msg.from === "assistant" && (
                       <button
                         onClick={() => copyToClipboard(msg.text)}
                         className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-xs text-gray-400 hover:text-gray-700"
@@ -318,7 +336,11 @@ export default function ChatWidget({
                   </div>
                 </div>
               ))}
-              {isLoading && <div className="text-gray-400 italic">Assistant is typing...</div>}
+              {isLoading && (
+                <div className="text-gray-400 italic">
+                  Assistant is typing...
+                </div>
+              )}
             </div>
 
             {/* Input Bar */}
