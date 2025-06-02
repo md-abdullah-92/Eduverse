@@ -11,6 +11,7 @@ export default function AllCoursesByInstructorPage({
   params: { id: string };
 }) {
   const userId = params.id;
+  // const { user } = useAuth();
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -69,7 +70,7 @@ export default function AllCoursesByInstructorPage({
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                {userId}&apos;s Courses
+                Your Courses
               </h1>
               <p className="text-purple-100 text-lg max-w-xl">
                 Browse all courses created by this instructor and access their

@@ -38,10 +38,11 @@ import {
   getButtonConfig,
   handleButtonAction,
   renderStars,
-} from "../../courses/utils/couseCardUtils";
+} from "../utils/couseCardUtils";
 
 import { CourseUtils } from "@/utils/courseUtils";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
+import { ReviewSection } from "../components/reviewSection";
 export default function CourseDetails({ params }: CourseDetailsProps) {
   const resolvedParams = use(params);
   const searchParams = useSearchParams();
@@ -255,6 +256,20 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                   </div>
                 </div>
               )}
+
+              {(course.reviews?.length || 0) > 0 && (
+                <div className="flex items-center space-x-3 bg-white/15 backdrop-blur-sm px-6 py-3 rounded-2xl">
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <FiStar className="text-white w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-sm">Reviews</p>
+                    <p className="text-white font-semibold">
+                      {course.reviews?.length}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -296,7 +311,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                   className="bg-white rounded-full h-3 transition-all duration-500 ease-out"
                   style={{
                     width: course?.lessons?.length
-                      ? `${enrollment?.progressPercentage || 0}%`
+                      ? `${enrollment?.progressPercentage.toFixed(2) || 0}%`
                       : "0%",
                   }}
                 ></div>
@@ -520,18 +535,10 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                 )}
 
                 {activeTab === "reviews" && (
-                  <div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-6">
-                      Student Reviews
-                    </h3>
-                    <div className="text-center py-16">
-                      <FiStar className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                      <p className="text-slate-500 text-lg">No reviews yet</p>
-                      <p className="text-slate-400">
-                        Be the first to review this course!
-                      </p>
-                    </div>
-                  </div>
+                  <ReviewSection
+                    courseId={parseInt(resolvedParams.id)}
+                    isEnrolled={isEnrolled}
+                  />
                 )}
               </div>
             </div>
@@ -569,13 +576,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                         Your Progress
                       </span>
                       <span className="text-sm font-bold text-emerald-600">
-                        {course?.lessons?.length
-                          ? Math.round(
-                              (enrollment?.lessonCompletions.length ||
-                                0 / course.lessons.length) * 100
-                            )
-                          : 0}
-                        %
+                        {enrollment?.progressPercentage.toFixed(2) || 0}%
                       </span>
                     </div>
                     <div className="w-full bg-slate-200 rounded-full h-2 mb-4">

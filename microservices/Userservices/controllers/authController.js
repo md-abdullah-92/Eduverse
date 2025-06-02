@@ -6,8 +6,8 @@ const { sendOTP, generateOTP } = require("../services/emailService");
 const prisma = new PrismaClient();
 
 // Generate JWT Token
-const generateToken = (userId) => {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+const generateToken = (userId, role, name) => {
+    return jwt.sign({ id: userId, role, name }, process.env.JWT_SECRET, {
         expiresIn: '30d'  // Token expires in 30 days
     });
 };
@@ -245,7 +245,7 @@ exports.login = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = generateToken(user.id);
+        const token = generateToken(user.id, user.role, user.name);
 
         // Return user data and token
         res.status(200).json({

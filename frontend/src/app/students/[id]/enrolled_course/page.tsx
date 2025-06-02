@@ -85,7 +85,7 @@ export default function StudentEnrolledCoursesPage({
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                My Enrolled Courses
+                Enrolled Courses
               </h1>
               <p className="text-teal-100 text-lg max-w-xl">
                 Track your progress and continue learning where you left off.

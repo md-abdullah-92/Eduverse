@@ -28,9 +28,19 @@ export interface CourseData extends CourseFormData {
   id: number;
   lessons: Lesson[];
   outcomes: Outcome[];
+  reviews?: Review[];
   progress?: number;
 }
 
+export interface Review {
+  id?: number;
+  studentId: string;
+  courseId: number;
+  rating: number;
+  comment?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 export interface CourseInfo {
   id: number;
   enrollmentId: number;
