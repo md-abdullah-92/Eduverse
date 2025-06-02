@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface QuizQuestion {
   id: string;
   type: "MCQ" | "CQ";
   question: string;
-  options?: string[]; // Only for MCQs
+  options?: string[];
   answer?: string;
 }
 
@@ -43,6 +44,7 @@ export default function GeneratedQuizSection() {
   const [showTypes, setShowTypes] = useState({ MCQ: true, CQ: true });
   const [filterText, setFilterText] = useState("");
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<QuizQuestion[]>(mockQuizData);
 
   const toggleType = (type: "MCQ" | "CQ") => {
     setShowTypes((prev) => ({ ...prev, [type]: !prev[type] }));
@@ -54,7 +56,17 @@ export default function GeneratedQuizSection() {
     );
   };
 
-  const filteredQuestions = mockQuizData.filter(
+  const handleDelete = () => {
+    if (selectedQuestions.length === 0) {
+      toast.warning("Please select at least one question to delete.");
+      return;
+    }
+    setQuestions((prev) => prev.filter((q) => !selectedQuestions.includes(q.id)));
+    setSelectedQuestions([]);
+    toast.success("Selected questions deleted successfully.");
+  };
+
+  const filteredQuestions = questions.filter(
     (q) =>
       showTypes[q.type] &&
       q.question.toLowerCase().includes(filterText.toLowerCase())
@@ -62,7 +74,6 @@ export default function GeneratedQuizSection() {
 
   return (
     <div className="mt-8 max-w-5xl mx-auto">
-      {/* Header with filters */}
       <div className="flex flex-wrap justify-between items-center mb-4">
         <Input
           placeholder="🔍 Filter by document or keyword"
@@ -85,13 +96,12 @@ export default function GeneratedQuizSection() {
             />
             CQs
           </label>
-          <Button variant="destructive" size="sm">
+          <Button variant="destructive" size="sm" onClick={handleDelete}>
             Delete
           </Button>
         </div>
       </div>
 
-      {/* Question List */}
       <div className="rounded-lg border p-4 bg-white space-y-4 shadow">
         {filteredQuestions.length === 0 ? (
           <p className="text-muted-foreground text-sm">No questions to show.</p>
@@ -108,7 +118,7 @@ export default function GeneratedQuizSection() {
                     onCheckedChange={() => handleSelect(q.id)}
                   />
                   <div>
-                    <p className="text-sm font-medium">{q.question}</p>
+                    <p className="text-sm font-medium whitespace-pre-wrap">{q.question}</p>
                     {q.type === "MCQ" && q.options && (
                       <ul className="pl-6 mt-2 list-disc text-sm text-muted-foreground">
                         {q.options.map((opt, i) => (
@@ -132,6 +142,3 @@ export default function GeneratedQuizSection() {
     </div>
   );
 }
-// This component is a simplified version of a quiz management interface
-// where users can filter, select, and view questions of different types (MCQ and CQ).
-

@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       ],
     });
 
-    const prompt = `Create a detailed classroom assignment based on the topic: "${topic}".Keep the tone formal and academic. Do not use markdown codes.`;
+    const prompt = `Create a detailed classroom assignment based on the topic: "${topic}".Keep the tone formal and academic.`;
 
     let retries = 0;
     let delay = RETRY_DELAY_BASE;
