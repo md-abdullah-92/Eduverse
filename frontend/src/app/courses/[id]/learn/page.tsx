@@ -28,6 +28,7 @@ interface VideoState {
   currentTime: number;
   duration: number;
   volume: number;
+  isLoading: boolean;
 }
 
 interface LessonProgress {
@@ -46,14 +47,6 @@ interface NavigationButtonProps {
   className?: string;
   compact?: boolean;
 }
-
-// Dummy video URLs for testing (you can remove these when real videos are added)
-const DEMO_VIDEOS = [
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-];
 
 // Reusable Navigation Button Component
 const NavigationButton: React.FC<NavigationButtonProps> = ({
@@ -125,12 +118,14 @@ export default function LearnPage() {
   const [notes, setNotes] = useState("");
   const [lessonProgress, setLessonProgress] = useState<LessonProgress>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
     currentTime: 0,
     duration: 0,
     volume: 1,
+    isLoading: false,
   });
 
   const enrollmentId = searchParams.get("enrolled");
@@ -144,9 +139,9 @@ export default function LearnPage() {
   }, [enrollment?.course.lessons]);
 
   // Memoized navigation lessons
-  const { nextLesson, previousLesson, currentLessonIndex } = useMemo(() => {
+  const { nextLesson, previousLesson } = useMemo(() => {
     if (!currentLesson || sortedLessons.length === 0) {
-      return { nextLesson: null, previousLesson: null, currentLessonIndex: 0 };
+      return { nextLesson: null, previousLesson: null };
     }
 
     const currentIndex = sortedLessons.findIndex(
@@ -159,16 +154,22 @@ export default function LearnPage() {
           ? sortedLessons[currentIndex + 1]
           : null,
       previousLesson: currentIndex > 0 ? sortedLessons[currentIndex - 1] : null,
-      currentLessonIndex: currentIndex,
     };
   }, [currentLesson, sortedLessons]);
 
   // Calculate course progress from enrollment
   const courseProgress = enrollment?.progressPercentage || 0;
 
-  // Get demo video URL for testing (remove this when real videos are available)
-  const getDemoVideoUrl = useCallback((lessonIndex: number) => {
-    return DEMO_VIDEOS[lessonIndex % DEMO_VIDEOS.length];
+  // Reset video state when lesson changes
+  const resetVideoState = useCallback(() => {
+    setVideoState({
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      volume: 1,
+      isLoading: true,
+    });
+    setVideoError(null);
   }, []);
 
   // Fetch enrollment data and set first lesson
@@ -219,16 +220,60 @@ export default function LearnPage() {
     fetchEnrollment();
   }, [enrollmentId, user?.id, refreshTrigger]);
 
-  // Video event handlers
-  const handlePlayPause = useCallback(() => {
-    if (videoRef.current) {
+  // Reset video state when lesson changes
+  useEffect(() => {
+    if (currentLesson) {
+      resetVideoState();
+    }
+  }, [currentLesson?.id, resetVideoState]);
+
+  // Video event handlers with proper synchronization
+  const handlePlayPause = useCallback(async () => {
+    if (!videoRef.current) return;
+
+    try {
       if (videoState.isPlaying) {
-        videoRef.current.pause();
+        await videoRef.current.pause();
+        // State will be updated in onPause event
       } else {
-        videoRef.current.play();
+        await videoRef.current.play();
+        // State will be updated in onPlay event
       }
+    } catch (error) {
+      console.error("Play/pause error:", error);
+      // Reset state if play/pause fails
+      setVideoState((prev) => ({
+        ...prev,
+        isPlaying: false,
+      }));
     }
   }, [videoState.isPlaying]);
+
+  const handleVideoLoadStart = useCallback(() => {
+    setVideoState((prev) => ({ ...prev, isLoading: true }));
+  }, []);
+
+  const handleVideoLoadedData = useCallback(() => {
+    setVideoState((prev) => ({ ...prev, isLoading: false }));
+  }, []);
+
+  const handleVideoLoadedMetadata = useCallback(() => {
+    if (videoRef.current) {
+      setVideoState((prev) => ({
+        ...prev,
+        duration: videoRef.current!.duration,
+        isLoading: false,
+      }));
+    }
+  }, []);
+
+  const handleVideoPlay = useCallback(() => {
+    setVideoState((prev) => ({ ...prev, isPlaying: true }));
+  }, []);
+
+  const handleVideoPause = useCallback(() => {
+    setVideoState((prev) => ({ ...prev, isPlaying: false }));
+  }, []);
 
   const handleVideoTimeUpdate = useCallback(() => {
     if (!videoRef.current || !currentLesson?.id) return;
@@ -309,8 +354,23 @@ export default function LearnPage() {
   }, []);
 
   const handleLessonChange = useCallback((lesson: Lesson) => {
+    // Pause current video before switching
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+    }
+
     setCurrentLesson(lesson);
-    setVideoState((prev) => ({ ...prev, currentTime: 0, isPlaying: false }));
+  }, []);
+
+  const handleVideoError = useCallback(() => {
+    setVideoError(
+      "Unable to load video. Please check if the video file exists and is accessible."
+    );
+    setVideoState((prev) => ({
+      ...prev,
+      isPlaying: false,
+      isLoading: false,
+    }));
   }, []);
 
   const formatTime = useCallback((seconds: number) => {
@@ -351,10 +411,8 @@ export default function LearnPage() {
 
   const course = enrollment.course;
 
-  // Check if current lesson has video (for demo, we'll use demo videos)
-  const hasVideo = currentLesson.videoUrl || true; // Set to true for demo
-  const videoUrl =
-    currentLesson.videoUrl || getDemoVideoUrl(currentLessonIndex);
+  // Check if current lesson has video
+  const hasVideo = !!currentLesson.videoUrl;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -469,10 +527,17 @@ export default function LearnPage() {
                           {lesson.title}
                         </h3>
                         <div className="flex items-center text-xs text-gray-500">
-                          <FiVideo className="h-3 w-3 mr-1" />
-                          <span>
-                            {lesson.videoUrl ? "Video" : "Video (Demo)"}
-                          </span>
+                          {lesson.videoUrl ? (
+                            <>
+                              <FiVideo className="h-3 w-3 mr-1" />
+                              <span>Video</span>
+                            </>
+                          ) : (
+                            <>
+                              <FiBook className="h-3 w-3 mr-1" />
+                              <span>Text</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -489,124 +554,142 @@ export default function LearnPage() {
               <div ref={playerContainerRef} className="relative bg-black">
                 {hasVideo ? (
                   <div className="relative">
-                    {/* Demo Notice */}
-                    {!currentLesson.videoUrl && (
-                      <div className="absolute top-4 left-4 z-10">
-                        <div className="bg-yellow-500 text-black px-3 py-1 rounded-md text-sm font-medium">
-                          Demo Video
-                        </div>
-                      </div>
-                    )}
-
-                    <video
-                      ref={videoRef}
-                      className="w-full aspect-video"
-                      onTimeUpdate={handleVideoTimeUpdate}
-                      onPlay={() =>
-                        setVideoState((prev) => ({ ...prev, isPlaying: true }))
-                      }
-                      onPause={() =>
-                        setVideoState((prev) => ({ ...prev, isPlaying: false }))
-                      }
-                      onLoadedMetadata={() => {
-                        if (videoRef.current) {
-                          setVideoState((prev) => ({
-                            ...prev,
-                            duration: videoRef.current!.duration,
-                          }));
-                        }
-                      }}
-                    >
-                      <source src={videoUrl} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-
-                    {/* Video Controls */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <div className="flex items-center space-x-4">
-                        <button
-                          onClick={handlePlayPause}
-                          className="text-white hover:text-teal-400 transition-colors"
-                        >
-                          {videoState.isPlaying ? (
-                            <FiPause className="h-6 w-6" />
-                          ) : (
-                            <FiPlay className="h-6 w-6" />
-                          )}
-                        </button>
-
-                        <NavigationButton
-                          direction="previous"
-                          lesson={previousLesson}
-                          onLessonChange={handleLessonChange}
-                          disabled={!previousLesson}
-                          compact
-                        />
-
-                        <NavigationButton
-                          direction="next"
-                          lesson={nextLesson}
-                          onLessonChange={handleLessonChange}
-                          disabled={!nextLesson}
-                          compact
-                        />
-
-                        <div className="flex-1 flex items-center space-x-2">
-                          <span className="text-sm text-white">
-                            {formatTime(videoState.currentTime)}
-                          </span>
-                          <div
-                            ref={progressBarRef}
-                            className="flex-1 h-1 bg-gray-600 rounded-full overflow-hidden cursor-pointer"
-                            onClick={handleProgressBarClick}
+                    {videoError ? (
+                      <div className="aspect-video flex items-center justify-center bg-red-50">
+                        <div className="text-center">
+                          <FiVideo className="h-16 w-16 text-red-400 mx-auto mb-4" />
+                          <p className="text-red-600 font-medium">
+                            Video Error
+                          </p>
+                          <p className="text-sm text-red-500 mt-2 max-w-md">
+                            {videoError}
+                          </p>
+                          <button
+                            onClick={() => setVideoError(null)}
+                            className="mt-4 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
                           >
-                            <div
-                              className="h-full bg-teal-500 transition-all duration-150"
-                              style={{
-                                width: `${
-                                  (videoState.currentTime /
-                                    videoState.duration) *
-                                    100 || 0
-                                }%`,
-                              }}
-                            />
-                          </div>
-                          <span className="text-sm text-white">
-                            {formatTime(videoState.duration)}
-                          </span>
+                            Retry
+                          </button>
                         </div>
-
-                        <div className="flex items-center space-x-2">
-                          <FiVolume2 className="h-5 w-5 text-white" />
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={videoState.volume}
-                            onChange={handleVolumeChange}
-                            className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                          />
-                        </div>
-
-                        <button
-                          onClick={handleFullscreen}
-                          className="text-white hover:text-teal-400 transition-colors"
-                        >
-                          <FiMaximize className="h-5 w-5" />
-                        </button>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Loading overlay */}
+                        {videoState.isLoading && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+                          </div>
+                        )}
+
+                        <video
+                          ref={videoRef}
+                          key={currentLesson.id} // Force re-render when lesson changes
+                          className="w-full aspect-video"
+                          onLoadStart={handleVideoLoadStart}
+                          onLoadedData={handleVideoLoadedData}
+                          onLoadedMetadata={handleVideoLoadedMetadata}
+                          onTimeUpdate={handleVideoTimeUpdate}
+                          onPlay={handleVideoPlay}
+                          onPause={handleVideoPause}
+                          onError={handleVideoError}
+                          preload="metadata"
+                        >
+                          <source
+                            src={currentLesson.videoUrl!}
+                            type="video/mp4"
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+
+                        {/* Video Controls */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                          <div className="flex items-center space-x-4">
+                            <button
+                              onClick={handlePlayPause}
+                              disabled={videoState.isLoading}
+                              className="text-white hover:text-teal-400 transition-colors disabled:opacity-50"
+                            >
+                              {videoState.isPlaying ? (
+                                <FiPause className="h-6 w-6" />
+                              ) : (
+                                <FiPlay className="h-6 w-6" />
+                              )}
+                            </button>
+
+                            <NavigationButton
+                              direction="previous"
+                              lesson={previousLesson}
+                              onLessonChange={handleLessonChange}
+                              disabled={!previousLesson}
+                              compact
+                            />
+
+                            <NavigationButton
+                              direction="next"
+                              lesson={nextLesson}
+                              onLessonChange={handleLessonChange}
+                              disabled={!nextLesson}
+                              compact
+                            />
+
+                            <div className="flex-1 flex items-center space-x-2">
+                              <span className="text-sm text-white">
+                                {formatTime(videoState.currentTime)}
+                              </span>
+                              <div
+                                ref={progressBarRef}
+                                className="flex-1 h-1 bg-gray-600 rounded-full overflow-hidden cursor-pointer"
+                                onClick={handleProgressBarClick}
+                              >
+                                <div
+                                  className="h-full bg-teal-500 transition-all duration-150"
+                                  style={{
+                                    width: `${
+                                      (videoState.currentTime /
+                                        videoState.duration) *
+                                        100 || 0
+                                    }%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-sm text-white">
+                                {formatTime(videoState.duration)}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                              <FiVolume2 className="h-5 w-5 text-white" />
+                              <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.1"
+                                value={videoState.volume}
+                                onChange={handleVolumeChange}
+                                className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                              />
+                            </div>
+
+                            <button
+                              onClick={handleFullscreen}
+                              className="text-white hover:text-teal-400 transition-colors"
+                            >
+                              <FiMaximize className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="aspect-video flex items-center justify-center bg-gray-100">
                     <div className="text-center">
                       <FiBook className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">
-                        Video will be available soon
+                      <p className="text-gray-600 font-medium">
+                        Text-Based Lesson
                       </p>
-                      <p className="text-sm text-gray-400 mt-2">
-                        This lesson is currently text-based
+                      <p className="text-sm text-gray-500 mt-2">
+                        This lesson doesn&apos;t have a video component
                       </p>
                     </div>
                   </div>

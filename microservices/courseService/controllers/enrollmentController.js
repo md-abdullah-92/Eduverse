@@ -108,6 +108,17 @@ exports.getEnrollment = async (req, res) => {
     if (!enrollment) {
       return res.status(404).json({ error: 'Enrollment not found' });
     }
+
+    const totalLessons = enrollment.course.lessons.length;
+    const completedLessons = enrollment.lessonCompletions.length;
+    const progressPercentage = (completedLessons / totalLessons) * 100;
+    if(enrollment.progressPercentage !== progressPercentage){
+      await prisma.enrollment.update({
+        where: { id: parseInt(id) },
+        data: { progressPercentage }
+      });
+    }
+    enrollment.progressPercentage = progressPercentage;
     
     res.status(200).json(enrollment);
   } catch (error) {
@@ -115,6 +126,7 @@ exports.getEnrollment = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch enrollment', details: error.message });
   }
 };
+
 
 // Create an enrollment
 // hit -> post ->  http://localhost:5000/api/enrollments/enroll

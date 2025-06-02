@@ -50,7 +50,7 @@ class MinioService {
   }
 
   getVideoUrl(fileName) {
-    return `http://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}/${this.bucketName}/${fileName}`;
+    return `http://localhost:9000/lessonvideo/${fileName}`;
   }
 
   async getPresignedUrl(fileName, expiry = 24 * 60 * 60) {
