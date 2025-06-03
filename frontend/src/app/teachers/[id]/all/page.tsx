@@ -5,6 +5,11 @@ import { CourseData } from "@/utils/types";
 import { BarChart2, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import {
+  poppins,
+  dmSerif,
+  playfair
+} from "@/utils/font";
 export default function AllCoursesByInstructorPage({
   params,
 }: {
@@ -51,9 +56,10 @@ export default function AllCoursesByInstructorPage({
     return matchesTopic && matchesSearch;
   });
 
+  // Show loading state while fetching courses
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 flex items-center justify-center flex-col">
+      <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 flex items-center justify-center flex-col font-poppins">
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
         <p className="text-xl font-semibold text-gray-700">
           Loading instructor courses...
@@ -63,34 +69,31 @@ export default function AllCoursesByInstructorPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 pb-20">
-      {/* Instructor Banner */}
+    <div className={`min-h-screen bg-gradient-to-b from-white to-blue-50 pb-20 ${poppins.className}`}>
+      {/* Banner */}
       <div className="bg-gradient-to-r from-teal-700 to-purple-600 text-white py-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Your Courses
-              </h1>
-              <p className="text-purple-100 text-lg max-w-xl">
-                Browse all courses created by this instructor and access their
-                dashboards.
-              </p>
-            </div>
-            <div className="mt-8 md:mt-0">
-              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg inline-flex items-center">
-                <BarChart2 className="h-12 w-12 text-white mr-3" />
-                <div>
-                  <p className="text-sm text-purple-100">Total courses</p>
-                  <p className="text-2xl font-bold">{courses.length}</p>
-                </div>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
+          <div>
+            <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${dmSerif.className}`}>
+              Your Courses
+            </h1>
+            <p className="text-purple-100 text-lg max-w-xl">
+              Browse all courses created by this instructor and access their dashboards.
+            </p>
+          </div>
+          <div className="mt-8 md:mt-0">
+            <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg inline-flex items-center">
+              <BarChart2 className="h-12 w-12 text-white mr-3" />
+              <div>
+                <p className="text-sm text-purple-100">Total courses</p>
+                <p className="text-2xl font-bold">{courses.length}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search & Filter */}
       <div className="max-w-7xl mx-auto px-4 -mt-8">
         <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-4">
           <div className="relative flex-grow">
@@ -100,7 +103,7 @@ export default function AllCoursesByInstructorPage({
               placeholder="Search courses..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-3 rounded-lg border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-3 rounded-lg border border-gray-200 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -112,9 +115,7 @@ export default function AllCoursesByInstructorPage({
                 className="appearance-none bg-gray-50 border border-gray-200 rounded-lg py-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {topics.map((topic) => (
-                  <option key={topic} value={topic}>
-                    {topic}
-                  </option>
+                  <option key={topic} value={topic}>{topic}</option>
                 ))}
               </select>
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -124,17 +125,16 @@ export default function AllCoursesByInstructorPage({
         </div>
       </div>
 
-      {/* Instructor Dashboard Link */}
+      {/* Dashboard CTA */}
       <div className="max-w-7xl mx-auto px-4 mt-8">
         <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-600">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">
+              <h2 className={`text-xl font-bold text-gray-800 ${playfair.className}`}>
                 Instructor Dashboard
               </h2>
               <p className="text-gray-600">
-                Access your instructor dashboard to view analytics and manage
-                your courses
+                Access your instructor dashboard to view analytics and manage your courses.
               </p>
             </div>
             <a
@@ -147,12 +147,11 @@ export default function AllCoursesByInstructorPage({
         </div>
       </div>
 
-      {/* Course Listings */}
+      {/* Course List */}
       <div className="max-w-7xl mx-auto px-4 mt-12">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {filteredCourses.length}{" "}
-            {filteredCourses.length === 1 ? "Course" : "Courses"} Available
+          <h2 className={`text-2xl font-bold text-gray-800 ${dmSerif.className}`}>
+            {filteredCourses.length} {filteredCourses.length === 1 ? "Course" : "Courses"} Available
           </h2>
           <div className="text-gray-500 text-sm">
             Showing {filteredCourses.length} of {courses.length} courses
@@ -166,7 +165,7 @@ export default function AllCoursesByInstructorPage({
               No courses found
             </h3>
             <p className="text-gray-500 mt-2">
-              Try adjusting your search or filter criteria
+              Try adjusting your search or filter criteria.
             </p>
           </div>
         ) : (
