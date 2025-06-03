@@ -4,6 +4,7 @@ import CourseCard from "@/app/courses/components/courseCard";
 import { CourseData } from "@/utils/types";
 import { BarChart2, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import Sidebar from "../components/Sidebar";
 
 import {
   poppins,
@@ -16,7 +17,6 @@ export default function AllCoursesByInstructorPage({
   params: { id: string };
 }) {
   const userId = params.id;
-  // const { user } = useAuth();
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -69,6 +69,13 @@ export default function AllCoursesByInstructorPage({
   }
 
   return (
+     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-yellow-50 to-yellow-100 relative overflow-hidden">
+      {/* Sidebar */}
+     <Sidebar role="TEACHER" userId={userId} />
+
+      {/* Main Content */}
+      <main className="flex-1 p-8 space-y-8 relative z-10">
+    
     <div className={`min-h-screen bg-gradient-to-b from-white to-blue-50 pb-20 ${poppins.className}`}>
       {/* Banner */}
       <div className="bg-gradient-to-r from-teal-700 to-purple-600 text-white py-16 px-4">
@@ -176,6 +183,8 @@ export default function AllCoursesByInstructorPage({
           </div>
         )}
       </div>
+      </div>
+    </main>
     </div>
   );
 }

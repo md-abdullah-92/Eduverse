@@ -6,6 +6,11 @@ import { CourseUtils } from "@/utils/courseUtils";
 import { CourseFormData } from "@/utils/types";
 import { useParams, useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
+import {
+  poppins,
+  
+} from "@/utils/font";
+import Sidebar from "../components/Sidebar";
 
 export default function AddCoursePage() {
   const params = useParams();
@@ -124,7 +129,10 @@ export default function AddCoursePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
+      <Sidebar role="TEACHER" userId={userId} />
+    <main className="flex-1 p-8 space-y-8 relative z-10">
+    <div className={`min-h-screen bg-gray-50 py-12 px-6 md:px-12 ${poppins.className}`}>
       {/* Main Content */}
       <div className="flex-1 p-8">
         <div className="max-w-5xl mx-auto">
@@ -404,6 +412,8 @@ export default function AddCoursePage() {
           </div>
         </div>
       </div>
+    </div>
+    </main>
     </div>
   );
 }

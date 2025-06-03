@@ -62,7 +62,7 @@ export default function GenerateAssignmentPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-yellow-50 to-yellow-100 relative overflow-hidden">
+   <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
       <Sidebar role="TEACHER" userId={userId} />
 
       <main className="flex-1 p-8 space-y-8 relative z-10">
