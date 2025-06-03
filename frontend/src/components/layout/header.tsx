@@ -19,6 +19,7 @@ const Header = () => {
     const role = localStorage.getItem("role");
     console.log("User ID:", userId);
     console.log("Role:", role);
+    console.log("userPhoto", photo);
 
     setIsLoggedIn(!!token);
     setUserPhoto(photo || "/profile.png");

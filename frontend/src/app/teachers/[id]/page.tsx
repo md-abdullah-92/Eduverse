@@ -243,6 +243,15 @@ const ModernDashboard = () => {
       }
 
       setProfile(data.teacherProfile);
+      localStorage.setItem("userId", userId.toString());
+      localStorage.setItem("role", data.teacherProfile.user.role || "TEACHER");
+      localStorage.setItem("userPhoto", data.teacherProfile.profilePhoto || "");
+      localStorage.setItem("userName", data.teacherProfile.user.name || "Mentor Name");
+      localStorage.setItem("userEmail", data.teacherProfile.user.email || "");
+      localStorage.setItem("userPhone", data.teacherProfile.user.phone || "N/A");
+      localStorage.setItem("userBio", data.teacherProfile.user.bio || "N/A");
+      localStorage.setItem("userCoverPhoto", data.teacherProfile.coverPhoto || "N/A");
+      
 
       // Store data in memory (simulating localStorage)
       console.log("Storing user data:", {
@@ -254,6 +263,7 @@ const ModernDashboard = () => {
         userPhone: data.teacherProfile.user.phone || "N/A",
         userBio: data.teacherProfile.user.bio || "N/A",
         userCoverPhoto: data.teacherProfile.coverPhoto || "N/A",
+    
       });
     } catch (err) {
       const errorMessage =
