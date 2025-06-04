@@ -11,6 +11,7 @@ import {
   
 } from "@/utils/font";
 import Sidebar from "../components/Sidebar";
+import ChatWidget from "@/app/chatbot/ChatWidget";
 
 export default function AddCoursePage() {
   const params = useParams();
@@ -402,6 +403,11 @@ export default function AddCoursePage() {
                   </button>
                 </div>
               </div>
+              {/* chat widget */}
+              <div className="mt-6">
+              <ChatWidget userId={userId} />
+            </div>
+              {/* Preview Info */}
 
               <div className="mt-6 text-sm text-gray-500">
                 <p>
