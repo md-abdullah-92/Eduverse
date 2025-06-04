@@ -21,7 +21,6 @@ import {
   reemKufi,
   karma,
   raleway,
-  poltawskiNowy,
 } from '@/utils/font'
 
 export default function EditTeacherProfilePage() {

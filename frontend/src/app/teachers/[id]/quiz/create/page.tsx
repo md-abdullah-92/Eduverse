@@ -1,6 +1,6 @@
 "use client";
 
-import ChatWidget from "@/app/chatbot/components/ChatWidget";
+import ChatWidget from "@/app/chatbot/ChatWidget";
 import GeneratedQuizSection from "@/app/teachers/[id]/quiz/create/components/quize";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,5 +1,7 @@
 "use client";
 
+
+
 import { jaro, raleway } from "@/utils/font";
 import { motion } from "framer-motion";
 
@@ -25,6 +27,7 @@ const teamMembers = [
     image: "/images/team/apurbo.png",
   },
 ];
+
 
 export default function AboutPage() {
   return (

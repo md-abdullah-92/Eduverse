@@ -1,6 +1,6 @@
 "use client";
 
-import ChatWidget from "@/app/chatbot/components/ChatWidget";
+import ChatWidget from "@/app/chatbot/ChatWidget";
 import {
   Award,
   BadgeCheck,
