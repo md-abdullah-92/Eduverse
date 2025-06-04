@@ -7,33 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Cart {
-  id        String   @id @default(cuid())
-  userId    String   // Reference to external user service
-  subtotal  Decimal  @default(0) @db.Decimal(10, 2)
-  total     Decimal  @default(0) @db.Decimal(10, 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  items CartItem[]
-
-  @@map("carts")
-}
-
-model CartItem {
-  id       String   @id @default(cuid())
-  cartId   String
-  courseId String   // Reference to external course service
-  price    Decimal  @db.Decimal(10, 2) // Cache price at time of adding
-  addedAt  DateTime @default(now())
-
-  // Relations
-  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
-
-  @@unique([cartId, courseId])
-  @@map("cart_items")
-}
 
 model Purchase {
   id                String         @id @default(cuid())
