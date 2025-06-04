@@ -10,31 +10,29 @@ import {
   ChevronRight,
   ClipboardList,
   Eye,
-  FileText,
-  Heart,
+  
+  
   History,
   ListChecks,
-  LogOut,
+
   Play,
   Search,
   Settings,
-  ShoppingCart,
   Star,
   TrendingUp,
   User,
   Users,
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import StudentMarkProgressChart from "../components/StudentMarkProgressChart";
 import StudyTimeBarChart from "../components/StudyTimeBarChart";
+import Sidebar from "../components/Sidebar";
+
+
 
 // Types
-type NavigationItem = {
-  icon: React.ElementType;
-  label: string;
-  badge?: number;
-};
+
 
 type StatCardProps = {
   label: string;
@@ -45,217 +43,12 @@ type StatCardProps = {
   trendUp?: boolean;
 };
 
-type SidebarItemProps = {
-  icon: React.ElementType;
-  label: string;
-  onClick: () => void;
-  badge?: number;
-  isActive?: boolean;
-};
 
-// Navigation Data
-const studentNavigationItems: NavigationItem[] = [
-  { icon: User, label: "Update Profile" },
-  { icon: BookOpen, label: "Enrolled Courses", badge: 5 },
-  { icon: Heart, label: "Wishlist", badge: 12 },
-  { icon: Star, label: "Reviews" },
-  { icon: ListChecks, label: "Quiz Attempts" },
-  { icon: FileText, label: "Assignments", badge: 3 },
-  { icon: BadgeCheck, label: "Certificates" },
-  { icon: History, label: "Order History" },
-  { icon: ShoppingCart, label: "Cart" },
-  { icon: LogOut, label: "Logout" },
-];
+
+
 
 // Sidebar Components
-const SidebarItem = ({
-  icon: Icon,
-  label,
-  onClick,
-  badge,
-  isActive,
-}: SidebarItemProps) => (
-  <div
-    className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-      isActive
-        ? "bg-gradient-to-r from-teal-700 to-purple-600 text-white shadow-lg"
-        : "hover:bg-gray-50 text-gray-700 hover:text-teal-600"
-    }`}
-    onClick={onClick}
-  >
-    <div className="flex items-center space-x-3">
-      <Icon
-        size={20}
-        className={`transition-colors duration-300 ${
-          isActive ? "text-white" : "text-teal-500 group-hover:text-teal-600"
-        }`}
-      />
-      <span className="font-normal text-sm">{label}</span>
-    </div>
-    <div className="flex items-center space-x-2">
-      {badge && (
-        <span
-          className={`px-2 py-1 text-xs rounded-full font-semibold ${
-            isActive ? "bg-white/20 text-white" : "bg-teal-100 text-teal-600"
-          }`}
-        >
-          {badge}
-        </span>
-      )}
-      <ChevronRight
-        size={14}
-        className={`transition-all duration-300 ${
-          isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2"
-        }`}
-      />
-    </div>
-  </div>
-);
 
-const LogoutModal = ({
-  isOpen,
-  onClose,
-  onConfirm,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-300">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform animate-in zoom-in-95 duration-300">
-        <div className="text-center mb-6">
-          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <LogOut className="w-8 h-8 text-red-600" />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Confirm Logout
-          </h2>
-          <p className="text-gray-600">
-            Are you sure you want to log out of EduVerse?
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-3 text-sm font-medium bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 px-4 py-3 text-sm font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Sidebar = ({
-  userId,
-  role,
-}: {
-  userId: string | string[];
-  role: string;
-}) => {
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [activeItem, setActiveItem] = useState("Dashboard");
-
-  const router = useRouter();
-
-  const handleClick = (label: string) => {
-    if (label === "Logout") {
-      setShowLogoutModal(true);
-      return;
-    }
-
-    if (label === "Update Profile") {
-      router.push(
-        role === "TEACHER"
-          ? `/updatementors-profile/${userId}`
-          : `/updatestudents-profile/${userId}`
-      );
-      return;
-    }
-    if (label === "My Courses") {
-      router.push(`/teachers/${userId}/all/`);
-      return;
-    }
-    if (label === "Enrolled Courses") {
-      router.push(`/students/${userId}/enrolled_course`);
-      return;
-    }
-    if (label === "Create Course") {
-      router.push(`/teachers/${userId}/create_course/`);
-      return;
-    }
-    if (label === "Cart") {
-      router.push(`/cart/`);
-      return;
-    }
-    if (label === "Logout") {
-      setShowLogoutModal(true);
-      return;
-    }
-  };
-
-  const confirmLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userPhoto");
-      localStorage.removeItem("role");
-    }
-    setShowLogoutModal(false);
-    router.push("/"); // Actually navigate to home
-  };
-
-  return (
-    <>
-      <aside className="w-80 h-full bg-white/80 backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg">
-        {/* Logo/Brand */}
-        <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
-          <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <BookOpen className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
-              EduVerse
-            </h1>
-            <p className="text-xs text-gray-500">Student Portal</p>
-          </div>
-        </div>
-
-        {/* Navigation Menu */}
-        <div>
-          <nav className="space-y-2">
-            {studentNavigationItems.map((item, i) => (
-              <SidebarItem
-                key={i}
-                icon={item.icon}
-                label={item.label}
-                badge={item.badge}
-                isActive={activeItem === item.label}
-                onClick={() => handleClick(item.label)}
-              />
-            ))}
-          </nav>
-        </div>
-      </aside>
-
-      <LogoutModal
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={confirmLogout}
-      />
-    </>
-  );
-};
 
 // Enhanced Stats Card
 const StatCard = ({
@@ -435,27 +228,31 @@ export default function ModernStudentDashboard() {
   const userInfo = student.user || {};
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-r from-teal-300 to-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" />
-      <div
-        className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-r from-cyan-300 to-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
-        style={{ animationDelay: "2s" }}
-      />
-      <div
-        className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
-        style={{ animationDelay: "4s" }}
-      />
+   <div className="flex min-h-screen">
+  {/* Background decorative elements */}
+  <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-r from-teal-300 to-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" />
+  <div
+    className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-r from-cyan-300 to-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
+    style={{ animationDelay: "1s" }}
+  />
+  <div
+    className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
+    style={{ animationDelay: "4s" }}
+  />
 
-      <Sidebar userId={userId} role={role} />
+  {/* Page Layout Flex Container */}
+  <aside className="w-64 bg-white shadow-md p-4">
+    <Sidebar userId={userId} role={role || "STUDENT"} />
+  </aside>
 
-      <main className="flex-1 p-8 space-y-8 relative z-10">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Welcome back, {userInfo.name || "Student"}! 📚
-            </h1>
+    <main className="ml-20 p-4 flex-1">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            Welcome back, {userInfo.name || "Student"}! 📚
+          </h1>
+     
             <p className="text-gray-600 mt-1">
               Continue your learning journey and track your progress.
             </p>
@@ -772,5 +569,6 @@ export default function ModernStudentDashboard() {
         </div>
       </main>
     </div>
+    
   );
 }

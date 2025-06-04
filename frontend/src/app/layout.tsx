@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head />
       <body className={poppins.className}>
         <Header />
-        <Providers>{children}</Providers> {/* ✅ wraps with Mantine/Auth/Toast */}
+        <Providers>{children}</Providers>
         <Footer />
       </body>
     </html>
