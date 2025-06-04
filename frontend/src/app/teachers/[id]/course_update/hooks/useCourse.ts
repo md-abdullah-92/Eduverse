@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useToast } from "@/components/ui_elements/toast";
-import { videoAPI } from "@/lib/api";
+import { videoAPI } from "@/lib/api/videoAPI";
 import { CourseUtils } from "@/utils/courseUtils";
 import { CourseData, Lesson } from "@/utils/types";
 import { useRouter } from "next/navigation";

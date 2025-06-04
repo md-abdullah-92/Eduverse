@@ -20,6 +20,18 @@ export interface CourseFormData {
   averageRating: number;
 }
 
+export interface CartItem {
+  id: number;
+  studentId: string;
+  courseId: number;
+  course: Course;
+}
+
+export interface Cart {
+  studentId: string;
+  items: CartItem[];
+}
+
 export interface Outcome {
   outcome: string;
 }
@@ -30,6 +42,10 @@ export interface CourseData extends CourseFormData {
   outcomes: Outcome[];
   reviews?: Review[];
   progress?: number;
+}
+
+export interface Course extends CourseFormData {
+  id: number;
 }
 
 export interface Review {

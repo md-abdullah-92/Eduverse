@@ -29,6 +29,7 @@ model Course {
   instructorId  String           // reference to user service
   reviews       Review[]
   averageRating Float?           @default(0)
+  cartItems     CartItem[]       // Cart relation
   
   @@index([instructorId])
 }
@@ -134,4 +135,25 @@ model Review {
   @@index([courseId])
   @@index([studentId]) 
   @@unique([courseId, studentId])  // One review per student per course
+}
+
+// Cart Models
+model Cart {
+  studentId String     @id  // Primary key - reference to user service
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id        Int    @id @default(autoincrement())
+  studentId String // Reference to Cart's primary key
+  courseId  Int
+  addedAt   DateTime @default(now())
+  cart      Cart   @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@unique([studentId, courseId]) // Prevent duplicate courses in same cart
+  @@index([studentId])
+  @@index([courseId])
 }

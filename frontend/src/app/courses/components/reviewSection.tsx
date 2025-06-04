@@ -41,7 +41,6 @@ export function ReviewSection({ courseId, isEnrolled }: ReviewSectionProps) {
   };
 
   useEffect(() => {
-    console.log(token);
     fetchReviews();
     fetchStats();
     if (user && isEnrolled) {

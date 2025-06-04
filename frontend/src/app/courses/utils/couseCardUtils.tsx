@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // utils/courseUtils.ts
+import cartService from "@/lib/api/cartService";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
 import { CourseData } from "@/utils/types";
 import { StarIcon } from "@heroicons/react/24/solid";
@@ -136,9 +137,14 @@ export const handleButtonAction = async ({
   } else {
     // Handle enrollment or cart logic
     if (course.price && Number(course.price) > 0) {
-      // Paid course - add to cart
       showToast("Course added to cart", "success");
       // Add cart logic here
+      try {
+        await cartService.addToCart(user.id, course.id);
+      } catch (error) {
+        const data = error as { message: string };
+        showToast(data.message, "error");
+      }
     } else {
       // Free course - direct enrollment
       enrollmentUtils.enrollInCourse(course.id);

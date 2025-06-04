@@ -195,7 +195,7 @@ const Sidebar = ({
       return;
     }
     if (label === "Cart") {
-      router.push(`/cart/${userId}`);
+      router.push(`/cart/`);
       return;
     }
     if (label === "Logout") {
