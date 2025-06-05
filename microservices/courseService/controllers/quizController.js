@@ -1,97 +1,318 @@
 const prisma = require('../prismaClient');
 
-// Create a quiz for a lesson
+// @desc    Create a new quiz
+// @route   POST /api/quizes
+// @access  Private
 exports.createQuiz = async (req, res) => {
-  const { lessonId } = req.params;
-
   try {
+    const { lessonId, title, description, timeLimit, passingScore } = req.body;
+    
     const quiz = await prisma.quiz.create({
       data: {
-        lessonId: parseInt(lessonId),
+        title,
+        description,
+        timeLimit: parseInt(timeLimit) || 30, // in minutes
+        passingScore: parseInt(passingScore) || 70, // percentage
+        lesson: {
+          connect: { id: parseInt(lessonId) }
+        }
       },
+      include: {
+        lesson: true
+      }
     });
-    res.json(quiz);
+
+    res.status(201).json({
+      success: true,
+      data: quiz
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create quiz', details: error.message });
+    console.error('Error creating quiz:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create quiz',
+      details: error.message
+    });
   }
 };
 
-// Get quiz of a lesson
-exports.getLessonQuiz = async (req, res) => {
+// @desc    Get all quizzes
+// @route   GET /api/quizes
+// @access  Public
+exports.getQuizzes = async (req, res) => {
+  try {
+    const quizzes = await prisma.quiz.findMany({
+      include: {
+        lesson: true,
+        questions: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      count: quizzes.length,
+      data: quizzes
+    });
+  } catch (error) {
+    console.error('Error fetching quizzes:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch quizzes',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Get single quiz
+// @route   GET /api/quizes/:id
+// @access  Public
+exports.getQuiz = async (req, res) => {
+  try {
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        lesson: true,
+        questions: {
+          include: {
+            options: true
+          }
+        }
+      }
+    });
+
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        error: `Quiz not found with id of ${req.params.id}`
+      });
+    }
+
+
+    res.status(200).json({
+      success: true,
+      data: quiz
+    });
+  } catch (error) {
+    console.error('Error fetching quiz:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch quiz',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Update quiz
+// @route   PUT /api/quizes/:id
+// @access  Private
+exports.updateQuiz = async (req, res) => {
+  try {
+    const { title, description, timeLimit, passingScore, isPublished } = req.body;
+    
+    // Check if quiz exists
+    const existingQuiz = await prisma.quiz.findUnique({
+      where: { id: parseInt(req.params.id) }
+    });
+
+    if (!existingQuiz) {
+      return res.status(404).json({
+        success: false,
+        error: `Quiz not found with id of ${req.params.id}`
+      });
+    }
+
+    const updatedQuiz = await prisma.quiz.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        title,
+        description,
+        timeLimit: timeLimit ? parseInt(timeLimit) : undefined,
+        passingScore: passingScore ? parseInt(passingScore) : undefined,
+        isPublished: isPublished !== undefined ? isPublished : undefined,
+        updatedAt: new Date()
+      },
+      include: {
+        lesson: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: updatedQuiz
+    });
+  } catch (error) {
+    console.error('Error updating quiz:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update quiz',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Delete quiz
+// @route   DELETE /api/quizes/:id
+// @access  Private
+exports.deleteQuiz = async (req, res) => {
+  try {
+    // Check if quiz exists
+    const existingQuiz = await prisma.quiz.findUnique({
+      where: { id: parseInt(req.params.id) }
+    });
+
+    if (!existingQuiz) {
+      return res.status(404).json({
+        success: false,
+        error: `Quiz not found with id of ${req.params.id}`
+      });
+    }
+
+    // Delete related questions and options first
+    await prisma.question.deleteMany({
+      where: { quizId: parseInt(req.params.id) }
+    });
+
+    // Then delete the quiz
+    await prisma.quiz.delete({
+      where: { id: parseInt(req.params.id) }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {}
+    });
+  } catch (error) {
+    console.error('Error deleting quiz:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete quiz',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Save complete quiz with questions and options
+// @route   POST /api/quizes/save/:lessonId
+// @access  Private
+exports.saveCompleteQuiz = async (req, res) => {
   const { lessonId } = req.params;
+  const { questions, marks } = req.body;
 
   try {
+    // Start a transaction to ensure data consistency
+    const result = await prisma.$transaction(async (prisma) => {
+      // Create the quiz
+      const quiz = await prisma.quiz.create({
+        data: {
+          lessonId: parseInt(lessonId),
+          marks: parseInt(marks) || 0
+        },
+      });
+
+      // Create questions with their options
+      const createdQuestions = await Promise.all(
+        questions.map(async (q) => {
+          const question = await prisma.question.create({
+            data: {
+              question: q.question, // Using 'question' as per Prisma model
+              type: q.type || 'MCQ',
+              explanation: q.explanation || '',
+              difficulty: q.difficulty || 'EASY',
+              quiz: {
+                connect: { lessonId: parseInt(lessonId) }
+              },
+              options: {
+                create: (q.options || []).map(opt => ({
+                  text: opt.text,
+                  isCorrect: opt.isCorrect || false
+                }))
+              }
+            },
+            include: {
+              options: true
+            }
+          });
+          return question;
+        })
+      );
+
+      return { quiz, questions: createdQuestions };
+    });
+
+    res.status(201).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    console.error('Error saving quiz:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save quiz',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Get quiz by lesson ID
+// @route   GET /api/quizes/lesson/:lessonId
+// @access  Public
+exports.getQuizByLessonId = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
     const quiz = await prisma.quiz.findUnique({
       where: { lessonId: parseInt(lessonId) },
       include: {
         questions: {
-          include: { options: true },
-        },
-      },
+          include: {
+            options: true
+          }
+        }
+      }
     });
 
-    if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
-    res.json(quiz);
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        error: `Quiz not found for lesson ${lessonId}`
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: quiz
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch quiz', details: error.message });
+    console.error('Error fetching quiz by lesson ID:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch quiz',
+      details: error.message
+    });
   }
 };
 
-// Create a question with options for a quiz
+// @desc    Create a question with options
+// @route   POST /api/quizes/:quizId/questions
+// @access  Private
 exports.createQuestion = async (req, res) => {
-  const { lessonId } = req.params;
-  const { text, options } = req.body;
-
   try {
+    const { quizId } = req.params;
+    const { text: questionText, type, explanation, difficulty, options } = req.body;
+
     const question = await prisma.question.create({
       data: {
-        text,
+        question: questionText, // Using 'question' as per Prisma model
+        type: type || 'MCQ',
+        explanation: explanation || '',
+        difficulty: difficulty || 'EASY',
         quiz: {
-          connect: { lessonId: parseInt(lessonId) }, // explicitly connect to Quiz via lessonId
+          connect: { lessonId: parseInt(quizId) }
         },
         options: {
-          create: options, // [{ text: "Option 1", isCorrect: false }, ...]
-        },
-      },
-      include: { options: true },
-    });
-
-    res.json(question);
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: 'Failed to create question', details: error.message });
-  }
-};
-
-// Get all questions and options of a quiz
-exports.getQuizQuestions = async (req, res) => {
-  const { lessonId } = req.params;
-
-  try {
-    const questions = await prisma.question.findMany({
-      where: { quiz: { lessonId: parseInt(lessonId) } },
-      include: { options: true },
-    });
-
-    res.json(questions);  
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch questions', details: error.message });
-  }
-};
-
-// Update a question 
-exports.updateQuestion = async (req, res) => {
-  const { questionId } = req.params;
-  const { text, options } = req.body;
-
-  try {
-    const updated = await prisma.question.update({
-      where: { id: parseInt(questionId) },
-      data: {
-        text,
-        options: {
-          deleteMany: {}, // delete all existing options
-          create: options // create new options
+          create: (options || []).map(opt => ({
+            text: opt.text,
+            isCorrect: opt.isCorrect || false
+          }))
         }
       },
       include: {
@@ -99,9 +320,71 @@ exports.updateQuestion = async (req, res) => {
       }
     });
 
-    res.json(updated);
+    res.status(201).json({
+      success: true,
+      data: question
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update question', details: error.message });
+    console.error('Error creating question:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create question',
+      details: error.message
+    });
+  }
+};
+
+// @desc    Update a question
+// @route   PUT /api/quizes/questions/:questionId
+// @access  Private
+exports.updateQuestion = async (req, res) => {
+  try {
+    const { questionId } = req.params;
+    const { text: questionText, type, explanation, difficulty } = req.body;
+
+    // Check if question exists
+    const existingQuestion = await prisma.question.findUnique({
+      where: { id: parseInt(questionId) }
+    });
+
+    if (!existingQuestion) {
+      return res.status(404).json({
+        success: false,
+        error: `Question not found with id ${questionId}`
+      });
+    }
+
+    const updateData = {
+      type,
+      explanation,
+      difficulty,
+      updatedAt: new Date()
+    };
+
+    // Only update question text if provided
+    if (questionText !== undefined) {
+      updateData.question = questionText;
+    }
+
+    const updatedQuestion = await prisma.question.update({
+      where: { id: parseInt(questionId) },
+      data: updateData,
+      include: {
+        options: true
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: updatedQuestion
+    });
+  } catch (error) {
+    console.error('Error updating question:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update question',
+      details: error.message
+    });
   }
 };
 
@@ -115,47 +398,9 @@ exports.deleteQuestion = async (req, res) => {
 
     res.json({ message: 'Question and its options deleted successfully' });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete question', details: error.message });
+    res.status(500).json({ 
+      error: 'Failed to delete question', 
+      details: error.message 
+    });
   }
 };
-
-// create a quiz
-// hit -> post -> http://localhost:5000/api/quizes/create/:lessonId
-
-
-// get lesson quiz
-// hit -> get -> http://localhost:5000/api/quizes/get/:lessonId
-
-
-// create a question
-// hit -> post -> http://localhost:5000/api/quizes/addQuestion/:lessonId
-// request body -> 
-  // {
-  //   "text": "What is the capital of France?",
-  //   "options": [
-  //     { "text": "Paris", "isCorrect": true },
-  //     { "text": "Berlin", "isCorrect": false },
-  //     { "text": "Madrid", "isCorrect": false },
-  //     { "text": "Rome", "isCorrect": false }
-  //   ]
-  // }
-
-
-// update a question
-// hit -> put -> http://localhost:5000/api/quizes/update/:questionId
-// request body -> 
-  // {
-  //   "text": "What is the capital of France?",
-  //   "options": [
-  //     { "text": "Paris", "isCorrect": true },
-  //     { "text": "Mexico", "isCorrect": false },
-  //     { "text": "Madrid", "isCorrect": false },
-  //     { "text": "Rome", "isCorrect": false }
-  //   ]
-  // }
-
-// delete a question
-// hit -> delete -> http://localhost:5000/api/quizes/delete/:questionId
-
-// get all questions of a lesson
-// hit -> get -> http://localhost:5000/api/quizes/getQuestions/:lessonId
