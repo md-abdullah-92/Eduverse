@@ -3,11 +3,12 @@
 const express = require('express');
 const router = express.Router();
 const purchaseController = require('../controllers/purchaseController');
-const { authenticate } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const { validatePaymentIntent, validatePaymentConfirmation } = require('../middleware/validation');
 
 // All purchase routes require authentication
-router.use(authenticate);
+router.use(protect);
+router.use(authorize('STUDENT'));
 
 // Purchase operations
 router.post('/create-payment-intent', validatePaymentIntent, purchaseController.createPaymentIntent);

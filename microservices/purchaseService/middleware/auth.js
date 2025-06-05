@@ -1,20 +1,52 @@
-// middleware/auth.js
-const authenticate = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({ error: 'Authentication token required' });
-    }
-  
+// middleware/auth.js (JWT-only validation)
+const jwt = require("jsonwebtoken");
+
+const protect = async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     try {
-      // In a real implementation, verify JWT token here
-      // For now, we'll extract user info from a mock token
-      const userId = token; // Simplified for demo
-      req.user = { id: userId };
+      // Get token from header
+      token = req.headers.authorization.split(" ")[1];
+
+      // Verify token (same secret as user service)
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Use decoded token data directly (no database lookup)
+      req.user = {
+        id: decoded.id,
+        role: decoded.role,
+        name: decoded.name,
+      };
+
       next();
     } catch (error) {
-      res.status(401).json({ error: 'Invalid authentication token' });
+      console.error("Auth middleware error:", error);
+      return res.status(401).json({ 
+        success: false, 
+        message: "Not authorized, invalid token" 
+      });
     }
+  } else {
+    console.log("No token provided")
+    return res.status(401).json({ 
+      success: false, 
+      message: "Not authorized, no token" 
+    });
+  }
+};
+
+// Role-based authorization
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        success: false,
+        message: `Role ${req.user.role} is not authorized to access this route`
+      });
+    }
+    next();
   };
-  
-  module.exports = { authenticate };
+};
+
+module.exports = { protect, authorize };

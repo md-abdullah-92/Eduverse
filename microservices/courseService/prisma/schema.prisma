@@ -13,6 +13,17 @@ enum CourseLevel {
   ADVANCED
 }
 
+enum QuestionType {
+  MCQ
+  CQ
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+}
+
 model Course {
   id            Int              @id @default(autoincrement())
   title         String
@@ -58,27 +69,28 @@ model CourseOutcome {
 }
 
 model Lesson {
-  id               Int                @id @default(autoincrement())
-  title            String
-  description      String?
-  videoUrl         String?
-  notes            String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  courseId         Int
-  course           Course             @relation(fields: [courseId], references: [id])
-  quiz             Quiz?
+  id                Int                @id @default(autoincrement())
+  title             String
+  description       String?
+  videoUrl          String?
+  notes             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  courseId          Int
+  course            Course             @relation(fields: [courseId], references: [id])
+  quiz              Quiz?
+  assignment        Assignment?
   lessonCompletions LessonCompletion[]
-  orderIndex       Int                // To track the sequence of lessons in a course
+  orderIndex        Int // To track the sequence of lessons in a course
 
   @@index([courseId])
 }
 
 model LessonCompletion {
-  id           Int       @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   enrollmentId Int
   lessonId     Int
-  completedAt  DateTime  @default(now())
+  completedAt  DateTime   @default(now())
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
@@ -88,24 +100,27 @@ model LessonCompletion {
 }
 
 model Quiz {
-  lessonId  Int      @id   // lessonId is now the primary key of Quiz
-  marks     Int?    
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  lesson    Lesson   @relation(fields: [lessonId], references: [id])
+  lessonId  Int        @id @map("lesson_id")
+  marks     Int?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  lesson    Lesson     @relation(fields: [lessonId], references: [id])
   questions Question[]
 
-  @@unique([lessonId]) // Ensure it's unique and a one-to-one relationship
+  @@unique([lessonId])
 }
 
 model Question {
-  id        Int       @id @default(autoincrement())
-  text      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  lessonId  Int
-  quiz      Quiz      @relation(fields: [lessonId], references: [lessonId])
-  options   Option[]
+  id          Int             @id @default(autoincrement())
+  question    String          @map("question_text") // Main question text
+  type        QuestionType
+  explanation String?
+  difficulty  DifficultyLevel
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  lessonId    Int
+  quiz        Quiz            @relation(fields: [lessonId], references: [lessonId])
+  options     Option[] // Empty if not MCQ type
 
   @@index([lessonId])
 }
@@ -121,6 +136,31 @@ model Option {
 
   @@index([questionId])
 }
+
+model Assignment {
+  id          Int          @id @default(autoincrement())
+  lessonId    Int          @unique
+  description String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  lesson      Lesson       @relation(fields: [lessonId], references: [id])
+  submissions Submission[]
+}
+
+model Submission {
+  id           Int      @id @default(autoincrement())
+  assignmentId Int
+  studentId    String // Match your other models (User ID as String)
+  content      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id])
+
+  @@index([assignmentId])
+  @@index([studentId])
+}
+
 
 model Review {
   id        Int      @id @default(autoincrement())

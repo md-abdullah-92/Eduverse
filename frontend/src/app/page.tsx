@@ -10,6 +10,13 @@ import PopularCourses from "@/components/homepage/PopularCourses";
 import StatsSection from "@/components/homepage/StatsSection";
 import TestimonialsSection from "@/components/homepage/TestimonialsSection";
 
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
+
+const stripePromise: Promise<Stripe | null> = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
+
 export default function Home() {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -48,18 +55,20 @@ export default function Home() {
   }, [router]);
 
   return (
-    <main className="min-h-screen bg-[#F9FAFC]">
-      {message && (
-        <div className="text-center p-4 text-red-600 font-medium bg-red-100">
-          {message}
-        </div>
-      )}
-      <HeroSection />
-      <StatsSection />
-      <FeaturesSection />
-      <CourseCTASection />
-      <PopularCourses />
-      <TestimonialsSection />
-    </main>
+    <Elements stripe={stripePromise}>
+      <main className="min-h-screen bg-[#F9FAFC]">
+        {message && (
+          <div className="text-center p-4 text-red-600 font-medium bg-red-100">
+            {message}
+          </div>
+        )}
+        <HeroSection />
+        <StatsSection />
+        <FeaturesSection />
+        <CourseCTASection />
+        <PopularCourses />
+        <TestimonialsSection />
+      </main>
+    </Elements>
   );
 }

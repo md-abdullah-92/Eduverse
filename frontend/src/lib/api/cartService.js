@@ -109,6 +109,7 @@ const cartService = {
     }
   },
 
+
   // Apply promo code
   applyPromoCode: async (studentId, promoCode) => {
     try {

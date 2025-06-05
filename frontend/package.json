@@ -29,6 +29,8 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@stripe/react-stripe-js": "^3.7.0",
+    "@stripe/stripe-js": "^7.3.1",
     "@tabler/icons-react": "^3.33.0",
     "@uiw/react-codemirror": "^4.23.12",
     "axios": "^1.8.4",
@@ -63,6 +65,7 @@
     "remark-gfm": "^4.0.1",
     "simplemde": "^1.11.2",
     "sonner": "^2.0.4",
+    "stripe": "^18.2.1",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {

@@ -88,3 +88,25 @@ export interface Enrollment extends EnrollmentData {
   course: CourseData;
   lessonCompletions: LessonCompletion[];
 }
+
+// types/payment
+export interface PaymentState {
+  clientSecret: string;
+  paymentIntentId: string;
+  amount: number;
+}
+
+export interface EnrollmentItem {
+  courseId: string;
+  price: number;
+}
+
+export interface PaymentConfirmResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    enrollments: EnrollmentItem[];
+    paymentIntentId: string;
+    status: string;
+  };
+}

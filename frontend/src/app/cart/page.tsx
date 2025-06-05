@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import router from "next/router";
 import { useEffect, useState } from "react";
 
 // Helper functions
@@ -217,7 +218,7 @@ const OrderSummary = ({
 );
 
 const EduverseCart = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { showToast } = useToast();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -282,15 +283,46 @@ const EduverseCart = () => {
     try {
       setCheckingOut(true);
 
-      // Simulate checkout process
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      cartService.clearCart(user!.id);
-      showToast("Checkout completed successfully!", "success");
-      setCartItems([]);
+      const cartTotal = calculateSubtotal(cartItems);
+
+      // Call your API to create payment intent
+      const response = await fetch("/api/purchase/payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: cartTotal,
+          currency: "usd",
+          metadata: {
+            cartId: user?.id,
+            source: "web_checkout",
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Navigate to checkout page with payment intent data
+        router.push("/checkout", {
+          query: {
+            clientSecret: data.data.clientSecret,
+            paymentIntentId: data.data.paymentIntentId,
+            amount: cartTotal,
+          },
+        });
+        cartService.clearCart(user!.id);
+        showToast("Checkout started successfully!", "success");
+        setCartItems([]);
+      } else {
+        throw new Error(data.message || "Failed to create payment intent");
+      }
     } catch (error) {
-      console.error("Error during checkout:", error);
-      const data = error as { message: string };
-      showToast(data.message, "error");
+      console.error("Checkout error:", error);
+      // Show error message to user
+      showToast("Failed to start checkout. Please try again.", "error");
     } finally {
       setCheckingOut(false);
     }
