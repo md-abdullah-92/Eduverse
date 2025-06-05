@@ -14,7 +14,7 @@ const protect = async (req, res, next) => {
 
       // Use decoded token data directly (no database lookup)
       req.user = {
-        id: decoded.id,
+        id: String(decoded.id),
         role: decoded.role,
         name: decoded.name,
       };

@@ -10,7 +10,7 @@ class PurchaseController {
 
   createPaymentIntent = asyncHandler(async (req, res) => {
     const userId = req.user.id;
-    const { amount, currency = 'usd', metadata = {} } = req.body;
+    const { amount, currency = 'tk', metadata = {} } = req.body;
 
     const paymentIntent = await this.purchaseService.createPaymentIntent({
       userId,
@@ -30,12 +30,13 @@ class PurchaseController {
 
   confirmPayment = asyncHandler(async (req, res) => {
     const userId = req.user.id;
-    const { paymentIntentId, paymentMethodId } = req.body;
+    const { paymentIntentId } = req.body;
+    const token = req.headers.authorization.split(" ")[1];
 
     const result = await this.purchaseService.confirmPayment({
       userId,
       paymentIntentId,
-      paymentMethodId
+      token
     });
 
     res.status(200).json({

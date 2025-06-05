@@ -137,10 +137,10 @@ export const handleButtonAction = async ({
   } else {
     // Handle enrollment or cart logic
     if (course.price && Number(course.price) > 0) {
-      showToast("Course added to cart", "success");
       // Add cart logic here
       try {
         await cartService.addToCart(user.id, course.id);
+        showToast("Course added to cart", "success");
       } catch (error) {
         const data = error as { message: string };
         showToast(data.message, "error");

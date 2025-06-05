@@ -47,98 +47,97 @@ class PurchaseService {
     }
   }
 
-  async confirmPayment({ userId, paymentIntentId, paymentMethodId }) {
+  async confirmPayment({ userId, paymentIntentId, token }) {
     try {
-      // Confirm the payment with Stripe
-      const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
-        payment_method: paymentMethodId,
-      });
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
       if (paymentIntent.status === 'succeeded') {
-        // Update purchase to PROCESSING status first
-        await prisma.purchase.update({
-          where: { paymentIntentId },
-          data: {
-            status: 'PROCESSING',
-            paymentMethodId,
+        try {
+          // Get user's cart items from cart service
+          const cartItems = await this.getCartItems(userId, token);
+
+          // {
+          //   id: 21,
+          //   studentId: '7',
+          //   courseId: 16,
+          //   addedAt: '2025-06-05T10:54:43.959Z',
+          //   course: {
+          //     id: 16,
+          //     title: 'fdsla;f',
+          //     description: 'fdsaklfdslafjdslkf',
+          //     price: 34.34,
+          //     coverPhotoUrl: 'https://firebasestorage.googleapis.com/v0/b/agribazaar-dbdad.appspot.com/o/course_covers%2F1747656916401-svgviewer-output%20(1).svg?alt=media&token=907aa43e-cd71-45b7-8724-13554421b4b1',
+          //     level: 'BEGINNER',
+          //     topic: 'Language',
+          //     createdAt: '2025-05-19T12:15:17.988Z',
+          //     updatedAt: '2025-05-19T13:56:12.024Z',
+          //     instructorId: '4',
+          //     averageRating: 0
+          //   }
+          // }
+          
+          if (!cartItems || cartItems.length === 0) {
+            throw new Error('No items found in cart');
           }
-        });
 
-        // try {
-        //   // Get user's cart items from cart service
-        //   const cartItems = await this.getCartItems(userId);
+
+          // Start database transaction for purchase completion
+          const result = await prisma.$transaction(async (tx) => {
+            // Update purchase record to completed
+            const purchase = await tx.purchase.update({
+              where: { paymentIntentId },
+              data: {
+                status: 'COMPLETED',
+                completedAt: new Date()
+              }
+            });
+
+            // Verify the purchase belongs to the user
+            if (purchase.userId !== userId) {
+              throw new Error('Unauthorized: Purchase does not belong to user');
+            }
+
+            // Create purchase items from cart
+            const purchaseItems = cartItems.map(item => ({
+              purchaseId: purchase.id,
+              courseId: String(item.courseId), // Ensure string for consistency
+              price: item.course.price
+            }));
+
+            await tx.purchaseItem.createMany({
+              data: purchaseItems
+            });
+
+            return { purchase, cartItems };
+          });
+
+          // Create enrollments via course service
+          const enrollmentResult = await this.createEnrollments(userId, cartItems, result.purchase.id, token);
           
-        //   if (!cartItems || cartItems.length === 0) {
-        //     throw new Error('No items found in cart');
-        //   }
-
-        //   // Start database transaction for purchase completion
-        //   const result = await prisma.$transaction(async (tx) => {
-        //     // Update purchase record to completed
-        //     const purchase = await tx.purchase.update({
-        //       where: { paymentIntentId },
-        //       data: {
-        //         status: 'COMPLETED',
-        //         completedAt: new Date()
-        //       }
-        //     });
-
-        //     // Verify the purchase belongs to the user
-        //     if (purchase.userId !== userId) {
-        //       throw new Error('Unauthorized: Purchase does not belong to user');
-        //     }
-
-        //     // Create purchase items from cart
-        //     const purchaseItems = cartItems.map(item => ({
-        //       purchaseId: purchase.id,
-        //       courseId: item.courseId,
-        //       price: item.price
-        //     }));
-
-        //     await tx.purchaseItem.createMany({
-        //       data: purchaseItems
-        //     });
-
-        //     return { purchase, cartItems };
-        //   });
-
-        //   // Create enrollments via course service
-        //   const enrollmentResult = await this.createEnrollments(userId, cartItems, result.purchase.id);
-          
-        //   if (enrollmentResult.success) {
-        //     // Clear user's cart
-        //     await this.clearCart(userId);
+          if (enrollmentResult.success) {
+            // Clear user's cart
+            await this.clearCart(userId, token);
             
-        //     // Emit success events
-        //     for (const item of cartItems) {
-        //       await this.eventService.emitEnrollmentEvent({
-        //         userId,
-        //         courseId: item.courseId,
-        //         purchaseId: paymentIntentId,
-        //         price: item.price
-        //       });
-        //     }
+            return {
+              paymentIntentId,
+              status: 'completed',
+              enrollments: cartItems.map(item => ({
+                studentId: userId,
+                courseId: item.courseId,
+              }))
+            };
+          } else {
+            throw new Error(`Enrollment failed: ${enrollmentResult.error}`);
+          }
 
-        //     return {
-        //       paymentIntentId,
-        //       status: 'completed',
-        //       enrollments: cartItems.map(item => ({
-        //         courseId: item.courseId,
-        //         price: item.price
-        //       }))
-        //     };
-        //   } else {
-        //     throw new Error(`Enrollment failed: ${enrollmentResult.error}`);
-        //   }
-
-        // } catch (enrollmentError) {
-        //   console.error('Enrollment process failed:', enrollmentError);
+        } catch (enrollmentError) {
+          console.error('Enrollment process failed:', enrollmentError);
           
-        //   // Handle enrollment failure - refund and update status
-        //   await this.handleEnrollmentFailure(paymentIntentId, enrollmentError.message);
+          // Handle enrollment failure - refund and update status
+          await this.handleEnrollmentFailure(paymentIntentId, enrollmentError.message);
           
-        //   throw new Error(`Purchase completed but enrollment failed: ${enrollmentError.message}. Refund has been initiated.`);
-        // }
+          throw new Error(`Purchase completed but enrollment failed: ${enrollmentError.message}. Refund has been initiated.`);
+        }
 
       } else {
         throw new Error(`Payment failed with status: ${paymentIntent.status}`);
@@ -160,191 +159,199 @@ class PurchaseService {
     }
   }
 
-  // async getCartItems(userId) {
-  //   try {
-  //     const response = await axios.get(`${this.courseServiceUrl}/api/cart/${userId}`, {
-  //       timeout: this.httpTimeout,
-  //       headers: {
-  //         'Content-Type': 'application/json'
-  //       }
-  //     });
+  async getCartItems(userId, token) {
+    try {
+      const response = await axios.get(`${this.courseServiceUrl}/api/cart/${userId}`, {
+        timeout: this.httpTimeout,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        }
+      });
+
+      // Extract items from the response data
+      const items = response.data?.data?.items || [];
       
-  //     return response.data.items || [];
-  //   } catch (error) {
-  //     console.error('Error fetching cart items:', error);
-  //     throw new Error('Failed to fetch cart items');
-  //   }
-  // }
-
-  // async createEnrollments(userId, cartItems, purchaseId, retryCount = 0) {
-  //   try {
-  //     const enrollmentData = {
-  //       userId,
-  //       purchaseId,
-  //       items: cartItems.map(item => ({
-  //         courseId: item.courseId,
-  //         price: item.price
-  //       }))
-  //     };
-
-  //     const response = await axios.post(
-  //       `${this.courseServiceUrl}/api/enrollments`,
-  //       enrollmentData,
-  //       {
-  //         timeout: this.httpTimeout,
-  //         headers: {
-  //           'Content-Type': 'application/json'
-  //         }
-  //       }
-  //     );
-
-  //     return { success: true, data: response.data };
-  //   } catch (error) {
-  //     console.error(`Enrollment attempt ${retryCount + 1} failed:`, error.message);
+      if (!items || items.length === 0) {
+        throw new Error('No items found in cart');
+      }
       
-  //     // Retry logic for network errors
-  //     if (retryCount < this.maxRetries && this.isRetryableError(error)) {
-  //       console.log(`Retrying enrollment creation (attempt ${retryCount + 2})`);
-  //       await this.delay(1000 * (retryCount + 1)); // Exponential backoff
-  //       return this.createEnrollments(userId, cartItems, purchaseId, retryCount + 1);
-  //     }
+      return items;
+    } catch (error) {
+      console.error('Error fetching cart items:', error);
+      throw new Error('Failed to fetch cart items');
+    }
+  }
+
+  async createEnrollments(userId, cartItems, purchaseId, token, retryCount = 0) {
+    try {
+      const enrollmentData = cartItems.map(item => ({
+        studentId: String(userId),
+        courseId: Number(item.courseId),
+      }));
+
+      // Process all enrollments in parallel with proper error handling
+      const enrollmentPromises = enrollmentData.map(enrollment => 
+        axios.post(
+          `${this.courseServiceUrl}/api/enrollments/enroll/`,
+          enrollment,
+          {
+            timeout: this.httpTimeout,
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            }
+          }
+        ).then(response => ({
+          success: true,
+          data: response.data,
+          enrollment
+        })).catch(error => ({
+          success: false,
+          error: error.response?.data?.message || error.message,
+          enrollment
+        }))
+      );
+
+      const results = await Promise.all(enrollmentPromises);
       
-  //     return { 
-  //       success: false, 
-  //       error: error.response?.data?.message || error.message 
-  //     };
-  //   }
-  // }
-
-  // async clearCart(userId) {
-  //   try {
-  //     await axios.delete(`${this.courseServiceUrl}/api/cart/${userId}`, {
-  //       timeout: this.httpTimeout
-  //     });
-  //   } catch (error) {
-  //     console.error('Error clearing cart:', error);
-  //     // Don't throw - cart clearing failure shouldn't fail the entire purchase
-  //   }
-  // }
-
-  // async handleEnrollmentFailure(paymentIntentId, errorMessage) {
-  //   try {
-  //     // Initiate refund with Stripe
-  //     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      // Check for any failed enrollments
+      const failedEnrollments = results.filter(r => !r.success);
       
-  //     if (paymentIntent.charges.data.length > 0) {
-  //       const charge = paymentIntent.charges.data[0];
-  //       await stripe.refunds.create({
-  //         charge: charge.id,
-  //         reason: 'requested_by_customer'
-  //       });
-  //     }
+      if (failedEnrollments.length > 0) {
+        // Log the failed enrollments
+        console.error('Some enrollments failed:', failedEnrollments);
+        
+        // Return the results with both successful and failed enrollments
+        return { 
+          success: false, 
+          data: results,
+          failedCount: failedEnrollments.length,
+          total: enrollmentData.length
+        };
+      }
 
-  //     // Update purchase status
-  //     await prisma.purchase.update({
-  //       where: { paymentIntentId },
-  //       data: {
-  //         status: 'FAILED',
-  //         errorMessage: `Enrollment failed: ${errorMessage}. Refund initiated.`,
-  //         failedAt: new Date()
-  //       }
-  //     });
-
-  //   } catch (refundError) {
-  //     console.error('Error handling enrollment failure and refund:', refundError);
+      return { 
+        success: true, 
+        data: results.map(r => r.data),
+        total: enrollmentData.length
+      };
+    } catch (error) {
+      console.error(`Enrollment attempt ${retryCount + 1} failed:`, error.message);
       
-  //     // Mark for manual review if refund fails
-  //     await prisma.purchase.update({
-  //       where: { paymentIntentId },
-  //       data: {
-  //         status: 'FAILED',
-  //         errorMessage: `Enrollment failed: ${errorMessage}. Refund failed: ${refundError.message}. Manual review required.`,
-  //         failedAt: new Date()
-  //       }
-  //     }).catch(console.error);
-  //   }
-  // }
+      // Retry logic for network errors
+      if (retryCount < this.maxRetries && this.isRetryableError(error)) {
+        console.log(`Retrying enrollment creation (attempt ${retryCount + 2})`);
+        await this.delay(1000 * (retryCount + 1)); // Exponential backoff
+        return this.createEnrollments(userId, cartItems, purchaseId, token, retryCount + 1);
+      }
+      
+      return { 
+        success: false, 
+        error: error.response?.data?.message || error.message 
+      };
+    }
+  }
 
-  // async retryFailedEnrollments() {
-  //   try {
-  //     // Find purchases that are stuck in PROCESSING status (enrollment might have failed)
-  //     const stuckPurchases = await prisma.purchase.findMany({
-  //       where: {
-  //         status: 'PROCESSING',
-  //         createdAt: {
-  //           lt: new Date(Date.now() - 10 * 60 * 1000) // Older than 10 minutes
-  //         }
-  //       },
-  //       include: {
-  //         items: true
-  //       }
-  //     });
+  async clearCart(userId, token) {
+    try {
+      await axios.delete(`${this.courseServiceUrl}/api/cart/${userId}`, {
+        timeout: this.httpTimeout,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      // Don't throw - cart clearing failure shouldn't fail the entire purchase
+    }
+  }
 
-  //     console.log(`Found ${stuckPurchases.length} stuck purchases to retry`);
+  async handleEnrollmentFailure(paymentIntentId, errorMessage) {
+    try {
+      // Initiate refund with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.charges.data.length > 0) {
+        const charge = paymentIntent.charges.data[0];
+        await stripe.refunds.create({
+          charge: charge.id,
+          reason: 'requested_by_customer'
+        });
+        
+        // Update purchase status to REFUNDED
+        await prisma.purchase.update({
+          where: { paymentIntentId },
+          data: {
+            status: 'REFUNDED',
+            errorMessage: `Enrollment failed: ${errorMessage}. Refund completed.`,
+            failedAt: new Date()
+          }
+        });
+      } else {
+        // No charge to refund, just mark as failed
+        await prisma.purchase.update({
+          where: { paymentIntentId },
+          data: {
+            status: 'FAILED',
+            errorMessage: `Enrollment failed: ${errorMessage}. No charge found to refund.`,
+            failedAt: new Date()
+          }
+        });
+      }
 
-  //     for (const purchase of stuckPurchases) {
-  //       try {
-  //         console.log(`Retrying enrollment for purchase ${purchase.id}`);
-          
-  //         const cartItems = purchase.items.map(item => ({
-  //           courseId: item.courseId,
-  //           price: parseFloat(item.price)
-  //         }));
+    } catch (refundError) {
+      console.error('Error handling enrollment failure and refund:', refundError);
+      
+      // Mark for manual review if refund fails
+      await prisma.purchase.update({
+        where: { paymentIntentId },
+        data: {
+          status: 'FAILED',
+          errorMessage: `Enrollment failed: ${errorMessage}. Refund failed: ${refundError.message}. Manual review required.`,
+          failedAt: new Date()
+        }
+      }).catch(console.error);
+    }
+  }
 
-  //         const enrollmentResult = await this.createEnrollments(
-  //           purchase.userId, 
-  //           cartItems, 
-  //           purchase.id
-  //         );
+  // This function is problematic because we don't have tokens for past purchases
+  // Consider removing or implementing a different retry mechanism
+  async retryFailedEnrollments() {
+    console.warn('retryFailedEnrollments: This function cannot work without stored tokens. Consider implementing a different retry mechanism.');
+    return;
+    
+    // Original implementation commented out due to token issues
+    /*
+    try {
+      const stuckPurchases = await prisma.purchase.findMany({
+        where: {
+          status: 'PENDING', // Changed from PROCESSING
+          createdAt: {
+            lt: new Date(Date.now() - 10 * 60 * 1000) // Older than 10 minutes
+          }
+        },
+        include: {
+          items: true
+        }
+      });
 
-  //         if (enrollmentResult.success) {
-  //           // Update to completed
-  //           await prisma.purchase.update({
-  //             where: { id: purchase.id },
-  //             data: {
-  //               status: 'COMPLETED',
-  //               completedAt: new Date()
-  //             }
-  //           });
-
-  //           // Clear cart and emit events
-  //           await this.clearCart(purchase.userId);
-            
-  //           for (const item of cartItems) {
-  //             await this.eventService.emitEnrollmentEvent({
-  //               userId: purchase.userId,
-  //               courseId: item.courseId,
-  //               purchaseId: purchase.paymentIntentId,
-  //               price: item.price
-  //             });
-  //           }
-
-  //           console.log(`Successfully completed purchase ${purchase.id}`);
-  //         } else {
-  //           // Mark as failed and refund
-  //           await this.handleEnrollmentFailure(
-  //             purchase.paymentIntentId, 
-  //             enrollmentResult.error
-  //           );
-  //           console.log(`Failed and refunded purchase ${purchase.id}`);
-  //         }
-  //       } catch (error) {
-  //         console.error(`Error retrying purchase ${purchase.id}:`, error);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error('Error in retryFailedEnrollments:', error);
-  //   }
-  // }
+      console.log(`Found ${stuckPurchases.length} stuck purchases to retry`);
+      // ... rest would need token management
+    } catch (error) {
+      console.error('Error in retryFailedEnrollments:', error);
+    }
+    */
+  }
 
   async getPaymentStatus(paymentIntentId, userId) {
     try {
       // Get from database
       const purchase = await prisma.purchase.findUnique({
         where: { paymentIntentId },
-        // include: {
-        //   items: true
-        // }
+        include: {
+          items: true
+        }
       });
 
       if (!purchase) {
@@ -369,10 +376,10 @@ class PurchaseService {
         completedAt: purchase.completedAt,
         failedAt: purchase.failedAt,
         error: purchase.errorMessage,
-        // items: purchase.items.map(item => ({
-        //   courseId: item.courseId,
-        //   price: parseFloat(item.price)
-        // }))
+        items: purchase.items.map(item => ({
+          courseId: item.courseId,
+          price: parseFloat(item.price)
+        }))
       };
     } catch (error) {
       console.error('Error getting payment status:', error);
@@ -385,9 +392,9 @@ class PurchaseService {
     try {
       const purchases = await prisma.purchase.findMany({
         where: { userId },
-        // include: {
-        //   items: true
-        // },
+        include: {
+          items: true
+        },
         orderBy: {
           createdAt: 'desc'
         },
@@ -403,10 +410,10 @@ class PurchaseService {
         status: purchase.status,
         createdAt: purchase.createdAt,
         completedAt: purchase.completedAt,
-        // items: purchase.items.map(item => ({
-        //   courseId: item.courseId,
-        //   price: parseFloat(item.price)
-        // }))
+        items: purchase.items.map(item => ({
+          courseId: item.courseId,
+          price: parseFloat(item.price)
+        }))
       }));
     } catch (error) {
       console.error('Error getting user purchases:', error);
@@ -414,75 +421,59 @@ class PurchaseService {
     }
   }
 
-  // // Helper methods
-  // isRetryableError(error) {
-  //   // Retry on network errors, timeouts, and 5xx server errors
-  //   return (
-  //     error.code === 'ECONNREFUSED' ||
-  //     error.code === 'ETIMEDOUT' ||
-  //     error.code === 'ENOTFOUND' ||
-  //     (error.response && error.response.status >= 500)
-  //   );
-  // }
+  // Helper methods
+  isRetryableError(error) {
+    // Retry on network errors, timeouts, and 5xx server errors
+    return (
+      error.code === 'ECONNREFUSED' ||
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'ENOTFOUND' ||
+      (error.response && error.response.status >= 500)
+    );
+  }
 
-  // delay(ms) {
-  //   return new Promise(resolve => setTimeout(resolve, ms));
-  // }
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
-  // // Manual admin function to handle stuck purchases
-  // async handleStuckPurchase(paymentIntentId, action) {
-  //   try {
-  //     const purchase = await prisma.purchase.findUnique({
-  //       where: { paymentIntentId },
-  //       include: { items: true }
-  //     });
+  // Manual admin function to handle stuck purchases
+  // Note: This also has token issues for retry_enrollment
+  async handleStuckPurchase(paymentIntentId, action) {
+    try {
+      const purchase = await prisma.purchase.findUnique({
+        where: { paymentIntentId },
+        include: { items: true }
+      });
 
-  //     if (!purchase) {
-  //       throw new Error('Purchase not found');
-  //     }
+      if (!purchase) {
+        throw new Error('Purchase not found');
+      }
 
-  //     switch (action) {
-  //       case 'retry_enrollment':
-  //         const cartItems = purchase.items.map(item => ({
-  //           courseId: item.courseId,
-  //           price: parseFloat(item.price)
-  //         }));
-          
-  //         const result = await this.createEnrollments(
-  //           purchase.userId, 
-  //           cartItems, 
-  //           purchase.id
-  //         );
-          
-  //         if (result.success) {
-  //           await prisma.purchase.update({
-  //             where: { paymentIntentId },
-  //             data: { status: 'COMPLETED', completedAt: new Date() }
-  //           });
-  //           return { success: true, message: 'Enrollment completed successfully' };
-  //         } else {
-  //           return { success: false, message: result.error };
-  //         }
+      switch (action) {
+        case 'retry_enrollment':
+          // This would need a token to work properly
+          console.warn('retry_enrollment requires a valid token for the course service');
+          return { success: false, message: 'Token required for enrollment retry' };
 
-  //       case 'force_refund':
-  //         await this.handleEnrollmentFailure(paymentIntentId, 'Manual refund requested');
-  //         return { success: true, message: 'Refund initiated' };
+        case 'force_refund':
+          await this.handleEnrollmentFailure(paymentIntentId, 'Manual refund requested');
+          return { success: true, message: 'Refund initiated' };
 
-  //       case 'mark_completed':
-  //         await prisma.purchase.update({
-  //           where: { paymentIntentId },
-  //           data: { status: 'COMPLETED', completedAt: new Date() }
-  //         });
-  //         return { success: true, message: 'Purchase marked as completed' };
+        case 'mark_completed':
+          await prisma.purchase.update({
+            where: { paymentIntentId },
+            data: { status: 'COMPLETED', completedAt: new Date() }
+          });
+          return { success: true, message: 'Purchase marked as completed' };
 
-  //       default:
-  //         throw new Error('Invalid action');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error handling stuck purchase:', error);
-  //     throw error;
-  //   }
-  // }
+        default:
+          throw new Error('Invalid action');
+      }
+    } catch (error) {
+      console.error('Error handling stuck purchase:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = PurchaseService;

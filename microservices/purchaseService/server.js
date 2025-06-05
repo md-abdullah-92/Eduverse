@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const cartRoutes = require('./routes/cartRoutes');
 const purchaseRoutes = require('./routes/purchaseRoutes');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -40,7 +39,6 @@ app.get('/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/cart', cartRoutes);
 app.use('/api/purchase', purchaseRoutes);
 
 // Error handling middleware (must be last)

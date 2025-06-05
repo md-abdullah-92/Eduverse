@@ -15,7 +15,6 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import router from "next/router";
 import { useEffect, useState } from "react";
 
 // Helper functions
@@ -130,7 +129,7 @@ const CartItemCard = ({
 
         <div className="text-right">
           <div className="text-2xl font-bold text-gray-900">
-            ${item.course.price}
+            ৳ {item.course.price}
           </div>
         </div>
       </div>
@@ -157,12 +156,12 @@ const OrderSummary = ({
     <div className="space-y-4 mb-6">
       <div className="flex justify-between text-gray-600">
         <span>Subtotal</span>
-        <span>${subtotal.toFixed(2)}</span>
+        <span> ৳ {subtotal.toFixed(2)}</span>
       </div>
       <div className="border-t border-gray-200 pt-4">
         <div className="flex justify-between text-2xl font-bold text-gray-900">
           <span>Total</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span> ৳ {subtotal.toFixed(2)}</span>
         </div>
       </div>
     </div>
@@ -220,6 +219,7 @@ const OrderSummary = ({
 const EduverseCart = () => {
   const { user, token } = useAuth();
   const { showToast } = useToast();
+  const router = useRouter();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -286,36 +286,35 @@ const EduverseCart = () => {
       const cartTotal = calculateSubtotal(cartItems);
 
       // Call your API to create payment intent
-      const response = await fetch("/api/purchase/payment-intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          amount: cartTotal,
-          currency: "usd",
-          metadata: {
-            cartId: user?.id,
-            source: "web_checkout",
+      const response = await fetch(
+        "http://localhost:5002/api/purchase/payment-intent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-        }),
-      });
+          body: JSON.stringify({
+            amount: cartTotal,
+            currency: "usd",
+            metadata: {
+              cartId: user?.id,
+              source: "web_checkout",
+            },
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (data.success) {
         // Navigate to checkout page with payment intent data
-        router.push("/checkout", {
-          query: {
-            clientSecret: data.data.clientSecret,
-            paymentIntentId: data.data.paymentIntentId,
-            amount: cartTotal,
-          },
-        });
-        cartService.clearCart(user!.id);
+        router.push(
+          `/checkout?clientSecret=${data.data.clientSecret}&paymentIntentId=${
+            data.data.paymentIntentId
+          }&amount=${cartTotal.toString()}`
+        );
         showToast("Checkout started successfully!", "success");
-        setCartItems([]);
       } else {
         throw new Error(data.message || "Failed to create payment intent");
       }

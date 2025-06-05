@@ -3,6 +3,8 @@ const prisma = require('../prismaClient');
 // Enroll a student into a course
 exports.enrollStudent = async (req, res) => {
   try {
+
+    console.log(req.body)
     const { studentId, courseId } = req.body;
     
 

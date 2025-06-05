@@ -23,7 +23,6 @@
   const validatePaymentConfirmation = (req, res, next) => {
     const schema = Joi.object({
       paymentIntentId: Joi.string().required(),
-      paymentMethodId: Joi.string().required()
     });
   
     const { error } = schema.validate(req.body);

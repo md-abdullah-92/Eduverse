@@ -99,12 +99,7 @@ export default function CourseCard({
           <h3 className="text-xl font-semibold text-gray-800 mb-2">
             {course.title}
           </h3>
-          {/* implement later */}
-          <div className="text-sm text-gray-600 mb-1">{"Instructor Name"}</div>
-          {/* implement later */}
-          <div className="text-xs text-gray-500 mb-1">
-            {"Instructor University"}
-          </div>
+          <div className="text-sm text-gray-600 mb-1">{course.description}</div>
 
           {isEnrolled ? (
             // progress bar

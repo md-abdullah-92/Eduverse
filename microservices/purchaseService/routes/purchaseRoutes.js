@@ -11,7 +11,7 @@ router.use(protect);
 router.use(authorize('STUDENT'));
 
 // Purchase operations
-router.post('/create-payment-intent', validatePaymentIntent, purchaseController.createPaymentIntent);
+router.post('/payment-intent', validatePaymentIntent, purchaseController.createPaymentIntent);
 router.post('/confirm-payment', validatePaymentConfirmation, purchaseController.confirmPayment);
 router.get('/:id/status', purchaseController.getPaymentStatus);
 
