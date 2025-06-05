@@ -28,12 +28,14 @@ export default function StudentEnrolledCoursesPage({
         const enrollments = await res.json();
 
         setEnrollments(enrollments);
+        localStorage.setItem("totalEnrolledCourses", enrollments.length.toString());
       } catch (error) {
         console.log("Failed to fetch enrolled courses:", error);
       } finally {
         setLoading(false);
       }
     };
+    
 
     fetchEnrolledCourses();
   }, [userId]);

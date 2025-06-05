@@ -2,15 +2,13 @@
 import { LogOut } from "lucide-react";
 import React from "react";
 
-const LogoutModal = ({
-  isOpen,
-  onClose,
-  onConfirm,
-}: {
+type LogoutModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-}) => {
+};
+
+const LogoutModal = ({ isOpen, onClose, onConfirm }: LogoutModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -20,12 +18,8 @@ const LogoutModal = ({
           <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
             <LogOut className="w-8 h-8 text-red-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Confirm Logout
-          </h2>
-          <p className="text-gray-600">
-            Are you sure you want to log out of EduVerse?
-          </p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Logout</h2>
+          <p className="text-gray-600">Are you sure you want to log out of EduVerse?</p>
         </div>
         <div className="flex space-x-3">
           <button
@@ -45,4 +39,5 @@ const LogoutModal = ({
     </div>
   );
 };
+
 export default LogoutModal;

@@ -1,29 +1,43 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, BookOpen, Heart, Star, ListChecks, FileText, BadgeCheck, History, ShoppingCart, LogOut } from "lucide-react";
-import SidebarItem from "./SidebarItem"; // Assume SidebarItem is a separate component
-import LogoutModal from "./ChartCard"; // Assume LogoutModal is a separate component
-// Navigation Data
+import {
+  LayoutDashboard,
+  User,
+  BookOpen,
+  Heart,
+  ListChecks,
+  FileText,
+  BadgeCheck,
+  ShoppingCart,
+  LogOut,
+} from "lucide-react";
+import SidebarItem from "./SidebarItem";
+import LogoutModal from "./LogoutModel";
+
+// Fonts
+import {
+  poppins,
+  dmSerif,
+} from "@/utils/font"; // adjust import path if needed
+
 type NavigationItem = {
   icon: React.ElementType;
   label: string;
   badge?: number;
 };
+
 const studentNavigationItems: NavigationItem[] = [
+  { icon: LayoutDashboard, label: "Dashboard" },
   { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "Enrolled Courses", badge: 5 },
   { icon: Heart, label: "Wishlist", badge: 12 },
-  { icon: Star, label: "Reviews" },
   { icon: ListChecks, label: "Quiz Attempts" },
   { icon: FileText, label: "Assignments", badge: 3 },
   { icon: BadgeCheck, label: "Certificates" },
-  { icon: History, label: "Order History" },
   { icon: ShoppingCart, label: "Cart" },
   { icon: LogOut, label: "Logout" },
 ];
-
-
 
 const Sidebar = ({
   userId,
@@ -33,13 +47,18 @@ const Sidebar = ({
   role: string;
 }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [activeItem] = useState("Dashboard");
+  const [activeItem] = useState("");
 
   const router = useRouter();
 
   const handleClick = (label: string) => {
+
     if (label === "Logout") {
       setShowLogoutModal(true);
+      return;
+    }
+    if(label === "Dashboard"){
+      router.push(`/students/${userId}`);
       return;
     }
 
@@ -51,18 +70,12 @@ const Sidebar = ({
       );
       return;
     }
-    if (label === "My Courses") {
-      router.push(`/teachers/${userId}/all/`);
-      return;
-    }
+  
     if (label === "Enrolled Courses") {
       router.push(`/students/${userId}/enrolled_course`);
       return;
     }
-    if (label === "Create Course") {
-      router.push(`/teachers/${userId}/create_course/`);
-      return;
-    }
+    
     if (label === "Cart") {
       router.push(`/cart/`);
       return;
@@ -72,7 +85,6 @@ const Sidebar = ({
       return;
     }
   };
-
   const confirmLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
@@ -81,21 +93,25 @@ const Sidebar = ({
       localStorage.removeItem("role");
     }
     setShowLogoutModal(false);
-    router.push("/"); // Actually navigate to home
+    router.push("/");
   };
 
   return (
     <>
-      <aside className="w-80 h-screen fixed top-0 left-0 bg-white/80 backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg z-20">
+      <aside
+        className={`w-80 h-screen fixed top-0 left-0 bg-white backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg z-20 ${poppins.className}`}
+      >
+        <div className="h-16" />
         <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
-          <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
-              EduVerse
+            <h1
+              className={`text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent ${dmSerif.className}`}
+            >
+              Student Portal
             </h1>
-            <p className="text-xs text-gray-500">Student Portal</p>
           </div>
         </div>
 

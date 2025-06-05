@@ -1,5 +1,6 @@
 "use client";
 
+import Sidebar from "@/app/students/components/Sidebar";
 import { storage } from "@/firebaseConfig";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import {
@@ -184,6 +185,8 @@ export default function EditProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-indigo-50 py-8 px-4">
+      <Sidebar userId={userId} role="STUDENT" />
+      
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
