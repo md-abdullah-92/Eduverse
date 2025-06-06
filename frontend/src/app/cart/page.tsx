@@ -1,5 +1,6 @@
 "use client";
 import { useAuth } from "@/app/auth/context";
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useToast } from "@/components/ui_elements/toast";
 import cartService from "@/lib/api/cartService";
 import { CartItem } from "@/utils/types";
@@ -30,16 +31,6 @@ const getLevelColor = (level: string) => {
 const calculateSubtotal = (items: CartItem[]) => {
   return items.reduce((sum, item) => sum + Number(item.course.price), 0);
 };
-
-// Components
-const LoadingScreen = () => (
-  <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
-    <div className="flex items-center gap-3">
-      <Loader2 className="w-8 h-8 animate-spin text-teal-700" />
-      <span className="text-lg text-gray-600">Loading cart...</span>
-    </div>
-  </div>
-);
 
 const EmptyCart = () => {
   const router = useRouter();
@@ -329,7 +320,7 @@ const EduverseCart = () => {
   const subtotal = calculateSubtotal(cartItems);
 
   if (loading) {
-    return <LoadingScreen />;
+    return <LoadingIndicator />;
   }
 
   return (
