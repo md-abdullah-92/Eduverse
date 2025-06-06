@@ -113,10 +113,33 @@ export class CourseUtils {
   }
 
   // Handle lessons update
+  // Handle lessons update
   private async handleLessons(lessons: Lesson[]): Promise<void> {
-    await axios.put(`${API_BASE_URL}/lessons/bulk/${this.courseId}`, {
-      lessons: lessons,
-    });
+    // Fetch existing lessons
+    const existingLessonsResponse = await axios.get(
+      `${API_BASE_URL}/lessons/get/${this.courseId}`
+    );
+    const existingLessons = existingLessonsResponse.data;
+
+    // Delete all existing lessons
+    await Promise.all(
+      existingLessons.map((lesson: any) =>
+        axios.delete(`${API_BASE_URL}/lessons/delete/${lesson.id}`)
+      )
+    );
+
+    // Create new lessons
+    await Promise.all(
+      lessons.map((lesson) =>
+        axios.post(`${API_BASE_URL}/lessons/add/${this.courseId}`, {
+          title: lesson.title,
+          description: lesson.description,
+          notes: lesson.notes,
+          videoUrl: lesson.videoUrl,
+          orderIndex: lesson.orderIndex,
+        })
+      )
+    );
   }
 
   // Handle outcomes update

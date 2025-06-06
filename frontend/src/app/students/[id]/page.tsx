@@ -2,14 +2,15 @@
 
 import ChatWidget from "@/app/chatbot/ChatWidget";
 
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import RecentCourses from "../components/Recent-Courses";
+import { useEffect, useState } from "react";
+import ChartGrid from "../components/ChartGrid";
 import DashboardHeader from "../components/DashboardHeader";
 import ProfileCard from "../components/ProfileCard";
+import RecentCourses from "../components/Recent-Courses";
+import Sidebar from "../components/Sidebar";
 import StatGrid from "../components/StatGrid";
-import ChartGrid from "../components/ChartGrid";
 export default function ModernStudentDashboard() {
   const params = useParams();
   const userId = params?.id;
@@ -38,14 +39,35 @@ export default function ModernStudentDashboard() {
         setRole(data.studentProfile?.user?.role || "STUDENT");
 
         if (typeof window !== "undefined") {
-          localStorage.setItem("userPhoto", data.studentProfile.profilePhoto || "");
-          localStorage.setItem("userName", data.studentProfile.user.name || "Student Name");
+          localStorage.setItem(
+            "userPhoto",
+            data.studentProfile.profilePhoto || ""
+          );
+          localStorage.setItem(
+            "userName",
+            data.studentProfile.user.name || "Student Name"
+          );
           localStorage.setItem("userId", data.studentProfile.userId || userId);
-          localStorage.setItem("role", data.studentProfile.user.role || "STUDENT");
-          localStorage.setItem("userEmail", data.studentProfile.user.email || "");
-          localStorage.setItem("userPhone", data.studentProfile.user.phone || "N/A");
-          localStorage.setItem("userBio", data.studentProfile.user.bio || "N/A");
-          localStorage.setItem("userCoverPhoto", data.studentProfile.coverPhoto || "N/A");
+          localStorage.setItem(
+            "role",
+            data.studentProfile.user.role || "STUDENT"
+          );
+          localStorage.setItem(
+            "userEmail",
+            data.studentProfile.user.email || ""
+          );
+          localStorage.setItem(
+            "userPhone",
+            data.studentProfile.user.phone || "N/A"
+          );
+          localStorage.setItem(
+            "userBio",
+            data.studentProfile.user.bio || "N/A"
+          );
+          localStorage.setItem(
+            "userCoverPhoto",
+            data.studentProfile.coverPhoto || "N/A"
+          );
         }
 
         console.log("Profile data:", data.studentProfile);
@@ -61,21 +83,16 @@ export default function ModernStudentDashboard() {
   }, [userId]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
-        <div className="text-center font-medium text-gray-700">
-          <div className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p>Loading your dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingIndicator text="Loading your dashboard..." />;
   }
 
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center text-red-500 bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
         <div className="text-center font-[${Poppins.style.fontFamily}]">
-          <p className="text-xl font-semibold mb-2">Oops! Something went wrong</p>
+          <p className="text-xl font-semibold mb-2">
+            Oops! Something went wrong
+          </p>
           <p>{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -99,18 +116,18 @@ export default function ModernStudentDashboard() {
         <Sidebar userId={userId} role={role || "STUDENT"} />
       </aside>
 
-     <main className="ml-20 p-5 flex-1">
-  <DashboardHeader name={userInfo.name} />
-  <ProfileCard student={student} userInfo={userInfo} />
-  <StatGrid student={student} />
-  <ChartGrid />
-  <div className="fixed bottom-8 right-8 z-50">
-    <ChatWidget />
-  </div>
-  <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20">
-    <RecentCourses student={student} />
-  </div>
-</main>
+      <main className="ml-20 p-5 flex-1">
+        <DashboardHeader name={userInfo.name} />
+        <ProfileCard student={student} userInfo={userInfo} />
+        <StatGrid student={student} />
+        <ChartGrid />
+        <div className="fixed bottom-8 right-8 z-50">
+          <ChatWidget />
+        </div>
+        <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20">
+          <RecentCourses student={student} />
+        </div>
+      </main>
     </div>
   );
 }

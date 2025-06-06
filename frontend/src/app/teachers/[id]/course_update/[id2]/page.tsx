@@ -3,6 +3,8 @@ import CourseForm from "@/app/teachers/[id]/course_update/components/CourseForm"
 import LessonForm from "@/app/teachers/[id]/course_update/components/LessonForm";
 import LessonList from "@/app/teachers/[id]/course_update/components/LessonList";
 import { useCourse } from "@/app/teachers/[id]/course_update/hooks/useCourse";
+import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { Lesson } from "@/utils/types";
 import { Plus, Video, X } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -77,11 +79,13 @@ export default function CourseDashboard() {
   );
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading course details...</div>;
+    return <LoadingIndicator text="Loading course details..." />;
   }
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">{error}</div>;
+    return (
+      <ErrorDisplay title="Error loading course details" description={error} />
+    );
   }
 
   return (
