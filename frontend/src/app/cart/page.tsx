@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Sidebar from "../students/components/Sidebar";
 
 // Helper functions
 const getLevelColor = (level: string) => {
@@ -318,13 +319,18 @@ const EduverseCart = () => {
   };
 
   const subtotal = calculateSubtotal(cartItems);
+  const userId = localStorage.getItem("userId");
 
   if (loading) {
     return <LoadingIndicator />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 p-4">
+      <div className="flex min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 relative overflow-hidden">
+       <aside className="w-64 bg-white shadow-md p-4">
+        <Sidebar userId={userId} role={"STUDENT"} />
+      </aside>
+       <main className="ml-20 p-5 flex-1">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -380,6 +386,7 @@ const EduverseCart = () => {
           </div>
         )}
       </div>
+      </main>
     </div>
   );
 };

@@ -12,7 +12,6 @@ import {
   Play,
   Settings,
   Star,
-  TrendingUp,
   User,
   Users,
   
@@ -21,22 +20,12 @@ import {
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
+import ChartCard from "./components/ChartCard";
+import StatCard from "./components/StatCard";
+import SocialIcon from "@/components/Common-Components/SocialIcon";
 
 
 
-type StatCardProps = {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  color: string;
-  trend?: string;
-  trendUp?: boolean;
-};
-
-type ChartCardProps = {
-  title: string;
-  data?: number[];
-};
 
 
 type TeacherProfile = {
@@ -63,109 +52,6 @@ type TeacherProfile = {
 
 
 
-// Enhanced Stats Card
-const StatCard = ({
-  label,
-  value,
-  icon,
-  color,
-  trend,
-  trendUp,
-}: StatCardProps) => (
-  <div className="group bg-white/70 backdrop-blur-xl p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-white/20">
-    <div className="flex items-center justify-between mb-4">
-      <div
-        className={`p-3 rounded-xl ${color} bg-opacity-10 group-hover:scale-110 transition-transform duration-300`}
-      >
-        <div className={`${color.replace("text-", "text-")} text-2xl`}>
-          {icon}
-        </div>
-      </div>
-      {trend && (
-        <div
-          className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-semibold ${
-            trendUp ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-          }`}
-        >
-          <TrendingUp
-            size={12}
-            className={trendUp ? "rotate-0" : "rotate-180"}
-          />
-          <span>{trend}</span>
-        </div>
-      )}
-    </div>
-    <div>
-      <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
-      <p className="text-sm text-gray-500 font-medium">{label}</p>
-    </div>
-  </div>
-);
-
-// Enhanced Chart Card
-const ChartCard = ({
-  title,
-  data = [65, 59, 80, 81, 56, 55, 40],
-}: ChartCardProps) => {
-  const maxValue = Math.max(...data);
-
-  return (
-    <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20">
-      <div className="flex justify-between items-center mb-6">
-        <h4 className="text-lg font-bold text-gray-900">{title}</h4>
-        <select className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
-          <option>This week</option>
-          <option>This month</option>
-          <option>This year</option>
-        </select>
-      </div>
-
-      {/* Simple Bar Chart */}
-      <div className="flex items-end justify-between h-32 space-x-2">
-        {data.map((value, index) => (
-          <div key={index} className="flex-1 flex flex-col items-center">
-            <div
-              className="w-full bg-gradient-to-t from-teal-500 to-purple-500 rounded-t-lg transition-all duration-1000 ease-out"
-              style={{
-                height: `${(value / maxValue) * 100}%`,
-                animationDelay: `${index * 100}ms`,
-              }}
-            />
-            <span className="text-xs text-gray-500 mt-2">{index + 1}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Social Icons Component
-const SocialIcon = ({ name }: { name: string }) => {
-  const getIconColor = (name: string) => {
-    switch (name) {
-      case "facebook":
-        return "from-blue-500 to-blue-600";
-      case "youtube":
-        return "from-red-500 to-red-600";
-      case "tiktok":
-        return "from-gray-800 to-black";
-      case "mail":
-        return "from-gray-500 to-gray-600";
-      default:
-        return "from-gray-500 to-gray-600";
-    }
-  };
-
-  return (
-    <div
-      className={`p-3 rounded-xl bg-gradient-to-r ${getIconColor(
-        name
-      )} hover:scale-110 transition-transform duration-300 cursor-pointer shadow-lg`}
-    >
-      <div className="w-5 h-5 bg-white rounded-sm" />
-    </div>
-  );
-};
 
 // Loading Component
 const LoadingSpinner = () => (
@@ -306,16 +192,7 @@ const ModernDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-r from-purple-300 to-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" />
-      <div
-        className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-r from-yellow-300 to-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
-        style={{ animationDelay: "2s" }}
-      />
-      <div
-        className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-green-300 to-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
-        style={{ animationDelay: "4s" }}
-      />
+      
 
       <aside className="w-64 bg-white shadow-md p-4">
         <Sidebar role="TEACHER" userId={userId} />
