@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { sleep } from "@/utils/sleep";
-import { m } from "framer-motion";
+
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_BASE = 1000;

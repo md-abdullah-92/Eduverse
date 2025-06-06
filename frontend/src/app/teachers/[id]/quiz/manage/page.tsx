@@ -19,6 +19,7 @@ import { robotoSlab, raleway } from "@/utils/font";
 import { FiFileText } from "react-icons/fi";
 import { Combobox } from "@/components/ui/combobox";
 
+
 export default function QuizManagementPage() {
   const [selectedTopic, setSelectedTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(5);
@@ -27,9 +28,9 @@ export default function QuizManagementPage() {
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const [examName, setExamName] = useState("");
   const [examDescription, setExamDescription] = useState("");
-  const [tags, setTags] = useState("");
+  
   const [duration, setDuration] = useState<number | null>(null);
-  const [scheduleTime, setScheduleTime] = useState("");
+
   const [userId, setUserId] = useState<string | null>(null);
 
   const topics = [
@@ -67,30 +68,58 @@ export default function QuizManagementPage() {
     }
   };
 
-  const handleCreateExam = async () => {
-    if (!examName || !examDescription || selectedQuestions.length === 0) {
-      alert("Please fill in all required fields and select at least one question.");
-      return;
-    }
 
-    const examData = {
-      name: examName,
-      description: examDescription,
-      questions: generatedQuestions.filter(q => selectedQuestions.includes(q.id)),
-      totalMarks: selectedQuestions.length,
-      tags,
-      duration,
-      scheduleTime,
-    };
+   
 
-    try {
-      console.log("Creating exam:", examData);
-      alert("Exam created successfully!");
-    } catch (error) {
-      console.error("Error creating exam:", error);
-      alert("Failed to create exam. Please try again.");
-    }
+const handleCreateExam = async () => {
+  if (!examName || !examDescription || selectedQuestions.length === 0) {
+    alert("Please fill in all required fields and select at least one question.");
+    return;
+  }
+  const userId = parseInt(localStorage.getItem('userId')||'10',10);
+
+
+
+  const examData = {
+    title: examName,
+    description: examDescription,
+    questions: generatedQuestions.filter(q => selectedQuestions.includes(q.id)),
+    duration:duration,
+    teacherId: userId, // Ensure userId is set correctly
   };
+
+
+  try {
+    console.log("Creating exam:", examData);
+
+    const response = await fetch("http://localhost:5000/api/quiz", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(examData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Server responded with an error");
+    }
+
+    const result = await response.json();
+    console.log("Exam created:", result);
+
+    alert("✅ Exam created successfully!");
+    // Optional: reset state
+    setExamName("");
+    setExamDescription("");
+    setDuration(null);
+    setSelectedQuestions([]);
+    setGeneratedQuestions([]);
+  } catch (error) {
+    console.error("Error creating exam:", error);
+    alert("❌ Failed to create exam. Please try again.");
+  }
+};
+  
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
@@ -173,18 +202,13 @@ export default function QuizManagementPage() {
 
                         <div className="grid gap-4">
                           <div className="grid gap-2">
-                            <Label htmlFor="examName">Exam Name</Label>
+                            <Label htmlFor="examName">Exam Title</Label>
                             <Input id="examName" value={examName} onChange={(e) => setExamName(e.target.value)} />
                           </div>
 
                           <div className="grid gap-2">
                             <Label htmlFor="examDescription">Description</Label>
                             <Textarea id="examDescription" value={examDescription} onChange={(e) => setExamDescription(e.target.value)} />
-                          </div>
-
-                          <div className="grid gap-2">
-                            <Label htmlFor="tags">Tags</Label>
-                            <Input id="tags" value={tags} onChange={(e) => setTags(e.target.value)} />
                           </div>
 
                           <div className="grid gap-2">
@@ -200,17 +224,6 @@ export default function QuizManagementPage() {
                               }}
                             />
                           </div>
-
-                          <div className="grid gap-2">
-                            <Label htmlFor="schedule">Schedule Time</Label>
-                            <Input
-                              id="schedule"
-                              type="datetime-local"
-                              value={scheduleTime}
-                              onChange={(e) => setScheduleTime(e.target.value)}
-                            />
-                          </div>
-
                           <Button onClick={handleCreateExam} className="w-full">Create Exam</Button>
                         </div>
                       </CardContent>

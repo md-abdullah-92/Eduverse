@@ -8,20 +8,20 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  name          String
-  email         String    @unique
-  password      String?   // Nullable for OAuth users
-  role          Role      @default(STUDENT)
-  isVerified    Boolean   @default(false)
-  otp           String?   // OTP for email verification
-  otpExpiresAt  DateTime? // OTP expiry time
-  provider      String?   // OAuth provider (e.g., "google", "github")
-  oauthId       String?   // OAuth user ID
-  profileImage  String?   // URL to profile image
-  phoneNumber   String?   // Contact number
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  password       String?
+  role           Role             @default(STUDENT)
+  isVerified     Boolean          @default(false)
+  otp            String?
+  otpExpiresAt   DateTime?
+  provider       String?
+  oauthId        String?
+  profileImage   String?
+  phoneNumber    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   studentProfile StudentProfile?
   teacherProfile TeacherProfile?
 }
@@ -35,16 +35,16 @@ model StudentProfile {
   id              Int      @id @default(autoincrement())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          Int      @unique
-  educationLevel  String   // Current education level
-  institution     String   // Current institution
+  educationLevel  String
+  institution     String
   guardianName    String
   guardianPhone   String
   guardianEmail   String?
   dateOfBirth     DateTime?
   address         String?
-  coverPhoto      String?  // URL to cover photo
-  profilePhoto    String?  // URL to profile photo
-  bio             String?  @db.Text // Student bio
+  coverPhoto      String?
+  profilePhoto    String?
+  bio             String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -53,15 +53,77 @@ model TeacherProfile {
   id              Int      @id @default(autoincrement())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          Int      @unique
-  education       String   // Highest education level
-  specialization  String   // Subject specialization
-  experience      Int      // Years of experience
-  institution     String?  // Current institution
-  certifications  String?  // List of certifications (JSON string)
-  rating          Float?   // Teacher rating
-  coverPhoto      String?  // URL to cover photo
-  profilePhoto    String?  // URL to profile photo
-  bio             String?  @db.Text // Teacher bio
+  education       String
+  specialization  String
+  experience      Int
+  institution     String?
+  certifications  String?
+  rating          Float?
+  coverPhoto      String?
+  profilePhoto    String?
+  bio             String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  quizzes         Quiz[]
+  assignments     Assignment[]
+  studyNotes      Studynote[]
+}
+model Quiz {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  duration    Int
+  teacherId   Int
+  teacher     TeacherProfile   @relation(fields: [teacherId], references: [userId])
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  question      String
+  correctAnswer String?
+  options       Json?
+  explanation   String?  @db.Text    // <-- Add this decorator
+  difficulty    String
+  type          String
+  quiz          Quiz?    @relation(fields: [quizId], references: [id])
+  quizId        String?
+}
+
+
+
+
+
+model Assignment {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String
+  teacher     TeacherProfile  @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
+  teacherId   Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Studynote {
+  id          Int             @id @default(autoincrement())
+  title       String
+  description String
+  teacher     TeacherProfile  @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
+  teacherId   Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum QuestionType {
+  MCQ
+  TRUE_FALSE
+  SHORT_ANSWER
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
 }

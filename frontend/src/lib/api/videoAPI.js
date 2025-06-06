@@ -15,9 +15,11 @@ export const videoAPI = {
       xhr.onload = () => {
         if (xhr.status === 200) {
           const response = JSON.parse(xhr.responseText);
+          console.log(response)
           resolve(response);
         } else {
           const error = JSON.parse(xhr.responseText);
+            console.log(response)
           reject(new Error(error.error || 'Upload failed'));
         }
       };

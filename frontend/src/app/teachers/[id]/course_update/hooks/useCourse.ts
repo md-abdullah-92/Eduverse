@@ -313,7 +313,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
             videoUrl: lessonToEdit.videoUrl || "",
             orderIndex: lessonToEdit.orderIndex,
           });
-
+          console.log("videoUrl:", lessonToEdit.videoUrl);
           setEditingLessonId(lessonId);
           setVideoState(INITIAL_VIDEO_STATE); // Reset video state for editing
           setShowLessonModal(true);
@@ -374,6 +374,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
                 : lesson
             );
             updateCourseField("lessons", updatedLessons);
+            console.log("Updated lesson:", currentLesson);
           } else {
             // Add new lesson
             const nextOrderIndex = courseData.lessons.length;
@@ -383,6 +384,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
               orderIndex: nextOrderIndex,
               videoUrl: finalVideoUrl,
             };
+            console.log(newLesson);
             updateCourseField("lessons", [...courseData.lessons, newLesson]);
           }
 

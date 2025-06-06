@@ -25,6 +25,6 @@
   },
   "description": "",
   "devDependencies": {
-    "prisma": "^6.7.0"
+    "prisma": "^6.9.0"
   }
 }

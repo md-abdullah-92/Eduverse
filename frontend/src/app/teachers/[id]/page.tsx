@@ -1,18 +1,8 @@
 "use client";
 import {
-  Award,
-  Bell,
   BookOpen,
-  Calendar,
-  ChevronRight,
   DollarSign,
-  Download,
-  Eye,
   Loader2,
-  Play,
-  Settings,
-  Star,
-  User,
   Users,
   
   
@@ -22,7 +12,9 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import ChartCard from "./components/ChartCard";
 import StatCard from "./components/StatCard";
-import SocialIcon from "@/components/Common-Components/SocialIcon";
+import DashboardHeader from "./components/DashboardHeader";
+import CoverProfile from "./components/ProfileCover";
+import BestSellingCourse from "./components/BestSellingCourse";
 
 
 
@@ -192,96 +184,14 @@ const ModernDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      
-
       <aside className="w-64 bg-white shadow-md p-4">
         <Sidebar role="TEACHER" userId={userId} />
       </aside>
       <main className="ml-20 p-5 flex-1">
+
       
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="p-4 text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Welcome back, {userInfo.name}! 👋
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Here&apos;s what&apos;s happening with your courses today.
-            </p>
-          </div>
-          <div className="p-4 flex items-center space-x-4">
-            <button className="p-3 bg-white/70 backdrop-blur-xl rounded-xl border border-white/20 hover:bg-white/90 transition-colors duration-200">
-              <Bell className="w-5 h-5 text-gray-600" />
-            </button>
-            <button className="p-3 bg-white/70 backdrop-blur-xl rounded-xl border border-white/20 hover:bg-white/90 transition-colors duration-200">
-              <Settings className="w-5 h-5 text-gray-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* Cover Photo Section */}
-        <div className="p-5 relative w-full h-100 rounded-3xl overflow-hidden shadow-2xl group">
-          {profile.coverPhoto && profile.coverPhoto !== "N/A" ? (
-            <img
-              src={profile.coverPhoto}
-              alt="Cover"
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-r from-teal-600 via-purple-600 to-teal-500" />
-          )}
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="absolute bottom-6 left-8 right-8 flex items-end justify-between">
-            <div className="flex items-end space-x-6">
-              <div className="relative">
-                <div className="w-32 h-32 rounded-2xl bg-white p-2 shadow-xl">
-                  {profile.profilePhoto ? (
-                    <img
-                      src={profile.profilePhoto}
-                      alt="Profile"
-                      className="w-full h-full rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-teal-400 to-purple-500 rounded-xl flex items-center justify-center">
-                      <User className="w-12 h-12 text-white" />
-                    </div>
-                  )}
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full" />
-                </div>
-              </div>
-              <div className="text-white pb-4">
-                <h2 className="text-2xl font-bold mb-2">{userInfo.name}</h2>
-                <div className="flex items-center space-x-4 text-white/90">
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-semibold">
-                      {profile.rating?.toFixed(1) || "N/A"}
-                    </span>
-                    <span className="text-white/70">
-                      ({profile.totalReviews?.toLocaleString() || "0"} reviews)
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Award className="w-4 h-4" />
-                    <span>Top Instructor</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <SocialIcon name="facebook" />
-              <SocialIcon name="youtube" />
-              <SocialIcon name="tiktok" />
-              <SocialIcon name="mail" />
-              <button className="px-6 py-3 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-colors duration-200 border border-white/20">
-                Edit Profile
-              </button>
-            </div>
-          </div>
-        </div>
+      <DashboardHeader userName={userInfo.name} />
+      <CoverProfile profile={profile} />
         {/* Sidebar */}
       
         {/* Stats Grid */}
@@ -328,97 +238,8 @@ const ModernDashboard = () => {
         </div>
 
         {/* Best Selling Course */}
-        <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/20">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-              <Award className="w-6 h-6 text-yellow-500" />
-              <span>Best Selling Course</span>
-            </h3>
-            <button className="text-teal-600 hover:text-teal-700 font-medium text-sm flex items-center space-x-1">
-              <span>View All</span>
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className="relative w-full lg:w-80 h-52 rounded-2xl overflow-hidden shadow-lg group">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Play className="w-8 h-8 text-white ml-1" />
-                </div>
-              </div>
-              <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-sm font-semibold">
-                #1 Bestseller
-              </div>
-            </div>
-
-            <div className="flex-1 space-y-4">
-              <div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2">
-                  Complete Business Finance & Accounting Masterclass
-                </h4>
-                <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                  <span className="flex items-center space-x-1">
-                    <BookOpen size={16} />
-                    <span>12 Lessons</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <Users size={16} />
-                    <span>2,340 Students</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <Calendar size={16} />
-                    <span>8 Weeks</span>
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl font-bold text-teal-600">$49.99</span>
-                <span className="text-lg text-gray-400 line-through">
-                  $99.99
-                </span>
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  50% OFF
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xl font-bold text-gray-900">2,340</div>
-                  <div className="text-sm text-gray-600">Enrollments</div>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xl font-bold text-green-600">
-                    $116,940
-                  </div>
-                  <div className="text-sm text-gray-600">Revenue</div>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xl font-bold text-blue-600">4.8</div>
-                  <div className="text-sm text-gray-600">Rating</div>
-                </div>
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
-                  <div className="text-xl font-bold text-purple-600">92%</div>
-                  <div className="text-sm text-gray-600">Completion</div>
-                </div>
-              </div>
-
-              <div className="flex space-x-3">
-                <button className="flex items-center space-x-2 px-4 py-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors duration-200">
-                  <Eye size={16} />
-                  <span>View Course</span>
-                </button>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200">
-                  <Download size={16} />
-                  <span>Download Report</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-       
+        <BestSellingCourse />
+      
       </main>
     </div>
   );
