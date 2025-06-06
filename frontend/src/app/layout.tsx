@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={poppins.className}>
         <Header />
         <Providers>{children}</Providers>
-        <Footer />
+        
       </body>
     </html>
   );

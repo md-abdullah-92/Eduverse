@@ -4,7 +4,7 @@
 
 import { jaro, raleway } from "@/utils/font";
 import { motion } from "framer-motion";
-
+import Footer from "@/components/layout/footer";
 const teamMembers = [
   {
     name: "Nobel Ahmad Badhon",
@@ -31,6 +31,8 @@ const teamMembers = [
 
 export default function AboutPage() {
   return (
+    <div>
+    {/* Main container */}
     <div className="min-h-screen bg-[#0F4C5C] text-white px-6 py-16">
       <div className="max-w-6xl mx-auto">
         {/* Title */}
@@ -125,6 +127,9 @@ export default function AboutPage() {
           </a>
         </div>
       </div>
+      
+    </div>
+     <Footer/>
     </div>
   );
 }

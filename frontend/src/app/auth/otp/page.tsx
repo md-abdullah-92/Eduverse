@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { raleway, jaro } from "@/utils/font";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import Footer from "@/components/layout/footer";
 
 
 export default function OtpVerification() {
@@ -87,6 +88,8 @@ export default function OtpVerification() {
   };
 
   return (
+    <div>
+    // Main Container
     <div className="min-h-screen flex items-center justify-center bg-[#0F4C5C] px-4">
       <div className="flex w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl bg-[#0F4C5C] text-white">
         {/* Branding */}
@@ -145,6 +148,9 @@ export default function OtpVerification() {
           </p>
         </div>
       </div>
+    </div>
+    {/* Footer */}
+      <Footer/>
     </div>
   );
 }

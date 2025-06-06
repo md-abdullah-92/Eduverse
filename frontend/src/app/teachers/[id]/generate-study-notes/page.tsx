@@ -63,9 +63,10 @@ export default function GenerateSlidePage() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      <Sidebar role="TEACHER" userId={userId} />
-
-      <main className="flex-1 p-8 space-y-8 relative z-10">
+      <aside className="w-64 bg-white shadow-md p-4">
+        <Sidebar role="TEACHER" userId={userId} />
+      </aside>
+      <main className="ml-20 p-5 flex-1">
         <div className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 flex flex-col ${merriweather.className}`}>
           {/* HEADER */}
           <header className="mb-6 pt-8">

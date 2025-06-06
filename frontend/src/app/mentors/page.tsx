@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import Footer from "@/components/layout/footer";
 import {
   FaBuilding,
   FaClock,
@@ -84,6 +85,8 @@ export default function MentorsPage() {
   }, []);
 
   return (
+    <div>
+     
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-purple-50 py-16 px-4">
       <motion.div
         variants={headerVariant}
@@ -207,5 +210,7 @@ export default function MentorsPage() {
         </motion.div>
       )}
     </div>
+     <Footer/>
+     </div>
   );
 }

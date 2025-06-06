@@ -9,6 +9,7 @@ import HeroSection from "@/components/homepage/HeroSection";
 import PopularCourses from "@/components/homepage/PopularCourses";
 import StatsSection from "@/components/homepage/StatsSection";
 import TestimonialsSection from "@/components/homepage/TestimonialsSection";
+import Footer from "@/components/layout/footer";
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
@@ -68,6 +69,7 @@ export default function Home() {
         <CourseCTASection />
         <PopularCourses />
         <TestimonialsSection />
+         <Footer/>
       </main>
     </Elements>
   );

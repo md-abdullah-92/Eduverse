@@ -23,6 +23,7 @@ import {
   raleway,
 } from '@/utils/font'
 
+
 export default function EditTeacherProfilePage() {
   const { id: userId } = useParams();
 
@@ -184,8 +185,11 @@ export default function EditTeacherProfilePage() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      <Sidebar role="TEACHER" userId={userId} />
-      <main className="flex-1 p-8 flex justify-center">
+      <aside className="w-64 bg-white shadow-md p-4">
+        <Sidebar role="TEACHER" userId={userId} />
+      </aside>
+
+       <main className="ml-20 p-5 flex-1">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
           {/* Cover Section */}
           <div className="relative h-80 group overflow-hidden">
@@ -371,7 +375,10 @@ export default function EditTeacherProfilePage() {
             </div>
           </div>
         </div>
+        
       </main>
+      
     </div>
+    
   );
 }

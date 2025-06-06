@@ -19,6 +19,7 @@ import {
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Footer from "@/components/layout/footer";
 
 export default function EditProfile() {
   const { id: userId } = useParams();
@@ -516,8 +517,12 @@ export default function EditProfile() {
               </button>
             </div>
           </div>
+          
         </div>
+    
       )}
+    
     </div>
+    
   );
 }

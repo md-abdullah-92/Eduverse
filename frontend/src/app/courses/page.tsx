@@ -13,6 +13,7 @@ import {
   playfair,
   raleway
 } from "@/utils/font";
+import Footer from "@/components/layout/footer";
 
 export default function AllCoursesPage() {
   const { user } = useAuth();
@@ -138,6 +139,7 @@ export default function AllCoursesPage() {
   };
 
   return (
+    <div>
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-20">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-teal-700 to-purple-600 text-white py-16 px-4">
@@ -294,6 +296,9 @@ export default function AllCoursesPage() {
           </div>
         </div>
       )}
+     
     </div>
+     <Footer />
+     </div>
   );
 }

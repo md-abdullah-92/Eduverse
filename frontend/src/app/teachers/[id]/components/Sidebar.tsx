@@ -6,8 +6,6 @@ import {
   BookOpen,
   LogOut,
   ClipboardEdit,
-  DollarSign,
-  FileText,
   Megaphone,
   Package,
   PieChart,
@@ -20,7 +18,7 @@ import {
 } from "lucide-react";
 import SidebarItem from "./SidebarItem"; // assume SidebarItem is also a separate file
 import LogoutModal from "./LogoutModal"; // same here if modularized
-
+import { poppins, dmSerif } from "@/utils/font"; // adjust import path if needed
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard" },
   { icon: User, label: "Update Profile" },
@@ -30,8 +28,7 @@ const menuItems = [
   { icon: ClipboardEditIcon, label: "Create Assignment" },
   { icon: ClipboardEdit, label: "Create Quiz" },
   { icon: Megaphone, label: "Announcements" },
-  { icon: DollarSign, label: "Withdrawals" },
-  { icon: FileText, label: "Assignments" },
+  
   { icon: PieChart, label: "Analytics" },
   { icon: Star, label: "Reviews" },
   { icon: LogOut, label: "Logout" },
@@ -85,20 +82,24 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
 
   return (
     <>
-      <aside className="w-80 h-full bg-white/80 backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg">
-        <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
-          <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <BookOpen className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent">
-              EduVerse
-            </h1>
-            <p className="text-xs text-gray-500">Instructor Portal</p>
-          </div>
-        </div>
+         <aside
+           className={`w-80 h-screen fixed top-0 left-0 bg-white backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg z-20 ${poppins.className}`}
+         >
+           <div className="h-14" />
+           <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
+             <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+               <BookOpen className="w-6 h-6 text-white" />
+             </div>
+             <div>
+               <h1
+                 className={`text-xl font-bold bg-gradient-to-r from-teal-600 to-purple-600 bg-clip-text text-transparent ${dmSerif.className}`}
+               >
+                 Teacher Portal
+               </h1>
+             </div>
+           </div>
 
-        <nav className="space-y-6">
+        <nav className="space-y-2">
           {menuItems.map((item, i) => (
             <SidebarItem
               key={i}

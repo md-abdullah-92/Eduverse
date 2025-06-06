@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { raleway, jaro } from "@/utils/font"; // Assuming these are font imports
 import { AxiosError } from "axios";
+import Footer from "@/components/layout/footer"; // Adjust the import path as needed
 
 
 
@@ -111,6 +112,7 @@ export default function LoginRegister() {
   };
 
   return (
+    <div>
     <div className="min-h-screen flex items-center justify-center bg-[#0F4C5C] px-4">
       <div className="flex w-full max-w-6xl transition-all duration-500 rounded-2xl shadow-2xl overflow-hidden bg-[#0F4C5C] text-white scale-100 hover:scale-[1.02]">
         {/* Branding */}
@@ -286,6 +288,8 @@ export default function LoginRegister() {
           </form>
         </div>
       </div>
+      </div>
+       <Footer/>
     </div>
   );
 }

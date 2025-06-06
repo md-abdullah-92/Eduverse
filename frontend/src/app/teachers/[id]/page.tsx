@@ -1,18 +1,15 @@
 "use client";
 import {
   Award,
-  BadgeCheck,
   Bell,
   BookOpen,
   Calendar,
   ChevronRight,
-  ClipboardList,
   DollarSign,
   Download,
   Eye,
   Loader2,
   Play,
-  Search,
   Settings,
   Star,
   TrendingUp,
@@ -320,28 +317,22 @@ const ModernDashboard = () => {
         style={{ animationDelay: "4s" }}
       />
 
-        <Sidebar role={role} userId={userId} />
-
-      <main className="flex-1 p-8 space-y-8 relative z-10">
+      <aside className="w-64 bg-white shadow-md p-4">
+        <Sidebar role="TEACHER" userId={userId} />
+      </aside>
+      <main className="ml-20 p-5 flex-1">
+      
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 className="p-4 text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
               Welcome back, {userInfo.name}! 👋
             </h1>
             <p className="text-gray-600 mt-1">
               Here&apos;s what&apos;s happening with your courses today.
             </p>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-3 bg-white/70 backdrop-blur-xl border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
-            </div>
+          <div className="p-4 flex items-center space-x-4">
             <button className="p-3 bg-white/70 backdrop-blur-xl rounded-xl border border-white/20 hover:bg-white/90 transition-colors duration-200">
               <Bell className="w-5 h-5 text-gray-600" />
             </button>
@@ -352,7 +343,7 @@ const ModernDashboard = () => {
         </div>
 
         {/* Cover Photo Section */}
-        <div className="relative w-full h-80 rounded-3xl overflow-hidden shadow-2xl group">
+        <div className="p-5 relative w-full h-100 rounded-3xl overflow-hidden shadow-2xl group">
           {profile.coverPhoto && profile.coverPhoto !== "N/A" ? (
             <img
               src={profile.coverPhoto}
@@ -417,7 +408,7 @@ const ModernDashboard = () => {
         {/* Sidebar */}
       
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           <StatCard
             label="Total Students"
             value={profile.totalStudents?.toLocaleString() || "0"}
@@ -442,34 +433,13 @@ const ModernDashboard = () => {
             trend="+2"
             trendUp={true}
           />
-          <StatCard
-            label="Pending Orders"
-            value={profile.processingOrders?.toString() || "0"}
-            icon={<ClipboardList />}
-            color="text-orange-500"
-            trend="-3%"
-            trendUp={false}
-          />
-          <StatCard
-            label="Completed"
-            value={profile.completedOrders?.toLocaleString() || "0"}
-            icon={<BadgeCheck />}
-            color="text-teal-500"
-            trend="+15%"
-            trendUp={true}
-          />
-          <StatCard
-            label="Total Orders"
-            value={profile.totalOrders?.toLocaleString() || "0"}
-            icon={<TrendingUp />}
-            color="text-teal-500"
-            trend="+11%"
-            trendUp={true}
-          />
+          
+
+
         </div>
 
         {/* Charts Section */}
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="p-5 grid lg:grid-cols-2 gap-8">
           <ChartCard
             title="Student Growth"
             data={[45, 52, 68, 84, 102, 110, 125]}
@@ -481,7 +451,7 @@ const ModernDashboard = () => {
         </div>
 
         {/* Best Selling Course */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/20">
+        <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/20">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
               <Award className="w-6 h-6 text-yellow-500" />
@@ -571,6 +541,7 @@ const ModernDashboard = () => {
             </div>
           </div>
         </div>
+       
       </main>
     </div>
   );

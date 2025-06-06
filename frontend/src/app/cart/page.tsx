@@ -43,7 +43,6 @@ const LoadingScreen = () => (
 
 const EmptyCart = () => {
   const router = useRouter();
-
   return (
     <div className="text-center py-12">
       <ShoppingCart className="w-24 h-24 text-gray-300 mx-auto mb-4" />
