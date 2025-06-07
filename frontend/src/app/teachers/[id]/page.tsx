@@ -1,49 +1,15 @@
 "use client";
-import {
-  BookOpen,
-  DollarSign,
-  Loader2,
-  Users,
-  
-  
-} from "lucide-react";
+
+import React from "react";
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import Sidebar from "./components/Sidebar";
-import ChartCard from "./components/ChartCard";
-import StatCard from "./components/StatCard";
-import DashboardHeader from "./components/DashboardHeader";
-import CoverProfile from "./components/ProfileCover";
-import BestSellingCourse from "./components/BestSellingCourse";
-
-
-
-
-
-type TeacherProfile = {
-  user: {
-    name: string;
-    role: string;
-    email: string;
-    phone?: string;
-    bio?: string;
-  };
-  profilePhoto: string;
-  coverPhoto: string;
-  rating: number;
-  totalReviews: number;
-  totalStudents: number;
-  totalSales: number;
-  totalCourses: number;
-  processingOrders: number;
-  completedOrders: number;
-  totalOrders: number;
-};
-
-
-
-
-
+import { BookOpen, DollarSign, Loader2, Users } from "lucide-react";
+import Sidebar from "../components/Sidebar";
+import ChartCard from "../components/ChartCard";
+import StatCard from "../components/StatCard";
+import DashboardHeader from "../components/DashboardHeader";
+import CoverProfile from "../components/ProfileCover";
+import BestSellingCourse from "../components/BestSellingCourse";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 
 // Loading Component
 const LoadingSpinner = () => (
@@ -85,102 +51,18 @@ const ErrorComponent = ({
 // Main Dashboard Component
 const ModernDashboard = () => {
   const params = useParams();
-  const userId = params?.id;
-  const [profile, setProfile] = useState<TeacherProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const rawId = params?.id;
+  const userId = Array.isArray(rawId) ? rawId[0] : rawId;
 
-  const fetchProfile = async () => {
-    try {
-      if (!userId) {
-        setError("User ID not found");
-        setLoading(false);
-        return;
-      }
+  const { profile, loading, error, refetch } = useTeacherProfile(userId);
 
-      setLoading(true);
-      setError(null);
+  if (loading) return <LoadingSpinner />;
+  if (error) return <ErrorComponent message={error} onRetry={refetch} />;
+  if (!profile) return <ErrorComponent message="Profile not found." onRetry={refetch} />;
 
-      const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        throw new Error(
-          `Failed to fetch profile: ${res.status} ${res.statusText}`
-        );
-      }
-
-      const data = await res.json();
-
-      if (!data.teacherProfile) {
-        throw new Error("Teacher profile not found");
-      }
-
-      setProfile(data.teacherProfile);
-      localStorage.setItem("userId", userId.toString());
-      localStorage.setItem("role", data.teacherProfile.user.role || "TEACHER");
-      localStorage.setItem("userPhoto", data.teacherProfile.profilePhoto || "");
-      localStorage.setItem("userName", data.teacherProfile.user.name || "Mentor Name");
-      localStorage.setItem("userEmail", data.teacherProfile.user.email || "");
-      localStorage.setItem("userPhone", data.teacherProfile.user.phone || "N/A");
-      localStorage.setItem("userBio", data.teacherProfile.user.bio || "N/A");
-      localStorage.setItem("userCoverPhoto", data.teacherProfile.coverPhoto || "N/A");
-      
-
-      // Store data in memory (simulating localStorage)
-      console.log("Storing user data:", {
-        userPhoto: data.teacherProfile.profilePhoto,
-        userName: data.teacherProfile.user.name || "Mentor Name",
-        userId: userId,
-        role: data.teacherProfile.user.role || "TEACHER",
-        userEmail: data.teacherProfile.user.email || "",
-        userPhone: data.teacherProfile.user.phone || "N/A",
-        userBio: data.teacherProfile.user.bio || "N/A",
-        userCoverPhoto: data.teacherProfile.coverPhoto || "N/A",
-    
-      });
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "An unknown error occurred";
-      setError(errorMessage);
-      console.error("Error fetching profile:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!userId) {
-      setError("User ID is required");
-      setLoading(false);
-      return;
-    }
-
-    fetchProfile();
-  }, [userId]);
-
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
-  if (error) {
-    return <ErrorComponent message={error} onRetry={fetchProfile} />;
-  }
-
-  if (!profile) {
-    return (
-      <ErrorComponent
-        message="Profile data not available"
-        onRetry={fetchProfile}
-      />
-    );
-  }
-
-  const userInfo = profile.user || {};
-  const role = userInfo.role || "TEACHER";
-  localStorage.setItem("role", role);
-  localStorage.setItem("userId", userId?.toString() || "12345"); // Fallback for demo purposes
+  const userInfo = profile.user;
+  localStorage.setItem("role", userInfo.role || "TEACHER");
+  localStorage.setItem("userId", userId?.toString() || "12345");
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
@@ -188,13 +70,9 @@ const ModernDashboard = () => {
         <Sidebar role="TEACHER" userId={userId} />
       </aside>
       <main className="ml-20 p-5 flex-1">
+        <DashboardHeader userName={userInfo.name} />
+        <CoverProfile profile={profile} />
 
-      
-      <DashboardHeader userName={userInfo.name} />
-      <CoverProfile profile={profile} />
-        {/* Sidebar */}
-      
-        {/* Stats Grid */}
         <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           <StatCard
             label="Total Students"
@@ -220,26 +98,14 @@ const ModernDashboard = () => {
             trend="+2"
             trendUp={true}
           />
-          
-
-
         </div>
 
-        {/* Charts Section */}
         <div className="p-5 grid lg:grid-cols-2 gap-8">
-          <ChartCard
-            title="Student Growth"
-            data={[45, 52, 68, 84, 102, 110, 125]}
-          />
-          <ChartCard
-            title="Revenue Trend"
-            data={[1200, 1900, 3000, 5000, 4200, 3800, 4500]}
-          />
+          <ChartCard title="Student Growth" data={[45, 52, 68, 84, 102, 110, 125]} />
+          <ChartCard title="Revenue Trend" data={[1200, 1900, 3000, 5000, 4200, 3800, 4500]} />
         </div>
 
-        {/* Best Selling Course */}
         <BestSellingCourse />
-      
       </main>
     </div>
   );

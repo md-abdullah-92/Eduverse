@@ -14,7 +14,7 @@ import {
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import Sidebar from "@/app/teachers/[id]/components/Sidebar";
+import Sidebar from "@/app/teachers/components/Sidebar";
 import {
   poppins,
   robotoSlab,

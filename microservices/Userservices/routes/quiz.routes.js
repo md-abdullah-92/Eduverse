@@ -10,5 +10,7 @@ router.post('/:quizId/questions', quizController.addQuestion);
 
 // GET /quizzes/:quizId - get quiz with questions
 router.get('/:quizId', quizController.getQuizWithQuestions);
+// DELETE /quizzes/:id - delete quiz
+router.delete('/delete/:id', quizController.deleteQuiz);
 
 module.exports = router;

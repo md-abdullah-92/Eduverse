@@ -68,14 +68,15 @@ model TeacherProfile {
   assignments     Assignment[]
   studyNotes      Studynote[]
 }
+
 model Quiz {
   id          String     @id @default(cuid())
   title       String
   description String
   duration    Int
   teacherId   Int
-  teacher     TeacherProfile   @relation(fields: [teacherId], references: [userId])
-  questions   Question[]
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [userId])
+  questions   Question[]      
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
@@ -83,17 +84,14 @@ model Quiz {
 model Question {
   id            String   @id @default(cuid())
   question      String
-  correctAnswer String?
+  correctAnswer String?  @db.Text
   options       Json?
-  explanation   String?  @db.Text    // <-- Add this decorator
+  explanation   String?  @db.Text
   difficulty    String
   type          String
-  quiz          Quiz?    @relation(fields: [quizId], references: [id])
   quizId        String?
+  quiz          Quiz?    @relation(fields: [quizId], references: [id], onDelete: Cascade) // ✅ correct place
 }
-
-
-
 
 
 model Assignment {

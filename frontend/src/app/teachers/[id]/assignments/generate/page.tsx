@@ -17,7 +17,7 @@ import { merriweather } from "@/utils/font";
 import SaveSlideButton from "./components/PrintButton";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import Sidebar from "../../components/Sidebar";
+import Sidebar from "../../../components/Sidebar";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 

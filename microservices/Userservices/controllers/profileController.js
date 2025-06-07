@@ -191,47 +191,60 @@ exports.updateUserProfile = async (req, res) => {
 
 // Get user profile by ID (role-specific)
 exports.getProfileById = async (req, res) => {
-    const userId = parseInt(req.params.id, 10);
+  const userId = parseInt(req.params.id, 10);
 
-    try {
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-                studentProfile: { include: { user: true } },
-                teacherProfile: { include: { user: true } }
-            }
-        });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        studentProfile: {
+          include: { user: true },
+        },
+        teacherProfile: {
+          include: {
+            user: true,
+            quizzes: {
+              include: {
+                questions: true,
+              },
+            },
+            assignments: true,
+            studyNotes: true,
+          },
+        },
+      },
+    });
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        if (user.role === 'STUDENT') {
-            if (!user.studentProfile) {
-                return res.status(404).json({ message: "Student profile not found" });
-            }
-            return res.status(200).json({
-                message: "Profile retrieved successfully",
-                studentProfile: user.studentProfile
-            });
-        } else if (user.role === 'TEACHER') {
-            if (!user.teacherProfile) {
-                return res.status(404).json({ message: "Teacher profile not found" });
-            }
-            return res.status(200).json({
-                message: "Profile retrieved successfully",
-                teacherProfile: user.teacherProfile
-            });
-        } else {
-            return res.status(400).json({ message: "Invalid user role" });
-        }
-    } catch (error) {
-        console.error("Get profile by ID error:", error);
-        res.status(500).json({
-            message: "Failed to get profile",
-            error: error.message
-        });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    if (user.role === 'STUDENT') {
+      if (!user.studentProfile) {
+        return res.status(404).json({ message: "Student profile not found" });
+      }
+      return res.status(200).json({
+        message: "Profile retrieved successfully",
+        studentProfile: user.studentProfile,
+      });
+    } else if (user.role === 'TEACHER') {
+      if (!user.teacherProfile) {
+        return res.status(404).json({ message: "Teacher profile not found" });
+      }
+      return res.status(200).json({
+        message: "Profile retrieved successfully",
+        teacherProfile: user.teacherProfile,
+      });
+    } else {
+      return res.status(400).json({ message: "Invalid user role" });
+    }
+  } catch (error) {
+    console.error("Get profile by ID error:", error);
+    res.status(500).json({
+      message: "Failed to get profile",
+      error: error.message,
+    });
+  }
 };
 
 // Get user profile with role-specific details

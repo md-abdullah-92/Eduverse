@@ -38,6 +38,31 @@ exports.createQuiz = async (req, res) => {
   }
 };
 
+// delete a quiz by ID
+exports.deleteQuiz = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const quiz = await prisma.quiz.findUnique({
+      where: { id },
+    });
+
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    await prisma.quiz.delete({
+      where: { id },
+    });
+
+    return res.status(200).json({ message: 'Quiz and related questions deleted successfully' });
+
+  } catch (error) {
+    console.error('Error deleting quiz:', error);
+    return res.status(500).json({ error: 'Failed to delete quiz' });
+  }
+};
+
 
 // Add a question to the quiz JSON array
 exports.addQuestion = async (req, res) => {

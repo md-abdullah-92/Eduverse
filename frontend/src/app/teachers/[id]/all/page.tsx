@@ -4,7 +4,7 @@ import CourseCard from "@/app/courses/components/courseCard";
 import { CourseData } from "@/utils/types";
 import { BarChart2, ChevronDown, Filter, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../../components/Sidebar";
 
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { dmSerif, playfair, poppins } from "@/utils/font";
