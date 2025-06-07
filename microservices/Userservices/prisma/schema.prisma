@@ -90,14 +90,14 @@ model Question {
   difficulty    String
   type          String
   quizId        String?
-  quiz          Quiz?    @relation(fields: [quizId], references: [id], onDelete: Cascade) // ✅ correct place
+  quiz          Quiz?    @relation(fields: [quizId], references: [id], onDelete: Cascade) 
 }
 
 
 model Assignment {
   id          Int             @id @default(autoincrement())
   title       String
-  description String
+  description String          @db.Text
   teacher     TeacherProfile  @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
   teacherId   Int
   createdAt   DateTime        @default(now())
@@ -107,7 +107,7 @@ model Assignment {
 model Studynote {
   id          Int             @id @default(autoincrement())
   title       String
-  description String
+  description String          @db.Text
   teacher     TeacherProfile  @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
   teacherId   Int
   createdAt   DateTime        @default(now())

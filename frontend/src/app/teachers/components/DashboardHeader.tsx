@@ -1,4 +1,5 @@
 import { Bell, Settings } from "lucide-react";
+import { playfair, lora } from "@/utils/font"; // ✅ Font import
 
 type Props = {
   userName: string;
@@ -6,9 +7,9 @@ type Props = {
 
 const DashboardHeader = ({ userName }: Props) => {
   return (
-    <div className="flex justify-between items-center">
+    <div className={`flex justify-between items-center ${lora.className}`}>
       <div>
-        <h1 className="p-4 text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+        <h1 className={`p-4 text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent ${playfair.className}`}>
           Welcome back, {userName}! 👋
         </h1>
         <p className="text-gray-600 mt-1">

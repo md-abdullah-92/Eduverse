@@ -1,11 +1,11 @@
 "use client";
-import React, { useState } from "react";
+import React, {  useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   BookOpen,
   LogOut,
-  ClipboardEdit,
+
   Megaphone,
   Package,
   PieChart,
@@ -13,6 +13,7 @@ import {
   User,
   Save,
   ClipboardEditIcon,
+  Lightbulb,
 } from "lucide-react";
 import SidebarItem from "./SidebarItem";
 import LogoutModal from "./LogoutModal";
@@ -23,16 +24,30 @@ const menuItems = [
   { icon: User, label: "Update Profile" },
   { icon: BookOpen, label: "My Courses" },
   { icon: Package, label: "Create Course" },
-  { icon: Save, label: "Study Note Generator" },
-  { icon: ClipboardEditIcon, label: "Create Assignment" },
   {
-    icon: ClipboardEdit,
+    icon: Save,
+    label: "Study Note",
+    children: [{ label: "Generate Study Notes" },
+      { label: "Saved Study Notes" }],
+  },
+  
+  {
+    icon: ClipboardEditIcon,
+    label: "Assignment",
+    children: [
+      { label: "Create Assignment" },
+      { label: "Saved Assignments" },
+    ],
+  },
+  {
+    icon: Lightbulb,
     label: "Quiz",
     children: [
       { label: "Create Quiz" },
       { label: "Saved Quizzes" },
     ],
   },
+  
   { icon: Megaphone, label: "Announcements" },
   { icon: PieChart, label: "Analytics" },
   { icon: Star, label: "Reviews" },
@@ -53,8 +68,12 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
         return router.push(`/teachers/${userId}/announcements`);
       case "Create Assignment":
         return router.push(`/teachers/${userId}/assignments/generate`);
-      case "Study Note Generator":
-        return router.push(`/teachers/${userId}/generate-study-notes`);
+      case "Saved Assignments":
+        return router.push(`/teachers/${userId}/assignments/saved-assignments`);
+      case "Generate Study Notes":
+        return router.push(`/teachers/${userId}/study-notes/generate-study-notes`);
+      case "Saved Study Notes":
+        return router.push(`/teachers/${userId}/study-notes/saved-study-notes`);
       case "Update Profile":
         return router.push(
           role === "TEACHER"

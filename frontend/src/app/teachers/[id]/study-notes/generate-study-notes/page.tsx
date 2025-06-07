@@ -14,7 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { merriweather } from "@/utils/font";
-import Sidebar from "../../components/Sidebar";
+import Sidebar from "@/app/teachers/components/Sidebar";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import SaveSlideButton from "./components/PrintButton";
@@ -36,6 +36,7 @@ export default function GenerateSlidePage() {
   const [showPreview, setShowPreview] = useState(true);
   const [showSlideEditor, setShowSlideEditor] = useState(false);
   const userId = typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
+  const [showEditor, setShowEditor] = useState(false);
 
   const handleGenerateMarkdown = async () => {
     if (!selectedTopic) return alert("Please select or enter a topic!");
@@ -60,7 +61,41 @@ export default function GenerateSlidePage() {
       console.error("Markdown generation failed:", err);
     }
   };
+  const saveStudyNote = async (title: string, description: string) => {
+  if (!title || !description) {
+    alert("Please provide a title and content for the Study Note.");
+    return;
+  }
 
+  if (!userId || userId === "12345") {
+    alert("Invalid or missing teacher ID.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/studynote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, description, teacherId: parseInt(userId) }), 
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Server error:", data.error);
+      alert(`Error: ${data.error}`);
+      return;
+    }
+
+    alert("Study Note saved successfully!");
+    setMarkdown("");
+    setSelectedTopic("");
+    setShowEditor(false);
+  } catch (err) {
+    console.error("Failed to save assignment:", err);
+    alert("Failed to save assignment. Please try again.");
+  }
+};
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
       <aside className="w-64 bg-white shadow-md p-4">
@@ -95,6 +130,7 @@ export default function GenerateSlidePage() {
             <Button onClick={handleGenerateMarkdown} className="mt-4 bg-teal-600 hover:bg-teal-700 text-white">
               Generate Study Note
             </Button>
+            
           </div>
 
           {/* SLIDE EDITOR & PREVIEW */}
@@ -122,6 +158,13 @@ export default function GenerateSlidePage() {
                   </Button>
 
                     <SaveSlideButton title={selectedTopic} />
+                  <Button
+                    onClick={() => saveStudyNote(selectedTopic, markdown)}
+                    variant="outline"
+                    className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                  >
+                    Save
+                  </Button>
                 </div>
               </div>
 

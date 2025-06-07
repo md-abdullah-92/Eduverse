@@ -14,10 +14,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { merriweather } from "@/utils/font";
-import SaveSlideButton from "./components/PrintButton";
+import SaveSlideButton from "@/app/teachers/components/PrintButton";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import Sidebar from "../../../components/Sidebar";
+
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
@@ -48,8 +49,10 @@ export default function GenerateAssignmentPage() {
       });
 
       const data = await res.json();
+      
 
       if (data.error) {
+        console.log(data.error)
         alert(data.error);
         return;
       }
@@ -60,6 +63,42 @@ export default function GenerateAssignmentPage() {
       console.error("Assignment generation failed:", err);
     }
   };
+
+  const saveAssignment = async (title: string, description: string) => {
+  if (!title || !description) {
+    alert("Please provide a title and content for the assignment.");
+    return;
+  }
+
+  if (!userId || userId === "12345") {
+    alert("Invalid or missing teacher ID.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/assignment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, description, teacherId: parseInt(userId) }), 
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Server error:", data.error);
+      alert(`Error: ${data.error}`);
+      return;
+    }
+
+    alert("Assignment saved successfully!");
+    setMarkdown("");
+    setSelectedTopic("");
+    setShowEditor(false);
+  } catch (err) {
+    console.error("Failed to save assignment:", err);
+    alert("Failed to save assignment. Please try again.");
+  }
+};
 
   return (
    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
@@ -96,6 +135,7 @@ export default function GenerateAssignmentPage() {
             <Button onClick={handleGenerateAssignment} className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white">
               Generate Assignment
             </Button>
+
           </div>
 
           {/* ASSIGNMENT EDITOR & PREVIEW */}
@@ -123,6 +163,24 @@ export default function GenerateAssignmentPage() {
                   </Button>
 
                   <SaveSlideButton title={selectedTopic} />
+                  <Button
+                    onClick={() => setMarkdown("")}
+                    variant="destructive"
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Clear Editor      
+
+                  </Button>
+                  {/*a button for saving the assignment to the database*/}
+                  <Button
+                    onClick={() => saveAssignment(selectedTopic, markdown)}
+                    variant="destructive"
+                    className="bg-teal-800 hover:bg-teal-500 text-white"
+                  >
+                    Save
+                  </Button>
+                  
+
                 </div>
               </div>
 

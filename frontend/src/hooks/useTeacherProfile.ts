@@ -33,6 +33,11 @@ type TeacherProfile = {
       difficulty?: "easy" | "medium" | "hard"; // optional difficulty level
     }[];
   }[];
+  assignments?: {
+    id: number;
+    title: string;
+    description: string;
+  }[];
 };
 
 export const useTeacherProfile = (userId: string | number | undefined) => {
