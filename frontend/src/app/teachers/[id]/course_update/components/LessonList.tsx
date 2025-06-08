@@ -12,12 +12,13 @@ import { useMemo } from "react";
 
 interface LessonListProps {
   lessons: Lesson[];
-  onEdit: (lessonId: string) => void;
-  onDelete: (lessonId: string) => void;
+  onEdit: (lessonId: number) => void;
+  onDelete: (lessonId: number) => void;
   onReorder: (reorderedLessons: Lesson[]) => void;
 }
 
-export default function LessonList({
+  
+  export default function LessonList({
   lessons,
   onEdit,
   onDelete,
@@ -61,7 +62,7 @@ export default function LessonList({
             className="space-y-3"
           >
             {sortedLessons.map((lesson, index) => (
-              <Draggable key={lesson.id} draggableId={lesson.id!} index={index}>
+              <Draggable key={lesson.id} draggableId={lesson.id.toString()} index={index}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
@@ -98,12 +99,7 @@ export default function LessonList({
                         )}
 
                         {/* Indicators */}
-                        <div className="flex mt-2 space-x-2">
-                          {lesson.notes && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                              Notes
-                            </span>
-                          )}
+                        <div className="flex mt-2 space-x-2">                        
                           {lesson.videoUrl && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                               Video

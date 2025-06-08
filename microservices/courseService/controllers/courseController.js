@@ -92,6 +92,10 @@ module.exports = {
     try {
       const courses = await prisma.course.findMany({
         where: { instructorId },
+        include: {
+          lessons: true,
+          outcomes: true
+        }
       });
       res.json(courses);
       

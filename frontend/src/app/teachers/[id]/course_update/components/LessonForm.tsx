@@ -2,6 +2,7 @@ import { Lesson } from "@/utils/types";
 import { AlertCircle, Play, Upload, X } from "lucide-react";
 import { useRef } from "react";
 
+
 interface VideoState {
   selectedFile: File | null;
   error: string | null;
@@ -15,13 +16,12 @@ interface LessonFormProps {
   editingId: string | null;
   courseId: string;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
   errors?: Record<string, string>;
 
-  // Video handling props from hook
   videoState: VideoState;
   onVideoFileSelect: (file: File) => void;
   onVideoDragEvents: (e: React.DragEvent<HTMLDivElement>) => void;
@@ -45,13 +45,7 @@ export default function LessonForm({
   const isEditing = Boolean(editingId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      onVideoFileSelect(file);
-    }
-  };
-
+ 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -64,6 +58,13 @@ export default function LessonForm({
     initialData.videoUrl && !videoState.selectedFile
   );
   const hasSelectedFile = Boolean(videoState.selectedFile);
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onVideoFileSelect(file);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -115,28 +116,8 @@ export default function LessonForm({
           )}
         </div>
 
-        {/* Lecture Notes */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Lecture Notes
-          </label>
-          <textarea
-            name="notes"
-            value={initialData.notes}
-            onChange={onChange}
-            placeholder="Enter lecture notes (optional)"
-            className="w-full border border-gray-300 rounded-md p-2 min-h-[120px] resize-y focus:ring-teal-500 focus:border-teal-500"
-            disabled={videoState.isUploading}
-          />
-          {errors.notes && (
-            <div className="mt-1 text-red-500 text-sm flex items-center">
-              <AlertCircle size={14} className="mr-1" />
-              {errors.notes}
-            </div>
-          )}
-        </div>
+      
 
-        {/* Video Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Lesson Video

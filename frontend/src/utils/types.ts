@@ -1,14 +1,268 @@
+/*generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------- ENUMS --------------------
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum QuestionType {
+  MCQ
+  CQ
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+}
+
+// -------------------- MODELS --------------------
+
+model Course {
+  id            Int              @id @default(autoincrement())
+  title         String
+  description   String
+  price         Float
+  coverPhotoUrl String
+  level         CourseLevel
+  topic         String?
+  outcomes      CourseOutcome[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  enrollments   Enrollment[]
+  lessons       Lesson[]
+  instructorId  String           // Reference to user service
+  reviews       Review[]
+  averageRating Float?           @default(0)
+  cartItems     CartItem[]
+
+  @@index([instructorId])
+}
+
+model Enrollment {
+  id                 Int               @id @default(autoincrement())
+  studentId          String            // Reference to user service
+  courseId           Int
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  course             Course            @relation(fields: [courseId], references: [id])
+  lessonCompletions  LessonCompletion[]
+  progressPercentage Float             @default(0)
+
+  @@index([studentId])
+  @@index([courseId])
+}
+
+model CourseOutcome {
+  id       Int    @id @default(autoincrement())
+  courseId Int
+  outcome  String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  @@index([courseId])
+}
+
+model Lesson {
+  id                Int                @id @default(autoincrement())
+  title             String
+  description       String?
+  videoUrl          String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  courseId          Int
+  course            Course             @relation(fields: [courseId], references: [id])
+  quizzes          Quiz[]
+  assignments       Assignment[]
+  studyNotes        Studynote[]
+  lessonCompletions LessonCompletion[]
+  orderIndex        Int
+
+  @@index([courseId])
+}
+
+model LessonCompletion {
+  id           Int        @id @default(autoincrement())
+  enrollmentId Int
+  lessonId     Int
+  completedAt  DateTime   @default(now())
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId])
+  @@index([enrollmentId])
+  @@index([lessonId])
+}
+
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  duration    Int
+  lessonId    Int
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  questions   Question[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Question {
+  id            String          @id @default(cuid())
+  question      String
+  correctAnswer String?         @db.Text
+  options       Json?
+  explanation   String?         @db.Text
+  difficulty    DifficultyLevel
+  type          QuestionType
+  quizId        String?
+  quiz          Quiz?           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model Assignment {
+  id          Int          @id @default(autoincrement())
+  lessonId    Int
+  teacherId   String       // Reference to user service
+  title       String
+  description String       @db.Text
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  lesson      Lesson       @relation(fields: [lessonId], references: [id])
+  submissions Submission[]
+}
+
+model Submission {
+  id           Int      @id @default(autoincrement())
+  assignmentId Int
+  studentId    String   // Reference to user service
+  content      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignment Assignment @relation(fields: [assignmentId], references: [id])
+
+  @@index([assignmentId])
+  @@index([studentId])
+}
+
+model Studynote {
+  id          Int      @id @default(autoincrement())
+  title       String
+  lessonId    Int
+  description String   @db.Text
+  teacherId   String   
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  studentId String   // Reference to user service
+  courseId  Int
+  rating    Int      @default(0)
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  course    Course   @relation(fields: [courseId], references: [id])
+
+  @@index([courseId])
+  @@index([studentId])
+  @@unique([courseId, studentId])
+}
+
+// -------------------- CART MODELS --------------------
+
+model Cart {
+  studentId String     @id
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  items     CartItem[]
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  studentId String   // Reference to Cart
+  courseId  Int
+  addedAt   DateTime @default(now())
+  cart      Cart     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+  @@index([studentId])
+  @@index([courseId])
+}
+// -------------------- USER MODELS --------------------
+*/
+
+
+
+export type QuestionType = "MCQ" | "CQ";
+export type DifficultyLevel = "EASY" | "MEDIUM" | "HARD";
+
+export interface Question {
+  id: string;
+  question: string;
+  correctAnswer?: string;
+  options?: { [key: string]: string };
+  explanation?: string;
+  difficulty: DifficultyLevel;
+  type: QuestionType;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  questions?: Question[];
+}
+
+export interface Submission {
+  id: number;
+  studentId: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  teacherId: string;
+  submissions?: Submission[];
+}
+
+export interface StudyNote {
+  id: number;
+  title: string;
+  description: string;
+  teacherId: string;
+}
+
 export interface LessonFormData {
   title: string;
   description: string;
   videoUrl: string | null;
-  notes: string;
+  quizzes?: Quiz;
+  assignments?: Assignment;
+  studyNotes?: StudyNote;
   orderIndex: number;
 }
 
 export interface Lesson extends LessonFormData {
-  id: string | null;
+  id: number | null;
 }
+
 export interface CourseFormData {
   title: string;
   price: string;

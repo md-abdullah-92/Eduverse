@@ -38,6 +38,11 @@ type TeacherProfile = {
     title: string;
     description: string;
   }[];
+  studyNotes?: {
+    id: number;
+    title: string;
+    description: string;
+  }[];
 };
 
 export const useTeacherProfile = (userId: string | number | undefined) => {

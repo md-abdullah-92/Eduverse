@@ -29,7 +29,7 @@
     ".next/types/**/*.ts",
     "types", // 👈 Add this line
     "src/app/video/useVideo.js"
-  ],
+, "src/hooks/useGenerateQuiz.ts'", "src/hooks/useCreateExam "  ],
 
   "exclude": ["node_modules"]
 }

@@ -35,10 +35,10 @@ const INITIAL_COURSE_DATA: CourseData = {
 };
 
 const INITIAL_LESSON_DATA: Lesson = {
-  id: "",
+  id:null,
   title: "",
   description: "",
-  notes: "",
+
   videoUrl: "",
   orderIndex: 0,
 };
@@ -61,7 +61,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [showLessonModal, setShowLessonModal] = useState(false);
-  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
+  const [editingLessonId, setEditingLessonId] = useState<number | null>(null);
   const [currentLesson, setCurrentLesson] =
     useState<Lesson>(INITIAL_LESSON_DATA);
   const [lessonErrors, setLessonErrors] = useState<Record<string, string>>({});
@@ -299,7 +299,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     ),
 
     edit: useCallback(
-      (lessonId: string) => {
+      (lessonId: number) => {
         const lessonToEdit = courseData.lessons.find(
           (lesson) => lesson.id === lessonId
         );
@@ -309,7 +309,6 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
             id: lessonToEdit.id,
             title: lessonToEdit.title,
             description: lessonToEdit.description,
-            notes: lessonToEdit.notes || "",
             videoUrl: lessonToEdit.videoUrl || "",
             orderIndex: lessonToEdit.orderIndex,
           });
@@ -323,7 +322,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
     ),
 
     delete: useCallback(
-      (lessonId: string) => {
+      (lessonId: number) => {
         if (window.confirm("Are you sure you want to delete this lesson?")) {
           const updatedLessons = courseData.lessons.filter(
             (lesson) => lesson.id !== lessonId
@@ -362,7 +361,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
             const lessonId = editingLessonId || CourseUtils.generateId();
             finalVideoUrl = await uploadVideoFile(
               videoState.selectedFile,
-              lessonId
+              lessonId.toString()
             );
           }
 
@@ -380,7 +379,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
             const nextOrderIndex = courseData.lessons.length;
             const newLesson: Lesson = {
               ...currentLesson,
-              id: CourseUtils.generateId(),
+              id: parseInt(CourseUtils.generateId()),
               orderIndex: nextOrderIndex,
               videoUrl: finalVideoUrl,
             };

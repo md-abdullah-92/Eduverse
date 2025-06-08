@@ -13,11 +13,11 @@ exports.addLesson = async (req, res) => {
         title,
         description,
         videoUrl,
-        notes,
         orderIndex: parseInt(orderIndex),
         course: {
           connect: { id: parseInt(courseId) },
         },
+        
       }
     });
     res.status(201).json(lesson);

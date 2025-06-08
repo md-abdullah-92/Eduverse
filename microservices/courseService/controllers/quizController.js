@@ -5,34 +5,38 @@ const prisma = require('../prismaClient');
 // @access  Private
 exports.createQuiz = async (req, res) => {
   try {
-    const { lessonId, title, description, timeLimit, passingScore } = req.body;
-    
+    const { title, description, duration, lessonId, questions } = req.body;
+
     const quiz = await prisma.quiz.create({
       data: {
         title,
         description,
-        timeLimit: parseInt(timeLimit) || 30, // in minutes
-        passingScore: parseInt(passingScore) || 70, // percentage
+        duration,
         lesson: {
-          connect: { id: parseInt(lessonId) }
-        }
+          connect: { id: lessonId },
+        },
+        
+        questions: {
+          create: questions.map(q => ({
+            question: q.question,
+            correctAnswer: q.correctAnswer,
+            options: q.options,
+            explanation: q.explanation || null,
+            difficulty: q.difficulty || "medium", // default if not given
+            type: q.type || "mcq",
+          })),
+        },
       },
       include: {
+        questions: true,
         lesson: true
-      }
+      },
     });
 
-    res.status(201).json({
-      success: true,
-      data: quiz
-    });
+    res.status(201).json(quiz);
   } catch (error) {
-    console.error('Error creating quiz:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create quiz',
-      details: error.message
-    });
+    console.error("Error creating quiz:", error);
+    res.status(500).json({ error: "Failed to create quiz" });
   }
 };
 

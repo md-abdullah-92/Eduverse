@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -------------------- ENUMS --------------------
+
 enum CourseLevel {
   BEGINNER
   INTERMEDIATE
@@ -24,6 +26,8 @@ enum DifficultyLevel {
   HARD
 }
 
+// -------------------- MODELS --------------------
+
 model Course {
   id            Int              @id @default(autoincrement())
   title         String
@@ -37,22 +41,22 @@ model Course {
   updatedAt     DateTime         @updatedAt
   enrollments   Enrollment[]
   lessons       Lesson[]
-  instructorId  String           // reference to user service
+  instructorId  String           // Reference to user service
   reviews       Review[]
   averageRating Float?           @default(0)
-  cartItems     CartItem[]       // Cart relation
-  
+  cartItems     CartItem[]
+
   @@index([instructorId])
 }
 
 model Enrollment {
-  id                Int               @id @default(autoincrement())
-  studentId         String            // reference to user service
-  courseId          Int
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  course            Course            @relation(fields: [courseId], references: [id])
-  lessonCompletions LessonCompletion[]
+  id                 Int               @id @default(autoincrement())
+  studentId          String            // Reference to user service
+  courseId           Int
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  course             Course            @relation(fields: [courseId], references: [id])
+  lessonCompletions  LessonCompletion[]
   progressPercentage Float             @default(0)
 
   @@index([studentId])
@@ -60,10 +64,10 @@ model Enrollment {
 }
 
 model CourseOutcome {
-  id        Int     @id @default(autoincrement())
-  courseId  Int
-  outcome   String
-  course    Course  @relation(fields: [courseId], references: [id])
+  id       Int    @id @default(autoincrement())
+  courseId Int
+  outcome  String
+  course   Course @relation(fields: [courseId], references: [id])
 
   @@index([courseId])
 }
@@ -73,15 +77,15 @@ model Lesson {
   title             String
   description       String?
   videoUrl          String?
-  notes             String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   courseId          Int
   course            Course             @relation(fields: [courseId], references: [id])
-  quiz              Quiz?
-  assignment        Assignment?
+  quizzes          Quiz[]
+  assignments       Assignment[]
+  studyNotes        Studynote[]
   lessonCompletions LessonCompletion[]
-  orderIndex        Int // To track the sequence of lessons in a course
+  orderIndex        Int
 
   @@index([courseId])
 }
@@ -94,47 +98,41 @@ model LessonCompletion {
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
-  @@unique([enrollmentId, lessonId]) // A lesson can be completed only once per enrollment
+  @@unique([enrollmentId, lessonId])
   @@index([enrollmentId])
   @@index([lessonId])
 }
 
 model Quiz {
-  lessonId  Int        @id @map("lesson_id")
-  marks     Int?
-  name      String
-  description String
-  duration String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  lesson    Lesson     @relation(fields: [lessonId], references: [id])
-  questions Question[]
-
-  @@unique([lessonId])
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  duration    Int
+  lessonId    Int
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  questions   Question[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Question {
-  id             Int             @id @default(autoincrement())
-  question       String          @map("question_text") // Main question text
-  type           QuestionType
-  explanation    String?
-  difficulty     DifficultyLevel
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  lessonId       Int
-  quiz           Quiz            @relation(fields: [lessonId], references: [lessonId])
-  correctAnswer  String
-  options        Json?           // Only for MCQ, stores ["option1", "option2", "option3", "option4"]
-
-  @@index([lessonId])
+  id            String          @id @default(cuid())
+  question      String
+  correctAnswer String?         @db.Text
+  options       Json?
+  explanation   String?         @db.Text
+  difficulty    String
+  type          String
+  quizId        String?
+  quiz          Quiz?           @relation(fields: [quizId], references: [id], onDelete: Cascade)
 }
-
-
 
 model Assignment {
   id          Int          @id @default(autoincrement())
-  lessonId    Int          @unique
-  description String
+  lessonId    Int
+  teacherId   String       // Reference to user service
+  title       String
+  description String       @db.Text
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   lesson      Lesson       @relation(fields: [lessonId], references: [id])
@@ -144,7 +142,7 @@ model Assignment {
 model Submission {
   id           Int      @id @default(autoincrement())
   assignmentId Int
-  studentId    String // Match your other models (User ID as String)
+  studentId    String   // Reference to user service
   content      String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -155,39 +153,50 @@ model Submission {
   @@index([studentId])
 }
 
+model Studynote {
+  id          Int      @id @default(autoincrement())
+  title       String
+  lessonId    Int
+  description String   @db.Text
+  teacherId   String   
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
 model Review {
   id        Int      @id @default(autoincrement())
-  studentId String   // reference to user service  
+  studentId String   // Reference to user service
   courseId  Int
-  rating    Int      @default(0)    // 1-5 scale
-  comment   String?  // Optional comment
+  rating    Int      @default(0)
+  comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   course    Course   @relation(fields: [courseId], references: [id])
-  
+
   @@index([courseId])
-  @@index([studentId]) 
-  @@unique([courseId, studentId])  // One review per student per course
+  @@index([studentId])
+  @@unique([courseId, studentId])
 }
 
-// Cart Models
+// -------------------- CART MODELS --------------------
+
 model Cart {
-  studentId String     @id  // Primary key - reference to user service
+  studentId String     @id
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   items     CartItem[]
 }
 
 model CartItem {
-  id        Int    @id @default(autoincrement())
-  studentId String // Reference to Cart's primary key
+  id        Int      @id @default(autoincrement())
+  studentId String   // Reference to Cart
   courseId  Int
   addedAt   DateTime @default(now())
-  cart      Cart   @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  course    Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  
-  @@unique([studentId, courseId]) // Prevent duplicate courses in same cart
+  cart      Cart     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
   @@index([studentId])
   @@index([courseId])
 }

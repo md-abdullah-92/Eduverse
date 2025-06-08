@@ -17,6 +17,8 @@ const searchRoutes = require('./routes/searchRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const  studynoteRoutes = require('./routes/studynoteRoutes')
+const assignmentRoutes = require('./routes/assignmentRoutes');
 // Use routes as middleware
 app.use('/api/courses', courseRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
@@ -27,6 +29,8 @@ app.use('/api/search', searchRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/studynote', studynoteRoutes);
+app.use('/api/assignment', assignmentRoutes);
 
 // Default route
 app.get('/', (req, res) => {

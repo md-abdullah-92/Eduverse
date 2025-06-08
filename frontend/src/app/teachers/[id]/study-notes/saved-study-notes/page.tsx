@@ -8,15 +8,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 import Sidebar from "@/app/teachers/components/Sidebar";
-import { playfair, lora } from "@/utils/font";          // ⬅️  updated import
+import { playfair, lora } from "@/utils/font";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
+import { useInstructorCourses } from "@/hooks/useInstructorCourses";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 type Studynote = {
   id: number;
   title: string;
   description: string;
   createdAt: string;
-};
+}
 
 export default function SavedStudyNotes() {
   const router = useRouter();
@@ -26,10 +43,18 @@ export default function SavedStudyNotes() {
 
   const [notes, setNotes] = useState<Studynote[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
+  
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedLessonId, setSelectedLessonId] = useState<string>("");
 
   useEffect(() => {
     if (profile?.studyNotes) setNotes(profile.studyNotes);
   }, [profile]);
+
+ const { courses } = useInstructorCourses(userId||'0');
+ console.log("Courses:", courses);
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this study note?")) return;
@@ -49,6 +74,45 @@ export default function SavedStudyNotes() {
 
   const handleView = (id: number) => router.push(`/teachers/${userId}/study-notes/${id}`);
 
+  const handleSaveToLesson = async () => {
+    if (!selectedNoteId || !selectedLessonId) return;
+    
+    const selectedStudynote = notes.find(q => q.id === selectedNoteId);
+    const title = selectedStudynote?.title 
+    const description= selectedStudynote?.description
+    if (!title || !description) {
+    alert("Please provide a title and content for the Study Note.");
+    return;
+  }
+
+  if (!userId || userId === "12345") {
+    alert("Invalid or missing teacher ID.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:5001/api/studynote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, description, teacherId: userId,lessonId : parseInt(selectedLessonId) }), 
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Server error:", data.error);
+      alert(`Error: ${data.error}`);
+      return;
+    }
+    setIsModalOpen(false);
+    alert("Study Note saved successfully!");
+    
+  } catch (err) {
+    console.error("Failed to save assignment:", err);
+    alert("Failed to save assignment. Please try again.");
+  }
+  };
+
   const filteredNotes = notes.filter((n) =>
     n.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -63,7 +127,7 @@ export default function SavedStudyNotes() {
 
       <main className="flex-1 p-5 ml-20">
         <h1 className={`text-3xl font-bold text-teal-800 mb-6 ${playfair.className}`}>
-          Saved Study Notes
+          Saved Study Notes
         </h1>
 
         <div className="mb-6">
@@ -99,20 +163,32 @@ export default function SavedStudyNotes() {
                         Created: {new Date(note.createdAt).toLocaleString()}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 items-end">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="text-teal-700 border-teal-300 hover:bg-teal-100"
+                          onClick={() => handleView(note.id)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="hover:bg-red-700"
+                          onClick={() => handleDelete(note.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" /> Delete
+                        </Button>
+                      </div>
                       <Button
-                        variant="outline"
-                        className="text-teal-700 border-teal-300 hover:bg-teal-100"
-                        onClick={() => handleView(note.id)}
+                        variant="secondary"
+                        className="text-teal-600 border-teal-300 hover:bg-teal-100 mt-1"
+                        onClick={() => {
+                          setSelectedNoteId(note.id);
+                          setIsModalOpen(true);
+                        }}
                       >
-                        View
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        className="hover:bg-red-700"
-                        onClick={() => handleDelete(note.id)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" /> Delete
+                        Save to Lesson
                       </Button>
                     </div>
                   </div>
@@ -122,6 +198,65 @@ export default function SavedStudyNotes() {
           </ScrollArea>
         )}
       </main>
+
+      {/* Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Course and Lesson</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Course</Label>
+              <Select
+                onValueChange={(value) => {
+                  setSelectedCourseId(value);
+                  setSelectedLessonId(""); // reset lesson
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id.toString()}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Lesson</Label>
+              <Select
+                disabled={!selectedCourseId}
+                onValueChange={(value) => setSelectedLessonId(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select lesson" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses
+                    .find((c) => c.id.toString() === selectedCourseId)
+                    ?.lessons.map((lesson) => (
+                      <SelectItem key={lesson.id} value={lesson.id.toString()}>
+                        {lesson.title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={handleSaveToLesson} disabled={!selectedLessonId}>
+              Save Note to Lesson
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -8,22 +8,53 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 import Sidebar from "../../../components/Sidebar";
-import { playfair, lora } from "@/utils/font"; // ⬅️ updated font imports
+import { playfair, lora } from "@/utils/font";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
+import { useInstructorCourses } from "@/hooks/useInstructorCourses";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type Assignment = {
+  id: number;
+  title: string;
+  description: string;
+  createdAt: string;
+};
+
 
 export default function SavedAssignments() {
   const router = useRouter();
-  const userId = typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
+  const userId =
+    typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
   const { profile, loading, error } = useTeacherProfile(userId ?? undefined);
 
-  const [assignments, setAssignments] = useState<Assignments[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedLessonId, setSelectedLessonId] = useState<string>("");
 
   useEffect(() => {
     if (profile?.assignments) {
       setAssignments(profile.assignments);
     }
   }, [profile]);
+
+  const { courses } = useInstructorCourses(userId||'0');
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this assignment?")) return;
@@ -44,6 +75,44 @@ export default function SavedAssignments() {
 
   const handleView = (id: number) => {
     router.push(`/teachers/${userId}/assignments/${id}`);
+  };
+
+  const handleSaveToLesson = async () => {
+    if (!selectedAssignmentId || !selectedLessonId) return;
+    const selectedStudynote = assignments.find(q => q.id === selectedAssignmentId);
+    const title = selectedStudynote?.title 
+    const description= selectedStudynote?.description
+    if (!title || !description) {
+    alert("Please provide a title and content for the Study Note.");
+    return;
+  }
+
+  if (!userId || userId === "12345") {
+    alert("Invalid or missing teacher ID.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:5001/api/assignment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, description, teacherId: userId,lessonId : parseInt(selectedLessonId) }), 
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Server error:", data.error);
+      alert(`Error: ${data.error}`);
+      return;
+    }
+    setIsModalOpen(false);
+    alert("Assignment saved successfully!");
+    
+  } catch (err) {
+    console.error("Failed to save assignment:", err);
+    alert("Failed to save assignment. Please try again.");
+  }
   };
 
   const filteredAssignments = assignments.filter((a) =>
@@ -97,20 +166,32 @@ export default function SavedAssignments() {
                           : "Unknown"}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 items-end">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="text-purple-700 border-purple-300 hover:bg-purple-100"
+                          onClick={() => handleView(assignment.id)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="hover:bg-red-700"
+                          onClick={() => handleDelete(assignment.id)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" /> Delete
+                        </Button>
+                      </div>
                       <Button
-                        variant="outline"
-                        className="text-purple-700 border-purple-300 hover:bg-purple-100"
-                        onClick={() => handleView(assignment.id)}
+                        variant="secondary"
+                        className="text-purple-600 border-purple-300 hover:bg-purple-100 mt-1"
+                        onClick={() => {
+                          setSelectedAssignmentId(assignment.id);
+                          setIsModalOpen(true);
+                        }}
                       >
-                        View
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        className="hover:bg-red-700"
-                        onClick={() => handleDelete(assignment.id)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" /> Delete
+                        Save to Lesson
                       </Button>
                     </div>
                   </div>
@@ -120,6 +201,65 @@ export default function SavedAssignments() {
           </ScrollArea>
         )}
       </main>
+
+      {/* Modal for selecting course/lesson */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Course and Lesson</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label>Course</Label>
+              <Select
+                onValueChange={(value) => {
+                  setSelectedCourseId(value);
+                  setSelectedLessonId("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select course" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id.toString()}>
+                      {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Lesson</Label>
+              <Select
+                disabled={!selectedCourseId}
+                onValueChange={(value) => setSelectedLessonId(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select lesson" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses
+                    .find((c) => c.id.toString() === selectedCourseId)
+                    ?.lessons.map((lesson) => (
+                      <SelectItem key={lesson.id} value={lesson.id.toString()}>
+                        {lesson.title}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={handleSaveToLesson} disabled={!selectedLessonId}>
+              Save Assignment to Lesson
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

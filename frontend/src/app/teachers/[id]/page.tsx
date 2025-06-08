@@ -74,31 +74,40 @@ const ModernDashboard = () => {
         <CoverProfile profile={profile} />
 
         <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
-          <StatCard
-            label="Total Students"
-            value={profile.totalStudents?.toLocaleString() || "0"}
-            icon={<Users />}
-            color="text-blue-500"
-            trend="+12%"
-            trendUp={true}
-          />
-          <StatCard
-            label="Total Revenue"
-            value={`$${profile.totalSales?.toLocaleString() || "0"}`}
-            icon={<DollarSign />}
-            color="text-green-500"
-            trend="+8%"
-            trendUp={true}
-          />
-          <StatCard
-            label="Active Courses"
-            value={profile.totalCourses?.toString() || "0"}
-            icon={<BookOpen />}
-            color="text-purple-500"
-            trend="+2"
-            trendUp={true}
-          />
-        </div>
+  <div className="border-1 border-teal-500 rounded-2xl shadow-sm hover:shadow-md transition duration-300">
+    <StatCard
+      label="Total Students"
+      value={profile.totalStudents?.toLocaleString() || "0"}
+      icon={<Users />}
+      color="text-blue-500"
+      trend="+12%"
+      trendUp={true}
+    />
+  </div>
+
+  <div className="border-1 border-teal-500 rounded-2xl shadow-sm hover:shadow-md transition duration-300">
+    <StatCard
+      label="Total Revenue"
+      value={`$${profile.totalSales?.toLocaleString() || "0"}`}
+      icon={<DollarSign />}
+      color="text-green-500"
+      trend="+8%"
+      trendUp={true}
+    />
+  </div>
+
+  <div className="border-1 border-teal-500 rounded-2xl shadow-sm hover:shadow-md transition duration-300">
+    <StatCard
+      label="Active Courses"
+      value={profile.totalCourses?.toString() || "0"}
+      icon={<BookOpen />}
+      color="text-purple-500"
+      trend="+2"
+      trendUp={true}
+    />
+  </div>
+</div>
+
 
         <div className="p-5 grid lg:grid-cols-2 gap-8">
           <ChartCard title="Student Growth" data={[45, 52, 68, 84, 102, 110, 125]} />

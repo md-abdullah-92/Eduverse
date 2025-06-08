@@ -134,7 +134,6 @@ export class CourseUtils {
         axios.post(`${API_BASE_URL}/lessons/add/${this.courseId}`, {
           title: lesson.title,
           description: lesson.description,
-          notes: lesson.notes,
           videoUrl: lesson.videoUrl,
           orderIndex: lesson.orderIndex,
         })
@@ -222,7 +221,6 @@ export class CourseUtils {
   static validateLessonForm(data: Lesson): string | null {
     if (!data.title.trim()) return "Lesson title is required";
     if (!data.description.trim()) return "Lesson description is required";
-    if (!data.notes.trim()) return "Lecture note is required";
     if (!data.videoUrl) return "Video URL is required";
     if (!data.orderIndex) return "Order index is required";
     return null;

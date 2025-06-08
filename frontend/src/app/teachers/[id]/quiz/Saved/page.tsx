@@ -8,6 +8,27 @@ import { robotoSlab } from "@/utils/font";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
+import { useInstructorCourses } from "@/hooks/useInstructorCourses";
+
+
+
+
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function PublishedQuiz() {
   const router = useRouter();
@@ -18,7 +39,9 @@ export default function PublishedQuiz() {
     if (uid) setUserId(uid);
   }, []);
 
-  const { profile, loading, error, refetch } = useTeacherProfile(userId ?? undefined);
+  const { profile, loading, error, refetch } = useTeacherProfile(
+    userId ?? undefined
+  );
 
   type Quiz = {
     id: string;
@@ -34,7 +57,18 @@ export default function PublishedQuiz() {
   };
 
   const quizzes: Quiz[] = profile?.quizzes ?? [];
-  console.log("Quizzes:", quizzes);
+
+  // Modal & Selection states
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedLesson, setSelectedLesson] = useState("");
+  const { courses } = useInstructorCourses(userId||'0');
+  
+
+  // Fetch teacher's courses with lessons
+  
+  console.log(courses);
 
   const handleDelete = async (id: string) => {
     const confirm = window.confirm("Are you sure you want to delete this exam?");
@@ -59,6 +93,54 @@ export default function PublishedQuiz() {
 
   const handleViewDetails = (id: string) => {
     router.push(`/teachers/${userId}/quiz/${id}`);
+  };
+
+  // Assign quiz to course lesson
+  const handleSetQuiz = async () => {
+    if (!selectedQuizId || !selectedCourse || !selectedLesson) {
+      toast.error("Please select all fields");
+      return;
+    }
+const selectedQuiz = quizzes.find(q => q.id === selectedQuizId);
+
+if (!selectedQuiz) {
+  alert("Quiz not found!");
+  return;
+}
+
+const examData = {
+  title: selectedQuiz.title,
+  description: selectedQuiz.description,
+  questions: selectedQuiz.questions,
+  duration: selectedQuiz.duration,
+  lessonId: selectedLesson ,
+};
+
+try {
+  console.log("Creating exam:", examData);
+
+  const response = await fetch("http://localhost:5001/api/quizes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(examData),
+  });
+
+  if (!response.ok) {
+    throw new Error("Server responded with an error");
+  }
+
+  const result = await response.json();
+  console.log("Exam created:", result);
+  setOpenDialog(false);
+  alert("✅ Exam created successfully!");
+  
+} catch (error) {
+  console.error("Error creating exam:", error);
+  alert("❌ Failed to create exam. Please try again.");
+}
+
   };
 
   if (!userId) {
@@ -119,7 +201,7 @@ export default function PublishedQuiz() {
                     📄 <span className="font-medium">Questions:</span> {exam.questions.length}
                   </p>
 
-                  <div className="flex gap-4 mt-4">
+                  <div className="flex gap-4 mt-4 flex-wrap">
                     <Button
                       onClick={() => handleViewDetails(exam.id)}
                       className="bg-teal-600 hover:bg-teal-700 text-white text-base px-6"
@@ -133,6 +215,82 @@ export default function PublishedQuiz() {
                     >
                       Delete
                     </Button>
+
+                    {/* Set Quiz to Lesson Button & Modal */}
+                    <Dialog open={openDialog && selectedQuizId === exam.id} onOpenChange={setOpenDialog}>
+                      <DialogTrigger asChild>
+                        <Button
+                          className="bg-amber-500 hover:bg-amber-600 text-white"
+                          onClick={() => {
+                            setSelectedQuizId(exam.id);
+                            setOpenDialog(true);
+                          }}
+                        >
+                          Set Quiz to Lesson
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Set Quiz for Course Lesson</DialogTitle>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-4">
+                          <div>
+                            <Label>Choose Course</Label>
+                            <Select
+                              onValueChange={(val) => {
+                                setSelectedCourse(val);
+                                setSelectedLesson(""); // reset lesson when course changes
+                              }}
+                              value={selectedCourse}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select course" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {courses.map((course) => (
+                                  <SelectItem key={course.id} value={course.id}>
+                                    {course.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div>
+                            <Label>Choose Lesson</Label>
+                            <Select
+                              onValueChange={(val) => setSelectedLesson(val)}
+                              value={selectedLesson}
+                              disabled={!selectedCourse}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select lesson" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(courses.find((c) => c.id === selectedCourse)?.lessons || []).map(
+                                  (lesson) => (
+                                    <SelectItem key={lesson.id} value={lesson.id}>
+                                      {lesson.title}
+                                    </SelectItem>
+                                  )
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <DialogFooter>
+                          <Button
+                            onClick={handleSetQuiz}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Assign Quiz
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
