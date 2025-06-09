@@ -40,6 +40,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 const StudyTimeBarChart = () => {
   return (
+    
     <ChartCard
       title="Weekly Study Time Overview"
       description="This bar graph illustrates the number of hours studied by the student each day throughout the week."

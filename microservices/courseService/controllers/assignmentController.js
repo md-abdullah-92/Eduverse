@@ -20,11 +20,11 @@ exports.createAssignment = async (req, res) => {
 };
 
 
-exports.getAssignmentsByTeacher = async (req, res) => {
-  const { teacherId } = req.params;
+exports.getAssignmentsByLesson = async (req, res) => {
+  const { lessonId } = req.params;
   try {
     const assignments = await prisma.assignment.findMany({
-      where: { teacherId: parseInt(teacherId) },
+      where: { lessonId: parseInt(lessonId) },
     });
     res.json(assignments);
   } catch (error) {

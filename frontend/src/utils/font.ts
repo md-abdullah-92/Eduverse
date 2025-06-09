@@ -24,12 +24,15 @@ export const jaro = Jaro({ subsets: ['latin'], weight: '400' });
 export const karma = Karma({ subsets: ['latin'], weight: ['400', '700'] });
 export const poltawskiNowy = Poltawski_Nowy({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 export const robotoSlab = Roboto_Slab({ subsets: ['latin'], weight: ['400', '500', '700'] });
-export const raleway = Raleway({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 
 // Additional stylish/serif fonts
 export const dmSerif = DM_Serif_Display({ subsets: ['latin'], weight: '400' });
 export const ebGaramond = EB_Garamond({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 export const merriweather = Merriweather({ subsets: ['latin'], weight: ['400', '700'] });
-export const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '600', '700'] });
-export const workSans = Work_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'] });
 export const notoSerif = Noto_Serif({ subsets: ['latin'], weight: ['400', '700'] });
+
+
+
+export const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-playfair' });
+export const workSans = Work_Sans({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-worksans' });
+export const raleway = Raleway({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--font-raleway' });

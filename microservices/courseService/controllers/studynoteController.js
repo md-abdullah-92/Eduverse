@@ -13,11 +13,11 @@ exports.createStudynote = async (req, res) => {
   }
 };
 
-exports.getStudynotesByTeacher = async (req, res) => {
-  const { teacherId } = req.params;
+exports.getStudynotesByLesson = async (req, res) => {
+  const { lessonId } = req.params;
   try {
     const notes = await prisma.studynote.findMany({
-      where: { teacherId: parseInt(teacherId) },
+      where: { lessonId: parseInt(lessonId) },
     });
     res.json(notes);
   } catch (error) {

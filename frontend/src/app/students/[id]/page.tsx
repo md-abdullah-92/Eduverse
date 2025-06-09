@@ -124,7 +124,7 @@ export default function ModernStudentDashboard() {
         <div className="fixed bottom-8 right-8 z-50">
           <ChatWidget />
         </div>
-        <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20">
+        <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border-1 border-teal-300">
           <RecentCourses student={student} />
         </div>
       </main>

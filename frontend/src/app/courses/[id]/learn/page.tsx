@@ -22,6 +22,7 @@ import {
   FiVolume2,
   FiX,
 } from "react-icons/fi";
+import {  FiClipboard, FiEdit3 } from "react-icons/fi"; // Make sure these are imported
 
 interface VideoState {
   isPlaying: boolean;
@@ -707,23 +708,79 @@ export default function LearnPage() {
                   <p className="text-gray-600">{currentLesson.description}</p>
                 )}
               </div>
+               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+  {/* Notes Button */}
+             <button
+                onClick={() => {
+                router.push(`/chatbot/${currentLesson.id}/notes`);
+                setShowNotes(true);
+               }}
 
-              {/* Lesson Notes */}
-              {currentLesson.notes && (
-                <div className="mb-8">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <FiBookOpen className="mr-2 text-teal-600" />
-                    Lesson Notes
-                  </h2>
-                  <div className="prose prose-gray max-w-none">
-                    <div className="p-4 bg-gray-50 rounded-lg border">
-                      <p className="whitespace-pre-wrap text-gray-700">
-                        {currentLesson.notes}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+         
+
+
+
+    className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors"
+  >
+    <FiBookOpen className="w-4 h-4" />
+    View Notes
+  </button>
+
+  {/* Assignment Button */}
+  <button
+     onClick={() => {
+                router.push(`/chatbot/${currentLesson.id}/assignments`);
+                setShowNotes(true);
+               }}
+
+    className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+      lessonProgress[currentLesson.id]?.assignmentCompleted
+        ? "bg-green-100 text-green-700"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+    }`}
+  >
+    {lessonProgress[currentLesson.id]?.assignmentCompleted ? (
+      <>
+        <FiCheckCircle className="w-4 h-4" />
+        Assignment Completed
+      </>
+    ) : (
+      <>
+        <FiEdit3 className="w-4 h-4" />
+        Start Assignment
+      </>
+    )}
+  </button>
+
+  {/* Quiz Button */}
+  <button
+     onClick={() => {
+                router.push(`/chatbot/${currentLesson.id}/assignments`);
+                setShowNotes(true);
+               }}
+    className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+      lessonProgress[currentLesson.id]?.quizCompleted
+        ? "bg-green-100 text-green-700"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+    }`}
+  >
+    {lessonProgress[currentLesson.id]?.quizCompleted ? (
+      <>
+        <FiCheckCircle className="w-4 h-4" />
+        Quiz Completed
+      </>
+    ) : (
+      <>
+        <FiClipboard className="w-4 h-4" />
+        Start Quiz
+      </>
+    )}
+  </button>
+</div>
+{/*space-y-4 mt-6 */}
+<div className="space-y-4 mt-6">
+  </div>
+
 
               {/* Navigation */}
               <div className="flex justify-between items-center pt-6 border-t border-gray-200">
@@ -778,3 +835,28 @@ export default function LearnPage() {
     </div>
   );
 }
+function handleStartAssignment() {
+  // TODO: Show assignment modal or redirect
+  setLessonProgress((prev) => ({
+    ...prev,
+    [currentLesson.id]: {
+      ...prev[currentLesson.id],
+      assignmentCompleted: true,
+    },
+  }));
+}
+
+function handleStartQuiz() {
+  // TODO: Show quiz modal or redirect
+  setLessonProgress((prev) => ({
+    ...prev,
+    [currentLesson.id]: {
+      ...prev[currentLesson.id],
+      quizCompleted: true,
+    },
+  }));
+}
+
+
+
+

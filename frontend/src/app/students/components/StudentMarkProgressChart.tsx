@@ -40,6 +40,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 const StudentMarkProgressChart = () => {
   return (
+    
     <ChartCard
       title="Academic Performance Overview"
       description="Track your individual marks compared to the class average across assessments."

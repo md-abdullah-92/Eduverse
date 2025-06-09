@@ -28,7 +28,7 @@ export default function StudentCourseCard({
     );
   };
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg border border-gray-100">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all hover:shadow-lg border-1 border-teal-100">
       {/* Course Image */}
       <div className="h-48 bg-gray-200 relative">
         {course.coverPhotoUrl ? (

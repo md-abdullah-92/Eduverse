@@ -26,11 +26,12 @@ type NavigationItem = {
   label: string;
   badge?: number;
 };
+const enrolled_course=localStorage.getItem("totalEnrolledCourses");
 
 const studentNavigationItems: NavigationItem[] = [
   { icon: LayoutDashboard, label: "Dashboard" },
   { icon: User, label: "Update Profile" },
-  { icon: BookOpen, label: "Enrolled Courses", badge: 5 },
+  { icon: BookOpen, label: "Enrolled Courses", badge: enrolled_course ? parseInt(enrolled_course) : 0 },
   { icon: Heart, label: "Wishlist", badge: 12 },
   { icon: ListChecks, label: "Quiz Attempts" },
   { icon: FileText, label: "Assignments", badge: 3 },

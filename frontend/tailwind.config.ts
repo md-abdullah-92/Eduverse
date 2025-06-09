@@ -7,7 +7,13 @@ const config: Config = {
     './components/**/*.{ts,tsx,js,jsx}',
   ],
   theme: {
-    extend: {},
+    extend: {
+    fontFamily: {
+      playfair: ['var(--font-playfair)', 'serif'],
+      worksans: ['var(--font-worksans)', 'sans-serif'],
+      raleway: ['var(--font-raleway)', 'sans-serif'],
+    },
+  },
   },
   plugins: [typography],
 };
