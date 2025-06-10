@@ -709,27 +709,22 @@ export default function LearnPage() {
                 )}
               </div>
                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-  {/* Notes Button */}
+             {/* Notes Button */}
              <button
                 onClick={() => {
-                router.push(`/chatbot/${currentLesson.id}/notes`);
+                router.push(`/lesson/${currentLesson.id}/notes`);
                 setShowNotes(true);
                }}
-
-         
-
-
-
-    className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors"
-  >
-    <FiBookOpen className="w-4 h-4" />
-    View Notes
-  </button>
+                 className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors"
+              >
+             <FiBookOpen className="w-4 h-4" />
+               View Notes
+             </button>
 
   {/* Assignment Button */}
   <button
      onClick={() => {
-                router.push(`/chatbot/${currentLesson.id}/assignments`);
+                router.push(`/lesson/${currentLesson.id}/assignments`);
                 setShowNotes(true);
                }}
 
@@ -755,7 +750,7 @@ export default function LearnPage() {
   {/* Quiz Button */}
   <button
      onClick={() => {
-                router.push(`/chatbot/${currentLesson.id}/assignments`);
+                router.push(`/lesson/${currentLesson.id}/quizes`);
                 setShowNotes(true);
                }}
     className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${

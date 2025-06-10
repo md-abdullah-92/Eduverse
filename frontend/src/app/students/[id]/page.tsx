@@ -1,6 +1,6 @@
 "use client";
 
-import ChatWidget from "@/app/chatbot/ChatWidget";
+import ChatWidget from "@/app/lesson/ChatWidget";
 
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useParams } from "next/navigation";

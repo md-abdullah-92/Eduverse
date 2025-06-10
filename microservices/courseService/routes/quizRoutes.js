@@ -13,7 +13,7 @@ router.route('/:id')
   .delete(quizController.deleteQuiz);       // Delete quiz
 
 // Get quiz by lesson ID
-router.get('/lesson/:lessonId', quizController.getQuizByLessonId);
+router.get('/lesson/:lessonId', quizController.getQuizzesByLessonId);
 
 // Quiz Questions Routes
 router.route('/:quizId/questions')

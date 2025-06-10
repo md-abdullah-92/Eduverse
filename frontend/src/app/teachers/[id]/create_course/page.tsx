@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import ChatWidget from "@/app/chatbot/ChatWidget";
+import ChatWidget from "@/app/lesson/ChatWidget";
 import { useToast } from "@/components/ui_elements/toast";
 import { CourseUtils } from "@/utils/courseUtils";
 import { poppins } from "@/utils/font";

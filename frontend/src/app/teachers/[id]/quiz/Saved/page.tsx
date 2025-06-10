@@ -189,7 +189,7 @@ try {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h2 className="text-2xl font-semibold text-teal-800">{exam.title}</h2>
-                      <p className="text-base text-gray-700 mt-1">{exam.description}</p>
+                      
                     </div>
                     <span className="text-sm text-gray-500 mt-1">
                       📅 {new Date(exam.createdAt).toLocaleString()}

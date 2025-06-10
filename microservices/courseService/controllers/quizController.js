@@ -260,38 +260,21 @@ exports.saveCompleteQuiz = async (req, res) => {
 // @desc    Get quiz by lesson ID
 // @route   GET /api/quizes/lesson/:lessonId
 // @access  Public
-exports.getQuizByLessonId = async (req, res) => {
+exports.getQuizzesByLessonId = async (req, res) => {
   try {
     const { lessonId } = req.params;
-    const quiz = await prisma.quiz.findUnique({
-      where: { lessonId: parseInt(lessonId) },
+
+    const quizzes = await prisma.quiz.findMany({
+      where: { lessonId: Number(lessonId) },
       include: {
-        questions: {
-          include: {
-            options: true
-          }
-        }
-      }
+        questions: true,
+      },
     });
 
-    if (!quiz) {
-      return res.status(404).json({
-        success: false,
-        error: `Quiz not found for lesson ${lessonId}`
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: quiz
-    });
+    res.json(quizzes);
   } catch (error) {
-    console.error('Error fetching quiz by lesson ID:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch quiz',
-      details: error.message
-    });
+    console.error('Error retrieving quizzes:', error);
+    res.status(500).json({ error: 'Failed to get quizzes' });
   }
 };
 

@@ -27,14 +27,14 @@ export async function POST(req: Request) {
           role: "user",
           parts: [
             {
-              text: "You are Eduverse Assistant, a helpful AI for teachers and students. You create academic assignments that are creative, multi-dimensional, and classroom-friendly.",
+              text: "You are Eduverse Assistant, a helpful AI for teachers and students. You create academic short form assignments that are creative, multi-dimensional, and classroom-friendly.",
             },
           ],
         },
       ],
     });
 
-    const prompt = `Create a detailed classroom assignment based on the topic: "${topic}".Keep the tone formal and academic.`;
+    const prompt = `Create a detailed classroom friendly assignment with only 3-4 short questions based on the topic: "${topic}".Keep the tone formal and academic.`;
 
     let retries = 0;
     let delay = RETRY_DELAY_BASE;

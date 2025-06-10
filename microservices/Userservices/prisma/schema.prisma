@@ -72,7 +72,7 @@ model TeacherProfile {
 model Quiz {
   id          String     @id @default(cuid())
   title       String
-  description String
+  description String     @db.Text
   duration    Int
   teacherId   Int
   teacher     TeacherProfile @relation(fields: [teacherId], references: [userId])
