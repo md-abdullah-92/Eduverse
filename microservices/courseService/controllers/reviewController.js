@@ -325,6 +325,58 @@ const reviewController = {
         message: 'Failed to fetch rating statistics'
       });
     }
+  },
+  getStudentReviewStats: async (req, res) => {
+    try {
+      const { studentId } = req.params;
+
+      const stats = await prisma.review.aggregate({
+        where: {
+          studentId: studentId
+        },
+        _avg: {
+          rating: true
+        },
+        _count: {
+          rating: true
+        }
+      });
+
+      // Get rating distribution
+      const ratingDistribution = await prisma.review.groupBy({
+        by: ['rating'],
+        where: {
+          studentId: studentId
+        },
+        _count: {
+          rating: true
+        }
+      });
+
+      // Format distribution for easier frontend consumption
+      const distribution = {
+        1: 0, 2: 0, 3: 0, 4: 0, 5: 0
+      };
+      
+      ratingDistribution.forEach(item => {
+        distribution[item.rating] = item._count.rating;
+      });
+
+      res.json({
+        success: true,
+        data: {
+          averageRating: stats._avg.rating || 0,
+          totalReviews: stats._count.rating || 0,
+          distribution
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching rating stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch rating statistics'
+      });
+    }
   }
 };
 
@@ -342,3 +394,22 @@ async function updateCourseAverageRating(courseId) {
 }
 
 module.exports = reviewController;
+
+// API Endpoints:
+// get course rating statistics
+// GET -> http://localhost:5000/api/reviews/course/:courseId  
+
+// get student review
+// GET -> http://localhost:5000/api/reviews/student/:studentId
+
+// create review
+// POST -> http://localhost:5000/api/reviews/create/:courseId/:studentId
+
+// update review
+// PUT -> http://localhost:5000/api/reviews/update/:reviewId
+
+// delete review
+// DELETE -> http://localhost:5000/api/reviews/delete/:reviewId
+
+// get course rating statistics
+// GET -> http://localhost:5000/api/reviews/course/:courseId    

@@ -8,5 +8,6 @@ router.delete('/unenroll/:id', enrollmentController.unenrollStudent);
 router.get('/student/:studentId', enrollmentController.getStudentEnrollments);
 router.get('/course/:courseId', enrollmentController.getCourseEnrollments);
 router.get('/:id', enrollmentController.getEnrollment);
+router.get('/stats/:studentId', enrollmentController.getStudentStats);
 
 module.exports = router;

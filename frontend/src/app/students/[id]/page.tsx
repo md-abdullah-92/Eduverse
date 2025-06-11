@@ -2,6 +2,7 @@
 
 import ChatWidget from "@/app/lesson/ChatWidget";
 
+import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -21,7 +22,12 @@ export default function ModernStudentDashboard() {
 
   useEffect(() => {
     if (!userId) {
-      setError("User ID not found");
+      ErrorDisplay({
+        error: "User ID not found",
+        title: "Profile Fetch Error",
+        description:
+          "We couldn't load the content you're looking for. This might be a temporary issue.",
+      });
       setLoading(false);
       return;
     }
@@ -88,20 +94,11 @@ export default function ModernStudentDashboard() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-red-500 bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
-        <div className="text-center font-[${Poppins.style.fontFamily}]">
-          <p className="text-xl font-semibold mb-2">
-            Oops! Something went wrong
-          </p>
-          <p>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
+      <ErrorDisplay
+        error={error}
+        title="Profile Fetch Error"
+        description="We couldn't load the content you're looking for. This might be a temporary issue."
+      />
     );
   }
 
@@ -113,19 +110,19 @@ export default function ModernStudentDashboard() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden font-[${Roboto_Slab.style.fontFamily}]">
       <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar userId={userId} role={role || "STUDENT"} />
+        <Sidebar userId={String(userId)} role={role || "STUDENT"} />
       </aside>
 
       <main className="ml-20 p-5 flex-1">
         <DashboardHeader name={userInfo.name} />
         <ProfileCard student={student} userInfo={userInfo} />
-        <StatGrid student={student} />
+        <StatGrid studentId={String(userId)} />
         <ChartGrid />
-        <div className="fixed bottom-8 right-8 z-50">
+        <div className="fixed bottom-15 right-8 z-50">
           <ChatWidget />
         </div>
-        <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border-1 border-teal-300">
-          <RecentCourses student={student} />
+        <div className="p-7 h-[bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border-1 border-teal-300">
+          <RecentCourses userId={String(userId)} />
         </div>
       </main>
     </div>

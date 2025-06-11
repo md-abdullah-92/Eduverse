@@ -1,194 +1,184 @@
 "use client";
 
+import CourseCard from "@/app/courses/components/courseCard";
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
+import { Enrollment } from "@/utils/types";
 import {
   BookOpen,
-  Calendar,
   ChevronRight,
-  Eye,
-  Play,
-  Users,
+  GraduationCap,
+  TrendingUp,
 } from "lucide-react";
-
-// Define the type for a Course
-interface Course {
-  id?: string | number;
-  title?: string;
-  thumbnail?: string;
-  progress?: number;
-  enrolledCount?: number;
-  duration?: string;
-}
-
-// Define the type for Student
-interface Student {
-  name: string;
-  recentCourses?: Course[];
-}
+import { useEffect, useState } from "react";
 
 // Props type
 interface RecentCoursesProps {
-  student: Student;
+  userId: string;
 }
 
-const RecentCourses: React.FC<RecentCoursesProps> = ({ student }) => {
+const RecentCourses: React.FC<RecentCoursesProps> = ({ userId }) => {
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      try {
+        console.log(userId);
+        // Fetch enrollments for the student
+        const res = await fetch(
+          `http://localhost:5001/api/enrollments/student/${userId}`
+        );
+        const enrollments = await res.json();
+        localStorage.setItem(
+          "totalEnrolledCourses",
+          enrollments.length.toString()
+        );
+
+        setEnrollments(enrollments);
+      } catch (error) {
+        console.log("Failed to fetch enrolled courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl p-8 border border-gray-100">
+        <LoadingIndicator text="Loading your enrolled courses..." />
+      </div>
+    );
+  }
+
+  const totalEnrollments = enrollments.length;
+  const averageProgress =
+    totalEnrollments > 0
+      ? enrollments.reduce(
+          (sum, enrollment) => sum + Number(enrollment.progressPercentage),
+          0
+        ) / totalEnrollments
+      : 0;
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
-          <BookOpen className="w-6 h-6 text-teal-500" />
-          <span>Recent Courses</span>
-        </h3>
-        <button className="text-teal-600 hover:text-teal-700 font-medium text-sm flex items-center space-x-1">
-          <span>View All</span>
-          <ChevronRight size={16} />
-        </button>
+    <div className="space-y-6">
+      {/* Header Section with Stats */}
+      <div className="bg-gradient-to-r from-teal-500 via-teal-600 to-cyan-600 rounded-2xl p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold">Your Learning Journey</h3>
+              <p className="text-teal-100 text-sm">
+                Continue your enrolled courses
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() =>
+              (window.location.href = `/students/${userId}/enrolled_course/`)
+            }
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full px-6 py-3 font-medium text-sm flex items-center space-x-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+          >
+            <span>View All Courses</span>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
+        {/* Stats Row */}
+        <div className="flex items-center space-x-8 mt-6">
+          <div className="flex items-center space-x-2">
+            <GraduationCap className="w-5 h-5 text-teal-200" />
+            <span className="text-sm text-teal-100">
+              {totalEnrollments} Course{totalEnrollments !== 1 ? "s" : ""}{" "}
+              Enrolled
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <TrendingUp className="w-5 h-5 text-teal-200" />
+            <span className="text-sm text-teal-100">
+              {averageProgress.toFixed(1)}% Average Progress
+            </span>
+          </div>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {student.recentCourses && student.recentCourses.length > 0
-          ? student.recentCourses
-              .slice(0, 3)
-              .map((course, index) => (
-                <div
-                  key={course.id || index}
-                  className="bg-white/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group"
-                >
-                  <div className="relative w-full h-32 rounded-xl overflow-hidden mb-4">
-                    {course.thumbnail ? (
-                      <img
-                        src={course.thumbnail}
-                        alt={course.title}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${
-                          index === 0
-                            ? "from-teal-500 to-purple-600"
-                            : index === 1
-                            ? "from-green-500 to-teal-600"
-                            : "from-orange-500 to-red-600"
-                        }`}
-                      />
-                    )}
+      {/* Courses Grid */}
+      {enrollments.length > 0 ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="text-lg font-semibold text-gray-900">
+              Recent Courses
+            </h4>
+            <span className="text-sm text-gray-500">
+              Showing {Math.min(3, enrollments.length)} of {enrollments.length}
+            </span>
+          </div>
 
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <Play className="w-6 h-6 text-white ml-1" />
-                      </div>
-                    </div>
-                    <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      {course.progress || 0}% Complete
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-gray-900 group-hover:text-teal-600 transition-colors">
-                      {course.title || `Course ${index + 1}`}
-                    </h4>
-                    <div className="flex items-center space-x-3 text-sm text-gray-600">
-                      <span className="flex items-center space-x-1">
-                        <Users size={14} />
-                        <span>{course.enrolledCount || 0} students</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <Calendar size={14} />
-                        <span>{course.duration || "N/A"}</span>
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full bg-gradient-to-r ${
-                          index === 0
-                            ? "from-teal-500 to-purple-600"
-                            : index === 1
-                            ? "from-green-500 to-teal-600"
-                            : "from-orange-500 to-red-600"
-                        }`}
-                        style={{ width: `${course.progress || 0}%` }}
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <button className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 text-sm">
-                        <Play size={14} />
-                        <span>Continue</span>
-                      </button>
-                      <button className="flex items-center justify-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm">
-                        <Eye size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-          : // Fallback UI if no courses
-            [1, 2, 3].map((index) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {enrollments.slice(0, 3).map((enrollment, index) => (
               <div
-                key={index}
-                className="bg-white/50 rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group"
+                key={enrollment.courseId}
+                className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                  animation: `fadeInUp 0.6s ease-out forwards`,
+                }}
               >
-                <div className="relative w-full h-32 rounded-xl overflow-hidden mb-4">
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${
-                      index === 1
-                        ? "from-teal-500 to-purple-600"
-                        : index === 2
-                        ? "from-green-500 to-teal-600"
-                        : "from-orange-500 to-red-600"
-                    }`}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Play className="w-6 h-6 text-white ml-1" />
-                    </div>
-                  </div>
-                  <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md text-white px-2 py-1 rounded-full text-xs font-semibold">
-                    {Math.floor(Math.random() * 80) + 10}% Complete
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-bold text-gray-900 group-hover:text-teal-600 transition-colors">
-                    Sample Course {index}
-                  </h4>
-                  <div className="flex items-center space-x-3 text-sm text-gray-600">
-                    <span className="flex items-center space-x-1">
-                      <Users size={14} />
-                      <span>
-                        {Math.floor(Math.random() * 500) + 100} students
-                      </span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <Calendar size={14} />
-                      <span>{Math.floor(Math.random() * 10) + 2}h</span>
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full bg-gradient-to-r ${
-                        index === 1
-                          ? "from-teal-500 to-purple-600"
-                          : index === 2
-                          ? "from-green-500 to-teal-600"
-                          : "from-orange-500 to-red-600"
-                      }`}
-                      style={{
-                        width: `${Math.floor(Math.random() * 80) + 10}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="flex space-x-2">
-                    <button className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 text-sm">
-                      <Play size={14} />
-                      <span>Continue</span>
-                    </button>
-                    <button className="flex items-center justify-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm">
-                      <Eye size={14} />
-                    </button>
-                  </div>
-                </div>
+                <CourseCard
+                  course={enrollment.course}
+                  enrollmentId={enrollment.id}
+                  isEnrolled={true}
+                  progress={Number(enrollment.progressPercentage).toFixed(2)}
+                />
               </div>
             ))}
-      </div>
+          </div>
+        </div>
+      ) : (
+        // Empty State
+        <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-slate-50 rounded-2xl border-2 border-dashed border-gray-200">
+          <div className="bg-gradient-to-r from-teal-100 to-cyan-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+            <BookOpen className="w-10 h-10 text-teal-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No Courses Yet
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Start your learning journey by enrolling in your first course.
+            Discover new skills and knowledge today!
+          </p>
+          <button
+            onClick={() => (window.location.href = "/courses")}
+            className="bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-medium px-8 py-3 rounded-full transition-all duration-200 hover:shadow-lg hover:scale-105"
+          >
+            Browse Courses
+          </button>
+        </div>
+      )}
+
+      {/* Custom CSS for animations */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

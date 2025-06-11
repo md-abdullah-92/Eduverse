@@ -4,7 +4,15 @@ import CourseCard from "@/app/courses/components/courseCard";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { poppins, raleway } from "@/utils/font";
 import { Enrollment } from "@/utils/types";
-import { BookOpen, ChevronDown, Filter, Link, Search } from "lucide-react";
+import {
+  BookOpen,
+  ChevronDown,
+  Filter,
+  GraduationCap,
+  Link,
+  Search,
+  TrendingUp,
+} from "lucide-react";
 import { use, useEffect, useState } from "react";
 
 export default function StudentEnrolledCoursesPage({
@@ -72,6 +80,20 @@ export default function StudentEnrolledCoursesPage({
     return matchesTopic && matchesSearch;
   });
 
+  // Calculate stats
+  const totalEnrollments = enrollments.length;
+  const averageProgress =
+    totalEnrollments > 0
+      ? enrollments.reduce(
+          (sum, enrollment) => sum + Number(enrollment.progressPercentage),
+          0
+        ) / totalEnrollments
+      : 0;
+
+  const completedCourses = enrollments.filter(
+    (enrollment) => Number(enrollment.progressPercentage) >= 100
+  ).length;
+
   if (loading) {
     return <LoadingIndicator text="Loading your enrolled courses..." />;
   }
@@ -80,26 +102,35 @@ export default function StudentEnrolledCoursesPage({
     <div
       className={`min-h-screen bg-gradient-to-b from-white to-teal-50 pb-20 ${poppins.className}`}
     >
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-teal-700 to-purple-600 text-white py-16 px-4">
-        <div className="max-w-7xl mx-auto">
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-purple-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-14">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div>
+            <div className="text-center md:text-left">
               <h1
                 className={`text-4xl md:text-5xl font-bold mb-4 ${raleway.className}`}
               >
-                Enrolled Courses
+                My Learning Dashboard
               </h1>
               <p className="text-teal-100 text-lg max-w-xl">
-                Track your progress and continue learning where you left off.
+                Track your progress, continue where you left off, and achieve
+                your learning goals.
               </p>
             </div>
-            <div className="mt-8 md:mt-0">
-              <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg inline-flex items-center">
-                <BookOpen className="h-12 w-12 text-white mr-3" />
+
+            {/* Quick Stats Card */}
+            <div className="mt-8 md:mt-0 bg-white/10 backdrop-blur-sm rounded-2xl p-6 min-w-[280px]">
+              <div className="flex items-center justify-center mb-4">
+                <BookOpen className="h-12 w-12 text-white" />
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-sm text-teal-100">Enrolled courses</p>
-                  <p className="text-2xl font-bold">{enrollments.length}</p>
+                  <p className="text-2xl font-bold">{totalEnrollments}</p>
+                  <p className="text-sm text-teal-100">Enrolled</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{completedCourses}</p>
+                  <p className="text-sm text-teal-100">Completed</p>
                 </div>
               </div>
             </div>
@@ -107,8 +138,51 @@ export default function StudentEnrolledCoursesPage({
         </div>
       </div>
 
+      {/* Progress Overview Card */}
+      <div className="max-w-7xl mx-auto px-4 -mt-8 relative z-10">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="flex items-center space-x-4">
+              <div className="bg-teal-100 rounded-full p-3">
+                <GraduationCap className="w-6 h-6 text-teal-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {totalEnrollments}
+                </p>
+                <p className="text-sm text-gray-600">Total Enrollments</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="bg-purple-100 rounded-full p-3">
+                <TrendingUp className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {averageProgress.toFixed(1)}%
+                </p>
+                <p className="text-sm text-gray-600">Average Progress</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="bg-green-100 rounded-full p-3">
+                <BookOpen className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {completedCourses}
+                </p>
+                <p className="text-sm text-gray-600">Completed Courses</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Search & Filter */}
-      <div className="max-w-7xl mx-auto px-4 -mt-8">
+      <div className="max-w-7xl mx-auto px-4 mt-12">
         <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-4">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -138,30 +212,6 @@ export default function StudentEnrolledCoursesPage({
               <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Dashboard Card */}
-      <div className="max-w-7xl mx-auto px-4 mt-8">
-        <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-teal-600">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div>
-              <h2
-                className={`text-xl font-bold text-gray-800 ${raleway.className}`}
-              >
-                Student Dashboard
-              </h2>
-              <p className="text-gray-600">
-                View your learning analytics and track overall progress
-              </p>
-            </div>
-            <a
-              href={`/students/dashboard/${userId}`}
-              className="mt-4 md:mt-0 px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"
-            >
-              Open Dashboard
-            </a>
-          </div>
         </div>
       </div>
 
@@ -204,7 +254,7 @@ export default function StudentEnrolledCoursesPage({
               <CourseCard
                 key={`course-${enrollment.course.id}`}
                 course={enrollment.course}
-                progress={Number(enrollment.progressPercentage?.toFixed(2))}
+                progress={enrollment.progressPercentage?.toFixed(2)}
                 isEnrolled={true}
                 enrollmentId={enrollment.id}
               />
