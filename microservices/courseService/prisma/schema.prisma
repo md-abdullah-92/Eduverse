@@ -117,7 +117,7 @@ model Quiz {
 
 model Question {
   id            String          @id @default(cuid())
-  question      String
+  question      String          @db.Text
   correctAnswer String?         @db.Text
   options       Json?
   explanation   String?         @db.Text

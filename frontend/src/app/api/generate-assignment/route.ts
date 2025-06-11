@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       ],
     });
 
-    const prompt = `Create a detailed classroom friendly assignment with only 3-4 short questions based on the topic: "${topic}".Keep the tone formal and academic.`;
+    const prompt = `Create a assignment with only 8-9 short questions based on the topic: "${topic}".Keep the tone formal and academic. No need any extra explanations or markdown formatting. The questions should be clear, concise, and suitable for a classroom setting. Respond with the assignment text only, without any additional comments or formatting.`;
 
     let retries = 0;
     let delay = RETRY_DELAY_BASE;

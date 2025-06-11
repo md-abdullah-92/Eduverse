@@ -83,11 +83,11 @@ model Quiz {
 
 model Question {
   id            String   @id @default(cuid())
-  question      String
+  question      String   @db.Text
   correctAnswer String?  @db.Text
   options       Json?
   explanation   String?  @db.Text
-  difficulty    String
+  difficulty    String   
   type          String
   quizId        String?
   quiz          Quiz?    @relation(fields: [quizId], references: [id], onDelete: Cascade) 

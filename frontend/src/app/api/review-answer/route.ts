@@ -1,4 +1,4 @@
-// app/api/review-assignment/route.ts
+// app/api/review-answer/route.ts
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { sleep } from "@/utils/sleep";
@@ -20,31 +20,35 @@ function extractNumericMark(text: string): number | null {
 
 export async function POST(req: Request) {
   try {
-    const { title, description, answer } = await req.json();
+    const { question, answer } = await req.json();
 
-    if (!title || !description || !answer) {
+    if (!question || !answer) {
       return NextResponse.json(
-        { error: "Missing assignment or answer data." },
+        { error: "Missing question or answer." },
         { status: 400 }
       );
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    const prompt = `You are Eduverse AI, a helpful assistant that evaluates student responses to academic assignments. 
-Review and fairly score the student's answer based on the provided assignment. 
-Provide only a numeric score out of 100, with no additional comments unless asked explicitly.
+    const prompt = `You are Eduverse AI, a helpful assistant that evaluates student responses to academic questions.
+Evaluate the student's answer based on the following question. 
 
-Assignment Title: ${title}
+Return two things:
+1. A numeric score out of 10.
+2. A short constructive suggestion (1-2 lines) on how to improve the answer.
 
-Assignment Description:
-${description}
+Question:
+${question}
 
 Student's Answer:
 ${answer}
 
-Please evaluate this answer and respond with only the numeric score out of 100.`;
+Respond with:
+Score: <numeric_score>/10
+Suggestion: <short_feedback>
+`;
 
     let retries = 0;
     let delay = RETRY_DELAY_BASE;
@@ -53,14 +57,17 @@ Please evaluate this answer and respond with only the numeric score out of 100.`
       try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const rawText = response.text();
+        const rawText = await response.text();
 
-        const extractedMark = extractNumericMark(rawText);
-        if (extractedMark === null) {
+        const mark = extractNumericMark(rawText);
+        const suggestionMatch = rawText.match(/Suggestion:\s*(.+)/i);
+        const suggestion = suggestionMatch ? suggestionMatch[1].trim() : "No suggestion found.";
+
+        if (mark === null) {
           throw new Error("Failed to extract mark from Gemini response.");
         }
 
-        return NextResponse.json({ mark: extractedMark });
+        return NextResponse.json({ mark, suggestion });
       } catch (error: any) {
         if (error.status === 503) {
           console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
@@ -69,9 +76,10 @@ Please evaluate this answer and respond with only the numeric score out of 100.`
           retries++;
           continue;
         }
-        console.error("Error evaluating assignment:", error);
+
+        console.error("Error evaluating answer:", error);
         return NextResponse.json(
-          { error: "An error occurred while evaluating the assignment." },
+          { error: "An error occurred while evaluating the answer." },
           { status: 500 }
         );
       }

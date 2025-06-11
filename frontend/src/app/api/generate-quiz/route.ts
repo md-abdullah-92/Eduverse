@@ -42,7 +42,7 @@ export async function POST(req: Request) {
           "type": "${questionType}",
           "options": ["option1", "option2", "option3", "option4"], // Only for MCQ
           "correctAnswer": "option_letter", // Only for MCQ
-          "explanation": "detailed_explanation",
+          "explanation": "answer_explanation(Not so long)",// For both MCQ and CQ
           "difficulty": "easy|medium|hard"
         }
       ]

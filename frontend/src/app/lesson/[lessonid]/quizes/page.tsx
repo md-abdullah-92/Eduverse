@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {  useParams } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { dmSerif, notoSerif } from "@/utils/font";
-import { CheckCircle, Circle } from "lucide-react";
-import { useRef } from "react";
-
+import { CheckCircle, Circle, ClipboardList,Award } from "lucide-react";
 
 type Question = {
   id: string;
   question: string;
-  type: "mcq" | "text";
+  type: "mcq" | "cq";
   options?: string[];
   correctAnswer?: string;
   explanation?: string;
@@ -34,9 +32,7 @@ export default function StudentExamPage() {
   const [loading, setLoading] = useState(true);
   const answersRef = useRef<Record<string, string>>({});
 
-
   const lessonId = useParams().lessonid as string;
-
 
   useEffect(() => {
     async function fetchNote() {
@@ -95,31 +91,50 @@ export default function StudentExamPage() {
     return () => clearInterval(interval);
   }, [startTime, submitted]);
 
-  const handleChange = (questionId: string, selectedLetter: string) => {
-  const newAnswers = { ...answersRef.current, [questionId]: selectedLetter };
-  answersRef.current = newAnswers;
-  setAnswers(newAnswers);
-};
+  const handleChange = (questionId: string, value: string) => {
+    const newAnswers = { ...answersRef.current, [questionId]: value };
+    answersRef.current = newAnswers;
+    setAnswers(newAnswers);
+  };
 
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
   if (submitted) return;
 
   let total = 0;
+  const cqAnswers: { id: string; answer: string }[] = [];
+
   questions.forEach(q => {
-    if (
-      answersRef.current[q.id]?.trim().toUpperCase() ===
-      q.correctAnswer?.trim().toUpperCase()
-    ) {
-      total++;
+    const userAns = answersRef.current[q.id]?.trim();
+    if (q.type === "mcq") {
+      if (userAns?.toUpperCase() === q.correctAnswer?.toUpperCase()) total++;
+    } else if (q.type === "cq") {
+      cqAnswers.push({ id: q.id, answer: userAns || "" });
     }
   });
 
-  setScore(total);
+  try {
+    let cqMarks = 0;
+
+    if (cqAnswers.length > 0) {
+      const res = await fetch("/api/review-cq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cqAnswers }),
+      });
+
+      const result = await res.json();
+      cqMarks = typeof result.totalCQMarks === "number" ? result.totalCQMarks : 0;
+    }
+
+    setScore(total + cqMarks);
+  } catch (error) {
+    console.error("CQ Evaluation Error:", error);
+    alert("Failed to evaluate CQ answers.");
+    setScore(total); // fallback to MCQ-only score
+  }
+
   setSubmitted(true);
 };
-
-  
 
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60);
@@ -130,17 +145,36 @@ export default function StudentExamPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 py-10 px-4">
       <div className="max-w-4xl mx-auto space-y-10">
-        {/* Header */}
+         {!submitted && (
         <div className="text-center space-y-2">
-          <h1 className={`${dmSerif.className} text-3xl text-teal-800 font-bold`}>
-            🧠 Take Your Exam
+          <h1
+            className={`${dmSerif.className} text-3xl text-gray-800 font-bold flex items-center justify-center gap-2`}
+          >
+            <ClipboardList className="w-7 h-7 text-teal-600" />
+            Take Your Exam
           </h1>
-          <p className="text-gray-600 text-lg">
-            Answer all questions within the given time.
+          <p className="text-gray-600">
+            MCQs: 1pt each · CQs: 5pts each.
           </p>
         </div>
+         )}
 
-        {/* Exam Description */}
+        {submitted && (   
+          <Card className="bg-white border border-teal-200 shadow-lg rounded-2xl mt-8 text-center">
+            <CardContent className="p-6 space-y-3">
+               <h2
+                className={`${dmSerif.className} text-2xl text-teal-800 font-semibold flex items-center justify-center gap-2`}
+              >
+                <Award className="w-6 h-6 text-green-600" />
+                Exam Submitted!
+              </h2>
+              <p className="text-gray-700 font-medium">
+                Your total score: <strong>{score}</strong>
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {!hasStarted && !submitted && !loading && (
           <Card className="bg-white/90 border shadow-lg rounded-2xl">
             <CardContent className="p-6 space-y-3">
@@ -150,14 +184,12 @@ export default function StudentExamPage() {
           </Card>
         )}
 
-        {/* Countdown */}
         {!hasStarted && !submitted && (
           <div className="text-center text-xl font-medium text-teal-700">
             ⏳ Your exam starts in <span className="font-bold">{startDelay}</span> seconds...
           </div>
         )}
 
-        {/* Timer */}
         {hasStarted && !submitted && (
           <div className="text-right text-sm font-medium text-teal-700">
             ⏱️ Time Left: <span className="font-bold">{formatTime(remainingTime)}</span>
@@ -168,7 +200,6 @@ export default function StudentExamPage() {
           </div>
         )}
 
-        {/* Questions */}
         {hasStarted && (
           <div className="space-y-8">
             {questions.map((q, index) => {
@@ -176,7 +207,6 @@ export default function StudentExamPage() {
               return (
                 <Card key={q.id} className="bg-white border shadow-md rounded-2xl">
                   <CardContent className="p-6 space-y-4">
-                    {/* Question Title */}
                     <div className="flex gap-3 items-start">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-purple-600 text-purple-700 font-bold">
                         {index + 1}
@@ -186,51 +216,57 @@ export default function StudentExamPage() {
                       </div>
                     </div>
 
-               
+                    {q.type === "mcq" && q.options?.map((opt, i) => {
+                      const optionLetter = String.fromCharCode(65 + i);
+                      const isSelected = userAnswer === optionLetter;
+                      const isCorrect = q.correctAnswer === optionLetter;
 
+                      return (
+                        <div
+                          key={i}
+                          className={`flex items-start gap-3 p-4 rounded-xl border text-sm md:text-base ${
+                            submitted && isCorrect
+                              ? "bg-green-50 border-green-500"
+                              : "bg-white border-gray-300 hover:border-teal-500"
+                          } transition-all cursor-pointer`}
+                          onClick={() => !submitted && handleChange(q.id, optionLetter)}
+                        >
+                          <div className="pt-1">
+                            {isSelected ? (
+                              <CheckCircle className="text-teal-600 w-5 h-5" />
+                            ) : (
+                              <Circle className="text-gray-400 w-5 h-5" />
+                            )}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-800">{optionLetter}.</span>{" "}
+                            <span className="text-gray-700">{opt}</span>
+                            {submitted && isSelected && !isCorrect && (
+                              <span className="text-red-500 ml-2">❌</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
 
+                    {q.type === "cq" && (
+                      <textarea
+                        disabled={submitted}
+                        rows={6}
+                        className="w-full border border-gray-300 rounded-md p-4 focus:outline-none focus:ring-2 focus:ring-teal-400 text-gray-800 mt-3"
+                        placeholder="Write your answer here..."
+                        value={userAnswer || ""}
+                        onChange={(e) => handleChange(q.id, e.target.value)}
+                      />
+                    )}
 
-{q.options?.map((opt, i) => {
-  const optionLetter = String.fromCharCode(65 + i);
-  const isSelected = userAnswer === optionLetter;
-  const isCorrect = q.correctAnswer === optionLetter;
-
-  return (
-    <div
-      key={i}
-      className={`flex items-start gap-3 p-4 rounded-xl border text-sm md:text-base
-        ${
-          submitted && isCorrect
-            ? "bg-green-50 border-green-500"
-            : "bg-white border-gray-300 hover:border-teal-500"
-        } transition-all cursor-pointer`}
-      onClick={() => !submitted && handleChange(q.id, optionLetter)}
-    >
-      <div className="pt-1">
-        {isSelected ? (
-          <CheckCircle className="text-teal-600 w-5 h-5" />
-        ) : (
-          <Circle className="text-gray-400 w-5 h-5" />
-        )}
-      </div>
-      <div>
-        <span className="font-semibold text-gray-800">{optionLetter}.</span>{" "}
-        <span className="text-gray-700">{opt}</span>
-        {submitted && isSelected && !isCorrect && (
-          <span className="text-red-500 ml-2">❌</span>
-        )}
-      </div>
-    </div>
-  );
-})}
-
-
-                    {/* Explanation */}
                     {submitted && (
                       <div className="pl-12 space-y-2 text-sm text-gray-700">
-                        <div className="text-green-700 font-medium">
-                          ✅ Correct Answer: {q.correctAnswer}
-                        </div>
+                        {q.type === "mcq" && (
+                          <div className="text-green-700 font-medium">
+                            ✅ Correct Answer: {q.correctAnswer}
+                          </div>
+                        )}
                         {q.explanation && (
                           <div>💡 <strong>Explanation:</strong> {q.explanation}</div>
                         )}
@@ -244,7 +280,6 @@ export default function StudentExamPage() {
           </div>
         )}
 
-        {/* Submit Button */}
         {hasStarted && !submitted && (
           <div className="text-center">
             <Button className="mt-6" onClick={handleSubmit}>
@@ -253,22 +288,6 @@ export default function StudentExamPage() {
           </div>
         )}
 
-        {/* Result Card */}
-        {submitted && (
-          <Card className="bg-white border border-teal-200 shadow-lg rounded-2xl mt-8 text-center">
-            <CardContent className="p-6 space-y-3">
-              <h2 className={`${dmSerif.className} text-2xl text-teal-800 font-semibold`}>
-                🎉 Exam Submitted!
-              </h2>
-              <p className="text-gray-700 font-medium">
-                You answered {score} out of {questions.length} questions correctly.
-              </p>
-              <p className="text-sm text-gray-600">
-                Redirecting you to the summary page shortly...
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
