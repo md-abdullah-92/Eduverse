@@ -5,88 +5,19 @@ import ChatWidget from "@/app/lesson/ChatWidget";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import ChartGrid from "../components/ChartGrid";
 import DashboardHeader from "../components/DashboardHeader";
 import ProfileCard from "../components/ProfileCard";
 import RecentCourses from "../components/Recent-Courses";
 import Sidebar from "../components/Sidebar";
 import StatGrid from "../components/StatGrid";
+import { useStudentProfile } from "@/hooks/useStudentProfile";
 export default function ModernStudentDashboard() {
   const params = useParams();
-  const userId = params?.id;
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [role, setRole] = useState("STUDENT");
+  const userId = params?.id as string | null;
+  
+  const { profile, role, loading, error } = useStudentProfile(userId);
 
-  useEffect(() => {
-    if (!userId) {
-      ErrorDisplay({
-        error: "User ID not found",
-        title: "Profile Fetch Error",
-        description:
-          "We couldn't load the content you're looking for. This might be a temporary issue.",
-      });
-      setLoading(false);
-      return;
-    }
-
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        if (!data.studentProfile) throw new Error("Student profile not found");
-
-        setProfile(data.studentProfile);
-        setRole(data.studentProfile?.user?.role || "STUDENT");
-
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            "userPhoto",
-            data.studentProfile.profilePhoto || ""
-          );
-          localStorage.setItem(
-            "userName",
-            data.studentProfile.user.name || "Student Name"
-          );
-          localStorage.setItem("userId", data.studentProfile.userId || userId);
-          localStorage.setItem(
-            "role",
-            data.studentProfile.user.role || "STUDENT"
-          );
-          localStorage.setItem(
-            "userEmail",
-            data.studentProfile.user.email || ""
-          );
-          localStorage.setItem(
-            "userPhone",
-            data.studentProfile.user.phone || "N/A"
-          );
-          localStorage.setItem(
-            "userBio",
-            data.studentProfile.user.bio || "N/A"
-          );
-          localStorage.setItem(
-            "userCoverPhoto",
-            data.studentProfile.coverPhoto || "N/A"
-          );
-        }
-
-        console.log("Profile data:", data.studentProfile);
-      } catch (err: any) {
-        setError(err.message || "Something went wrong");
-        console.error("Profile fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [userId]);
 
   if (loading) {
     return <LoadingIndicator text="Loading your dashboard..." />;

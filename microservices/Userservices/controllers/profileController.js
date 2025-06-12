@@ -198,7 +198,12 @@ exports.getProfileById = async (req, res) => {
       where: { id: userId },
       include: {
         studentProfile: {
-          include: { user: true },
+          include: { user: true ,
+            quizResults: {
+              include: { answeredquestions: true },
+            },
+
+          },
         },
         teacherProfile: {
           include: {
@@ -255,7 +260,9 @@ exports.getProfile = async (req, res) => {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                studentProfile: { include: { user: true } },
+                studentProfile: { include: { user: true ,
+                    quizResults: { include: { quiz: true } },
+                } },
                 teacherProfile: { include: { user: true } }
             }
         });

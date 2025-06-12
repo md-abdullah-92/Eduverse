@@ -378,21 +378,13 @@ export default function LearnPage() {
     }));
   }, []);
 
-  const handleStartAssignment = useCallback(() => {
-    if (!currentLesson?.id) return;
-    // TODO: Show assignment modal or redirect
-    setLessonProgress((prev) => ({
-      ...prev,
-      [currentLesson.id]: {
-        ...prev[currentLesson.id],
-        assignmentCompleted: true,
-      },
-    }));
-  }, [currentLesson?.id]);
+  
 
   const handleStartQuiz = useCallback(() => {
     if (!currentLesson?.id) return;
-    // TODO: Show quiz modal or redirect
+    // Navigate to quiz page
+    router.push(`/lesson/${currentLesson.id}/quizes`);
+    // Mark quiz as completed in lesson progress  
     setLessonProgress((prev) => ({
       ...prev,
       [currentLesson.id]: {
@@ -690,7 +682,10 @@ export default function LearnPage() {
 
                 {/* Assignment Button */}
                 <button
-                  onClick={handleStartAssignment}
+                   onClick={() => {
+                    router.push(`/lesson/${currentLesson.id}/assignments`);
+                    setShowNotes(true);
+                  }}
                   className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     lessonProgress[currentLesson.id]?.assignmentCompleted
                       ? "bg-green-100 text-green-700"

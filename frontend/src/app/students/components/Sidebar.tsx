@@ -58,6 +58,10 @@ const Sidebar = ({
       setShowLogoutModal(true);
       return;
     }
+    if( label==="Quiz Attempts"){
+      router.push(`/students/${userId}/quiz/quizattempts`);
+      return;
+    }
     if(label === "Dashboard"){
       router.push(`/students/${userId}`);
       return;

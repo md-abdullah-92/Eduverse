@@ -45,6 +45,7 @@ model StudentProfile {
   coverPhoto      String?
   profilePhoto    String?
   bio             String?  @db.Text
+  quizResults     Quizresults[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -124,4 +125,31 @@ enum DifficultyLevel {
   EASY
   MEDIUM
   HARD
+}
+
+model Quizresults{
+  id          String     @id @default(cuid())
+  title       String
+  marks       Int 
+  studentId   Int
+  student     StudentProfile @relation(fields: [studentId], references: [userId])
+  answeredquestions   AnsweredQuestion[]
+  lessonId    Int
+  courseId    Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model AnsweredQuestion{
+  id            String   @id @default(cuid())
+  question      String   @db.Text
+  correctAnswer String?  @db.Text
+  useranswer    String?  @db.Text
+  options       Json?
+  explanation   String?  @db.Text
+  difficulty    String   
+  type          String
+  quizId        String?
+  quizResultId String
+  quiz          Quizresults?    @relation(fields: [quizResultId], references: [id], onDelete: Cascade) 
 }

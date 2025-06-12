@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { dmSerif, notoSerif } from "@/utils/font";
 import { CheckCircle, Circle, ClipboardList,Award } from "lucide-react";
+import { set } from "lodash";
 
 type Question = {
   id: string;
@@ -31,14 +32,20 @@ export default function StudentExamPage() {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const answersRef = useRef<Record<string, string>>({});
-
+  const courseId = localStorage.getItem("courseId") || "";
+  const studentId = localStorage.getItem("userId") || "";
+  const [title, setTitle] = useState("Quiz");
+  console.log("Course ID:", courseId);
+  console.log("Student ID:", studentId);
   const lessonId = useParams().lessonid as string;
+  const Id=parseInt(lessonId, 10);
 
   useEffect(() => {
     async function fetchNote() {
       try {
         const res = await fetch(`http://localhost:5001/api/quizes/lesson/${lessonId}`);
         const data = await res.json();
+         setTitle(data[0]?.title || "Quiz");
         setQuestions(data[0]?.questions || []);
         setDuration(data[0]?.duration || 0);
         setDescription(data[0]?.description || '');
@@ -103,7 +110,7 @@ export default function StudentExamPage() {
   let total = 0;
   const cqAnswers: { id: string; answer: string }[] = [];
 
-  questions.forEach(q => {
+  questions.forEach((q) => {
     const userAns = answersRef.current[q.id]?.trim();
     if (q.type === "mcq") {
       if (userAns?.toUpperCase() === q.correctAnswer?.toUpperCase()) total++;
@@ -112,9 +119,9 @@ export default function StudentExamPage() {
     }
   });
 
-  try {
-    let cqMarks = 0;
+  let cqMarks = 0;
 
+  try {
     if (cqAnswers.length > 0) {
       const res = await fetch("/api/review-cq", {
         method: "POST",
@@ -125,16 +132,46 @@ export default function StudentExamPage() {
       const result = await res.json();
       cqMarks = typeof result.totalCQMarks === "number" ? result.totalCQMarks : 0;
     }
-
-    setScore(total + cqMarks);
   } catch (error) {
     console.error("CQ Evaluation Error:", error);
     alert("Failed to evaluate CQ answers.");
-    setScore(total); // fallback to MCQ-only score
   }
 
+  const finalScore = total + cqMarks;
+  setScore(finalScore);
   setSubmitted(true);
+
+  // ✅ Prepare data for backend
+  const answeredquestions = questions.map((q) => ({
+    question: q.question,
+    correctAnswer: q.correctAnswer || null,
+    options: q.options || [],
+    explanation: q.explanation || null,
+    difficulty: q.difficulty || "medium",
+    type: q.type,
+    useranswer: answersRef.current[q.id] || "",
+  }));
+
+  try {
+    await fetch("http://localhost:5000/api/result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: title,
+        marks: finalScore,
+        studentId: parseInt(studentId),
+        lessonId: Id,
+        courseId: parseInt(courseId),
+        answeredquestions,
+      }),
+    });
+  } catch (err) {
+    console.error("Failed to save result:", err);
+    alert("Something went wrong while submitting results.");
+  }
 };
+
+
 
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60);
@@ -249,7 +286,7 @@ export default function StudentExamPage() {
                       );
                     })}
 
-                    {q.type === "cq" && (
+                    {q.type !== "mcq" && (
                       <textarea
                         disabled={submitted}
                         rows={6}
