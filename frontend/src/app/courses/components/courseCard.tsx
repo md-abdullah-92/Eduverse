@@ -13,14 +13,14 @@ import {
 interface CourseCardProps {
   course: CourseData;
   isEnrolled?: boolean;
-  progress?: number;
+  progress?: string;
   enrollmentId?: number;
 }
 
 export default function CourseCard({
   course,
   isEnrolled = false,
-  progress = 0,
+  progress = "0",
   enrollmentId,
 }: CourseCardProps) {
   const { user } = useAuth();
@@ -32,7 +32,7 @@ export default function CourseCard({
     course,
     isTeacher,
     isEnrolled,
-    progress,
+    Number(progress),
     user?.id || ""
   );
 
@@ -111,7 +111,7 @@ export default function CourseCard({
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-teal-600 h-2 rounded-full"
-                  style={{ width: `${Number(progress).toFixed(2)}%` }}
+                  style={{ width: `${progress}%` }}
                 ></div>
               </div>
             </div>

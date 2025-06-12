@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/app/auth/context";
+import Sidebar from "@/app/students/components/Sidebar";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
 import { Enrollment, Lesson } from "@/utils/types";
@@ -11,6 +12,8 @@ import {
   FiBook,
   FiBookOpen,
   FiCheckCircle,
+  FiClipboard,
+  FiEdit3,
   FiFileText,
   FiMaximize,
   FiMenu,
@@ -22,7 +25,6 @@ import {
   FiVolume2,
   FiX,
 } from "react-icons/fi";
-import {  FiClipboard, FiEdit3 } from "react-icons/fi"; // Make sure these are imported
 
 interface VideoState {
   isPlaying: boolean;
@@ -37,6 +39,8 @@ interface LessonProgress {
     completed: boolean;
     watchTime: number;
     lastWatched: Date;
+    assignmentCompleted?: boolean;
+    quizCompleted?: boolean;
   };
 }
 
@@ -114,7 +118,7 @@ export default function LearnPage() {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState("");
   const [lessonProgress, setLessonProgress] = useState<LessonProgress>({});
@@ -374,6 +378,30 @@ export default function LearnPage() {
     }));
   }, []);
 
+  const handleStartAssignment = useCallback(() => {
+    if (!currentLesson?.id) return;
+    // TODO: Show assignment modal or redirect
+    setLessonProgress((prev) => ({
+      ...prev,
+      [currentLesson.id]: {
+        ...prev[currentLesson.id],
+        assignmentCompleted: true,
+      },
+    }));
+  }, [currentLesson?.id]);
+
+  const handleStartQuiz = useCallback(() => {
+    if (!currentLesson?.id) return;
+    // TODO: Show quiz modal or redirect
+    setLessonProgress((prev) => ({
+      ...prev,
+      [currentLesson.id]: {
+        ...prev[currentLesson.id],
+        quizCompleted: true,
+      },
+    }));
+  }, [currentLesson?.id]);
+
   const formatTime = useCallback((seconds: number) => {
     if (isNaN(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
@@ -416,140 +444,79 @@ export default function LearnPage() {
   const hasVideo = !!currentLesson.videoUrl;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Learning Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() =>
-                  router.push(`/courses/${course.id}?enrolled=${enrollment.id}`)
-                }
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <FiArrowLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <FiMenu className="h-5 w-5" />
-              </button>
-              <h1 className="text-lg font-semibold text-gray-900 truncate max-w-md">
-                {course.title}
-              </h1>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white shadow-lg fixed left-0 top-0 h-full z-40">
+        <div className="p-6">
+          <Sidebar userId={user?.id || ""} role={user?.role || "STUDENT"} />
+        </div>
+      </aside>
 
-            <div className="flex items-center space-x-4">
-              <div className="hidden md:flex items-center space-x-3 text-sm text-gray-600">
-                <span>{Math.round(courseProgress)}% Complete</span>
-                <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-teal-500 transition-all duration-300"
-                    style={{ width: `${courseProgress}%` }}
-                  />
-                </div>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content Area */}
+      <main className="flex-1 ml-90">
+        {/* Learning Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <FiMenu className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={() =>
+                    router.push(
+                      `/courses/${course.id}?enrolled=${enrollment.id}`
+                    )
+                  }
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <FiArrowLeft className="h-5 w-5" />
+                </button>
+                <h1 className="text-lg font-semibold text-gray-900 truncate max-w-md">
+                  {course.title}
+                </h1>
               </div>
 
-              <button
-                onClick={() => setShowNotes(!showNotes)}
-                className={`p-2 rounded-lg transition-colors ${
-                  showNotes
-                    ? "bg-teal-100 text-teal-700"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                <FiFileText className="h-4 w-4" />
-              </button>
+              <div className="flex items-center space-x-4">
+                <div className="hidden md:flex items-center space-x-3 text-sm text-gray-600">
+                  <span>{Math.round(courseProgress)}% Complete</span>
+                  <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-teal-500 transition-all duration-300"
+                      style={{ width: `${courseProgress}%` }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowNotes(!showNotes)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    showNotes
+                      ? "bg-teal-100 text-teal-700"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <FiFileText className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-6 py-6">
-          {/* Sidebar - Lesson List */}
-          <div
-            className={`${
-              sidebarOpen ? "w-80" : "w-0"
-            } transition-all duration-300 overflow-hidden flex-shrink-0 lg:block ${
-              sidebarOpen ? "block" : "hidden"
-            }`}
-          >
-            <div className="bg-white rounded-lg border border-gray-200 h-fit sticky top-24">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-gray-900">
-                    Course Content
-                  </h2>
-                  <button
-                    onClick={() => setSidebarOpen(false)}
-                    className="lg:hidden text-gray-400 hover:text-gray-600"
-                  >
-                    <FiX className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="mt-2 text-xs text-gray-500">
-                  {
-                    Object.values(lessonProgress).filter((p) => p.completed)
-                      .length
-                  }{" "}
-                  of {sortedLessons.length} lessons completed
-                </div>
-              </div>
-
-              <div className="max-h-96 overflow-y-auto">
-                {sortedLessons.map((lesson, index) => (
-                  <button
-                    key={lesson.id}
-                    onClick={() => handleLessonChange(lesson)}
-                    className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                      currentLesson.id === lesson.id
-                        ? "bg-teal-50 border-l-4 border-l-teal-500"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {lessonProgress[lesson.id!]?.completed ? (
-                          <FiCheckCircle className="h-4 w-4 text-green-500" />
-                        ) : currentLesson.id === lesson.id ? (
-                          <div className="h-4 w-4 rounded-full bg-teal-500" />
-                        ) : (
-                          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs text-teal-600 mb-1 font-medium">
-                          Lesson {index + 1}
-                        </div>
-                        <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-                          {lesson.title}
-                        </h3>
-                        <div className="flex items-center text-xs text-gray-500">
-                          {lesson.videoUrl ? (
-                            <>
-                              <FiVideo className="h-3 w-3 mr-1" />
-                              <span>Video</span>
-                            </>
-                          ) : (
-                            <>
-                              <FiBook className="h-3 w-3 mr-1" />
-                              <span>Text</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
+        {/* Content with Course Sidebar on Right */}
+        <div className="flex-1 flex overflow-hidden">
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 p-6 overflow-y-auto">
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
               {/* Video Player */}
               <div ref={playerContainerRef} className="relative bg-black">
@@ -708,77 +675,66 @@ export default function LearnPage() {
                   <p className="text-gray-600">{currentLesson.description}</p>
                 )}
               </div>
-               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-             {/* Notes Button */}
-             <button
-                onClick={() => {
-                router.push(`/lesson/${currentLesson.id}/notes`);
-                setShowNotes(true);
-               }}
-                 className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors"
-              >
-             <FiBookOpen className="w-4 h-4" />
-               View Notes
-             </button>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                {/* Notes Button */}
+                <button
+                  onClick={() => {
+                    router.push(`/lesson/${currentLesson.id}/notes`);
+                    setShowNotes(true);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors"
+                >
+                  <FiBookOpen className="w-4 h-4" />
+                  View Notes
+                </button>
 
-  {/* Assignment Button */}
-  <button
-     onClick={() => {
-                router.push(`/lesson/${currentLesson.id}/assignments`);
-                setShowNotes(true);
-               }}
+                {/* Assignment Button */}
+                <button
+                  onClick={handleStartAssignment}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    lessonProgress[currentLesson.id]?.assignmentCompleted
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {lessonProgress[currentLesson.id]?.assignmentCompleted ? (
+                    <>
+                      <FiCheckCircle className="w-4 h-4" />
+                      Assignment Completed
+                    </>
+                  ) : (
+                    <>
+                      <FiEdit3 className="w-4 h-4" />
+                      Start Assignment
+                    </>
+                  )}
+                </button>
 
-    className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-      lessonProgress[currentLesson.id]?.assignmentCompleted
-        ? "bg-green-100 text-green-700"
-        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-    }`}
-  >
-    {lessonProgress[currentLesson.id]?.assignmentCompleted ? (
-      <>
-        <FiCheckCircle className="w-4 h-4" />
-        Assignment Completed
-      </>
-    ) : (
-      <>
-        <FiEdit3 className="w-4 h-4" />
-        Start Assignment
-      </>
-    )}
-  </button>
-
-  {/* Quiz Button */}
-  <button
-     onClick={() => {
-                router.push(`/lesson/${currentLesson.id}/quizes`);
-                setShowNotes(true);
-               }}
-    className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-      lessonProgress[currentLesson.id]?.quizCompleted
-        ? "bg-green-100 text-green-700"
-        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-    }`}
-  >
-    {lessonProgress[currentLesson.id]?.quizCompleted ? (
-      <>
-        <FiCheckCircle className="w-4 h-4" />
-        Quiz Completed
-      </>
-    ) : (
-      <>
-        <FiClipboard className="w-4 h-4" />
-        Start Quiz
-      </>
-    )}
-  </button>
-</div>
-{/*space-y-4 mt-6 */}
-<div className="space-y-4 mt-6">
-  </div>
-
+                {/* Quiz Button */}
+                <button
+                  onClick={handleStartQuiz}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    lessonProgress[currentLesson.id]?.quizCompleted
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {lessonProgress[currentLesson.id]?.quizCompleted ? (
+                    <>
+                      <FiCheckCircle className="w-4 h-4" />
+                      Quiz Completed
+                    </>
+                  ) : (
+                    <>
+                      <FiClipboard className="w-4 h-4" />
+                      Start Quiz
+                    </>
+                  )}
+                </button>
+              </div>
 
               {/* Navigation */}
-              <div className="flex justify-between items-center pt-6 border-t border-gray-200">
+              <div className="flex justify-between items-center pt-6 border-t border-gray-200 mt-6">
                 <NavigationButton
                   direction="previous"
                   lesson={previousLesson}
@@ -798,9 +754,72 @@ export default function LearnPage() {
             </div>
           </div>
 
+          {/* Course Content Sidebar - Now on Right */}
+          <div className="w-80 flex-shrink-0 p-6 pl-0 overflow-y-auto border-l border-gray-200 bg-white">
+            <div className="bg-white rounded-lg border border-gray-200 h-full flex flex-col sticky top-24">
+              <div className="p-4 border-b border-gray-200 flex-shrink-0">
+                <h2 className="font-semibold text-gray-900">Course Content</h2>
+                <div className="mt-2 text-xs text-gray-500">
+                  {
+                    Object.values(lessonProgress).filter((p) => p.completed)
+                      .length
+                  }{" "}
+                  of {sortedLessons.length} lessons completed
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto">
+                {sortedLessons.map((lesson, index) => (
+                  <button
+                    key={lesson.id}
+                    onClick={() => handleLessonChange(lesson)}
+                    className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                      currentLesson.id === lesson.id
+                        ? "bg-teal-50 border-l-4 border-l-teal-500"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 mt-1">
+                        {lessonProgress[lesson.id!]?.completed ? (
+                          <FiCheckCircle className="h-4 w-4 text-green-500" />
+                        ) : currentLesson.id === lesson.id ? (
+                          <div className="h-4 w-4 rounded-full bg-teal-500" />
+                        ) : (
+                          <div className="h-4 w-4 rounded-full border-2 border-gray-300" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-teal-600 mb-1 font-medium">
+                          Lesson {index + 1}
+                        </div>
+                        <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
+                          {lesson.title}
+                        </h3>
+                        <div className="flex items-center text-xs text-gray-500">
+                          {lesson.videoUrl ? (
+                            <>
+                              <FiVideo className="h-3 w-3 mr-1" />
+                              <span>Video</span>
+                            </>
+                          ) : (
+                            <>
+                              <FiBook className="h-3 w-3 mr-1" />
+                              <span>Text</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Notes Panel */}
           {showNotes && (
-            <div className="w-80 flex-shrink-0">
+            <div className="w-80 flex-shrink-0 p-6 pl-0">
               <div className="bg-white rounded-lg border border-gray-200 h-fit sticky top-24">
                 <div className="flex items-center justify-between p-4 border-b border-gray-200">
                   <h3 className="font-semibold text-gray-900">My Notes</h3>
@@ -826,32 +845,7 @@ export default function LearnPage() {
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
-function handleStartAssignment() {
-  // TODO: Show assignment modal or redirect
-  setLessonProgress((prev) => ({
-    ...prev,
-    [currentLesson.id]: {
-      ...prev[currentLesson.id],
-      assignmentCompleted: true,
-    },
-  }));
-}
-
-function handleStartQuiz() {
-  // TODO: Show quiz modal or redirect
-  setLessonProgress((prev) => ({
-    ...prev,
-    [currentLesson.id]: {
-      ...prev[currentLesson.id],
-      quizCompleted: true,
-    },
-  }));
-}
-
-
-
-

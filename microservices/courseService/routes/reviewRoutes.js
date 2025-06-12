@@ -7,6 +7,7 @@ const { protect, authorize } = require('../middleware/auth');
 // Public routes (no auth needed)
 router.get('/course/:courseId', reviewController.getCourseReviews);
 router.get('/course/:courseId/stats', reviewController.getCourseRatingStats);
+router.get('/student/:studentId', reviewController.getStudentReviewStats);
 
 
 // Protected routes (auth required)
