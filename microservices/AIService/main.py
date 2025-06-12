@@ -11,7 +11,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 from langchain import LLMChain, PromptTemplate
-
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.schema import Document
 # env
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -30,26 +31,53 @@ app.add_middleware(
     allow_credentials=True
 )
 
+#chunks
+def chunking(path, chunk_size = 800, chunk_overlap = 200):
 
-def extract_chunks(path, chunk_size=400, overlap=100):
-    text = ""
-    for page in PdfReader(path).pages:
+    documents = []
+    for page_num, page in enumerate(PdfReader(path).pages):
         content = page.extract_text()
-        if content:
-            text += content
-
-    chunks = []
-    start = 0
-    while start < len(text):
-        end = min(start + chunk_size, len(text))
-        chunks.append(text[start:end])
-        start += chunk_size - overlap
+        if content and content.strip():
+            content = content.replace('\n\n\n', '\n\n') 
+            content = ' '.join(content.split())
+            
+            doc = Document(
+                page_content=content,
+                metadata={
+                    "source": path,
+                    "page": page_num + 1,
+                    "doc_type": "educational_material"
+                }
+            )
+            documents.append(doc)
+    
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        separators=[
+            "\n\n",      # Paragraph breaks (highest priority)
+            "\n",        # Line breaks
+            ". ",        # Sentence endings
+            "! ",        # Exclamation sentences
+            "? ",        # Question sentences
+            "; ",        # Semicolons
+            ", ",        # Commas
+            " ",         # Spaces
+            ""           # Characters (last resort)
+        ],
+        length_function=len,
+    )
+    
+    chunks = text_splitter.split_documents(documents)
+    
     return chunks
 
 
+
 def build_index(chunks):
-    vectorizer = TfidfVectorizer().fit(chunks)
-    matrix = vectorizer.transform(chunks).toarray()
+    texts = [doc.page_content for doc in chunks]
+    vectorizer = TfidfVectorizer().fit(texts)
+    matrix = vectorizer.transform(texts).toarray().astype(np.float32)
     index = faiss.IndexFlatL2(matrix.shape[1])
     index.add(matrix)
     return index, vectorizer
@@ -131,7 +159,7 @@ async def upload(file: UploadFile = File(...)):
         tmp.write(await file.read())
         path = tmp.name
 
-    chunks = extract_chunks(path)
+    chunks = chunking(path)
     idx, vect = build_index(chunks)
     return {
         "message": "File uploaded and processed successfully.",
@@ -150,7 +178,7 @@ async def quiz(
         tmp.write(await file.read())
         path = tmp.name
 
-    chunks = extract_chunks(path)
+    chunks = chunking(path)
     idx, vect = build_index(chunks)
 
     questions = []
@@ -166,7 +194,7 @@ async def quiz(
 
         try:
             if question_type == "mcq":
-                out = mcq_chain.run(content)
+                out = mcq_chain.invoke({"content": content})["text"]
                 parsed = mcq_parser.parse(out)
                 question_obj = {
                     "id": str(uuid.uuid4())[:8],
@@ -184,7 +212,7 @@ async def quiz(
                 }
 
             elif question_type == "short_answer":
-                out = short_chain.run(content)
+                out = short_chain.invoke({"content": content})["text"]
                 parsed = short_parser.parse(out)
                 question_obj = {
                     "id": str(uuid.uuid4())[:8],
