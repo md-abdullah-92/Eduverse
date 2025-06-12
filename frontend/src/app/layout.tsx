@@ -17,7 +17,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <head />
       <body className={poppins.className}>
-        <Header />
+        <div className="print:hidden">
+          <Header />
+        </div>
         <Providers>{children}</Providers>
       </body>
     </html>

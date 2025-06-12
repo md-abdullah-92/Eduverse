@@ -131,6 +131,7 @@ model Quizresults{
   id          String     @id @default(cuid())
   title       String
   marks       Int 
+  fullmark    Int      
   studentId   Int
   student     StudentProfile @relation(fields: [studentId], references: [userId])
   answeredquestions   AnsweredQuestion[]
@@ -145,7 +146,7 @@ model AnsweredQuestion{
   question      String   @db.Text
   correctAnswer String?  @db.Text
   useranswer    String?  @db.Text
-  options       Json?
+  options       Json?    
   explanation   String?  @db.Text
   difficulty    String   
   type          String

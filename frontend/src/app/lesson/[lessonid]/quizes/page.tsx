@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { dmSerif, notoSerif } from "@/utils/font";
 import { CheckCircle, Circle, ClipboardList,Award } from "lucide-react";
-import { set } from "lodash";
+
 
 type Question = {
   id: string;
@@ -39,6 +39,15 @@ export default function StudentExamPage() {
   console.log("Student ID:", studentId);
   const lessonId = useParams().lessonid as string;
   const Id=parseInt(lessonId, 10);
+  let fullmark=0
+  questions.forEach((q) => {
+    if (q.type === "cq") {
+      fullmark += 5; // Assuming each CQ is worth 5 points
+    }
+    else if (q.type === "mcq") {
+      fullmark += 1; // Assuming each MCQ is worth 1 point
+    }
+  });
 
   useEffect(() => {
     async function fetchNote() {
@@ -103,19 +112,19 @@ export default function StudentExamPage() {
     answersRef.current = newAnswers;
     setAnswers(newAnswers);
   };
-
+  
   const handleSubmit = async () => {
   if (submitted) return;
 
   let total = 0;
-  const cqAnswers: { id: string; answer: string }[] = [];
+  const cqAnswers: { id: string; question: string; answer: string }[] = [];
 
   questions.forEach((q) => {
     const userAns = answersRef.current[q.id]?.trim();
     if (q.type === "mcq") {
       if (userAns?.toUpperCase() === q.correctAnswer?.toUpperCase()) total++;
     } else if (q.type === "cq") {
-      cqAnswers.push({ id: q.id, answer: userAns || "" });
+      cqAnswers.push({ id: q.id, question: q.question, answer: userAns || "" });
     }
   });
 
@@ -141,7 +150,6 @@ export default function StudentExamPage() {
   setScore(finalScore);
   setSubmitted(true);
 
-  // ✅ Prepare data for backend
   const answeredquestions = questions.map((q) => ({
     question: q.question,
     correctAnswer: q.correctAnswer || null,
@@ -160,6 +168,7 @@ export default function StudentExamPage() {
         title: title,
         marks: finalScore,
         studentId: parseInt(studentId),
+        fullmark: fullmark,
         lessonId: Id,
         courseId: parseInt(courseId),
         answeredquestions,
@@ -285,8 +294,10 @@ export default function StudentExamPage() {
                         </div>
                       );
                     })}
+              
 
                     {q.type !== "mcq" && (
+                      
                       <textarea
                         disabled={submitted}
                         rows={6}

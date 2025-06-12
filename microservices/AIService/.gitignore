@@ -1,2 +1,15 @@
 node_modules
 .env
+
+# Logs
+logs
+npm-debug.log*
+# Build output
+dist
+# Dependency directories
+jspm_packages
+# Optional npm cache directory
+.npm
+# Optional eslint cache         
+
+__pycache__

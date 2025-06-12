@@ -5,9 +5,6 @@ import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { Enrollment } from "@/utils/types";
 import {
   BookOpen,
-  ChevronRight,
-  GraduationCap,
-  TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -63,50 +60,9 @@ const RecentCourses: React.FC<RecentCoursesProps> = ({ userId }) => {
       : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header Section with Stats */}
-      <div className="bg-gradient-to-r from-teal-500 via-teal-600 to-cyan-600 rounded-2xl p-6 text-white shadow-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
-              <BookOpen className="w-7 h-7" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold">Your Learning Journey</h3>
-              <p className="text-teal-100 text-sm">
-                Continue your enrolled courses
-              </p>
-            </div>
-          </div>
+    <div className="space-y-6 bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl p-8 border border-teal-300">
 
-          <button
-            onClick={() =>
-              (window.location.href = `/students/${userId}/enrolled_course/`)
-            }
-            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full px-6 py-3 font-medium text-sm flex items-center space-x-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
-          >
-            <span>View All Courses</span>
-            <ChevronRight size={16} />
-          </button>
-        </div>
-
-        {/* Stats Row */}
-        <div className="flex items-center space-x-8 mt-6">
-          <div className="flex items-center space-x-2">
-            <GraduationCap className="w-5 h-5 text-teal-200" />
-            <span className="text-sm text-teal-100">
-              {totalEnrollments} Course{totalEnrollments !== 1 ? "s" : ""}{" "}
-              Enrolled
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-teal-200" />
-            <span className="text-sm text-teal-100">
-              {averageProgress.toFixed(1)}% Average Progress
-            </span>
-          </div>
-        </div>
-      </div>
+      {/*card header */}
 
       {/* Courses Grid */}
       {enrollments.length > 0 ? (
@@ -124,7 +80,7 @@ const RecentCourses: React.FC<RecentCoursesProps> = ({ userId }) => {
             {enrollments.slice(0, 3).map((enrollment, index) => (
               <div
                 key={enrollment.courseId}
-                className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                className="transform transition-all duration-300 hover:scale-105 hover:shadow-lg rounded-2xl overflow-hidden bg-white shadow-sm border border-teal-500 animate-fade-in-up"
                 style={{
                   animationDelay: `${index * 100}ms`,
                   animation: `fadeInUp 0.6s ease-out forwards`,

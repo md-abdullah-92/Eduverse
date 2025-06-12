@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { sleep } from "@/utils/sleep";
+
+// Retry config
+const MAX_RETRIES = 3;
+const RETRY_DELAY_BASE = 1000;
+const RETRY_DELAY_MULTIPLIER = 2;
 
 // Initialize Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,35 +19,57 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid data format" }, { status: 400 });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
     let totalCQMarks = 0;
 
     for (const item of cqAnswers) {
-      const { id, answer } = item;
+      const { answer, question } = item;
+      console.log("Processing CQ entry:", item);
 
-      // Dummy placeholder for the question — replace with actual question if needed
-      const questionText = "Replace this with the actual CQ question text based on ID";
-
-      console.log("Received question:", questionText);
-      console.log("Received answer:", answer);
+      if (!answer || typeof answer !== "string" || !question) {
+        console.warn("Skipping invalid CQ entry with ID  item", item);
+        continue;
+      }
 
       const prompt = `Evaluate the student's answer to the following question. Give a mark out of 5 only.
 
-Question: ${questionText}
+Question: ${question}
 Answer: ${answer}
 
-Give only the mark (0-5) as the result.`;
+Respond ONLY with a number (0–5), no explanation or extra text.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
+      let retries = 0;
+      let delay = RETRY_DELAY_BASE;
+      let mark = 0;
 
-      const mark = parseFloat(text);
+      while (retries < MAX_RETRIES) {
+        try {
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          const text = response.text().trim();
 
-      if (!isNaN(mark)) {
-        totalCQMarks += mark;
+          // Extract numeric value (in case Gemini returns extra text)
+          const extractedMark = parseFloat(text.match(/\d+(\.\d+)?/)?.[0] || "NaN");
+
+          if (!isNaN(extractedMark)) {
+            mark = Math.min(5, Math.max(0, extractedMark)); // Clamp between 0–5
+            break;
+          } else {
+            throw new Error("Invalid mark format returned by Gemini");
+          }
+        } catch (error: any) {
+          if (error.status === 503) {
+            console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
+            await sleep(delay);
+            delay *= RETRY_DELAY_MULTIPLIER;
+            retries++;
+          } else {
+            console.error(`Error evaluating CQ ID ${id}:`, error);
+            break;
+          }
+        }
       }
+
+      totalCQMarks += mark;
     }
 
     return NextResponse.json({ totalCQMarks });

@@ -52,9 +52,9 @@ export default function ModernStudentDashboard() {
         <div className="fixed bottom-15 right-8 z-50">
           <ChatWidget />
         </div>
-        <div className="p-7 h-[bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border-1 border-teal-300">
+        
           <RecentCourses userId={String(userId)} />
-        </div>
+        
       </main>
     </div>
   );

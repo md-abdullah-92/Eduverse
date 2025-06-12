@@ -7,6 +7,7 @@ exports.createQuizResult = async (req, res) => {
     const {
       title,
       marks,
+      fullmark,
       studentId,
       lessonId,
       courseId,
@@ -17,6 +18,7 @@ exports.createQuizResult = async (req, res) => {
       data: {
         title,
         marks,
+        fullmark,
         studentId,
         lessonId,
         courseId,

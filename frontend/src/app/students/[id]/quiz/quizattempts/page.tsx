@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2 } from "lucide-react";
+
 import Sidebar from "@/app/students/components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useStudentProfile } from "@/hooks/useStudentProfile";

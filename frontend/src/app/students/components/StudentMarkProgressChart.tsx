@@ -1,36 +1,48 @@
 "use client";
 
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Legend,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import ChartCard from "../components/ChartCard";
+import { useStudentProfile } from "@/hooks/useStudentProfile";
+import { useEffect, useState } from "react";
 
-const examData = [
-  { exam: "Quiz 1", mark: 65, average: 60 },
-  { exam: "Quiz 2", mark: 70, average: 68 },
-  { exam: "Midterm", mark: 80, average: 75 },
-  { exam: "Quiz 3", mark: 75, average: 70 },
-  { exam: "Final", mark: 90, average: 78 },
-];
+type QuizPerformance = {
+  title: string;
+  marksObtained: number;
+  totalMarks: number;
+};
+
+const extractRecentQuizPerformance = (profile: StudentProfile): QuizPerformance[] => {
+  if (!profile.quizResults) return [];
+  return profile.quizResults
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map((result) => ({
+      title: result.title,
+      marksObtained: result.marks,
+      totalMarks: result.fullmark,
+    }));
+};
 
 const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const { exam, mark, average } = payload[0].payload;
+  if (active && payload?.length) {
+    const { exam, marksObtained, totalMarks } = payload[0].payload;
     return (
-      <div className="bg-white border border-gray-300 rounded-md p-3 shadow text-sm text-gray-800">
-        <p className="font-medium">{exam}</p>
+      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-md text-sm text-gray-800 font-medium">
+        <p className="text-base font-semibold text-indigo-600">{exam}</p>
         <p>
-          Student Mark: <span className="font-semibold">{mark}</span>
+          Score: <span className="font-bold text-blue-600">{marksObtained}</span>
         </p>
         <p>
-          Class Average: <span className="font-semibold">{average}</span>
+          Full Mark: <span className="font-bold text-emerald-600">{totalMarks}</span>
         </p>
       </div>
     );
@@ -38,54 +50,78 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
+const userId =
+  typeof window !== "undefined" ? localStorage.getItem("userId") || "default" : "default";
+
 const StudentMarkProgressChart = () => {
+  const { profile, isLoading } = useStudentProfile(userId);
+  const [chartData, setChartData] = useState<
+    { exam: string; marksObtained: number; totalMarks: number }[]
+  >([]);
+
+  useEffect(() => {
+    if (profile?.quizResults) {
+      const recentPerformance = extractRecentQuizPerformance(profile);
+      const formattedData = recentPerformance.map((quiz) => ({
+        exam: quiz.title,
+        marksObtained: quiz.marksObtained,
+        totalMarks: quiz.totalMarks,
+      }));
+      setChartData(formattedData.reverse());
+    }
+  }, [profile]);
+
   return (
-    
     <ChartCard
       title="Academic Performance Overview"
-      description="Track your individual marks compared to the class average across assessments."
+      description="Compare your obtained scores to the full marks in your recent assessments."
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={examData}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-        >
-          <defs>
-            <linearGradient id="colorMark" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#1A5B6D" stopOpacity={0.8} />
-              <stop offset="100%" stopColor="#1A5B6D" stopOpacity={0.2} />
-            </linearGradient>
-            <linearGradient id="colorAverage" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.8} />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.2} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="exam" className="text-sm" />
-          <YAxis domain={[0, 100]} className="text-sm" />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend verticalAlign="top" height={36} />
-          <Line
-            type="monotone"
-            dataKey="mark"
-            name="Your Mark"
-            stroke="#1A5B6D"
-            strokeWidth={3}
-            dot={{ fill: "#1A5B6D", r: 5 }}
-            activeDot={{ r: 7 }}
-          />
-          <Line
-            type="monotone"
-            dataKey="average"
-            name="Class Average"
-            stroke="#f59e0b"
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={{ fill: "#f59e0b", r: 4 }}
-            activeDot={{ r: 6 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      {isLoading ? (
+        <div className="text-center py-10 text-gray-500">Loading performance data...</div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+            barCategoryGap={20}
+          >
+            <CartesianGrid strokeDasharray="4 4" stroke="#e2e8f0" />
+            <XAxis
+              dataKey="exam"
+              className="text-sm"
+              tick={{ fontSize: 12, fill: "#4B5563" }}
+              axisLine={{ stroke: "#d1d5db" }}
+              tickLine={false}
+            />
+            <YAxis
+              className="text-sm"
+              tick={{ fontSize: 12, fill: "#4B5563" }}
+              axisLine={{ stroke: "#d1d5db" }}
+              tickLine={false}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              verticalAlign="top"
+              height={36}
+              wrapperStyle={{ fontSize: 13, fontWeight: 500, color: "#374151" }}
+            />
+            <Bar
+              dataKey="marksObtained"
+              name="Your Score"
+              fill="#6366f1" // Indigo-500
+              radius={[6, 6, 0, 0]}
+              barSize={30}
+            />
+            <Bar
+              dataKey="totalMarks"
+              name="Full Mark"
+              fill="#34d399" // Emerald-400
+              radius={[6, 6, 0, 0]}
+              barSize={30}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      )}
     </ChartCard>
   );
 };
