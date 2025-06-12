@@ -17,31 +17,17 @@ import { QuizQuestion } from "@/types/quiz";
 import Sidebar from "../../../components/Sidebar";
 import { robotoSlab, raleway } from "@/utils/font";
 import { FiFileText } from "react-icons/fi";
-import { Combobox } from "@/components/ui/combobox";
-
 
 export default function QuizManagementPage() {
-  const [selectedTopic, setSelectedTopic] = useState("");
   const [numQuestions, setNumQuestions] = useState(5);
   const [questionType, setQuestionType] = useState("mcq");
   const [generatedQuestions, setGeneratedQuestions] = useState<QuizQuestion[]>([]);
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const [examName, setExamName] = useState("");
   const [examDescription, setExamDescription] = useState("");
-  
   const [duration, setDuration] = useState<number | null>(null);
-
   const [userId, setUserId] = useState<string | null>(null);
-
-  const topics = [
-    "Mathematics", "Physics", "Chemistry", "Biology",
-    "Computer Science", "History", "Geography",
-    "Bangla Literature", "English Grammar",
-    "Programming Fundamentals", "Data Structures",
-    "Algorithms", "Databases", "Operating Systems",
-    "Networking", "Artificial Intelligence", "Machine Learning",
-    "Web Development", "Mobile App Development"
-  ];
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   useEffect(() => {
     const uid = localStorage.getItem("userId");
@@ -49,93 +35,98 @@ export default function QuizManagementPage() {
   }, []);
 
   const handleGenerateQuiz = async () => {
-    try {
-      const response = await fetch("/api/generate-quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic: selectedTopic,
-          numQuestions,
-          questionType,
-        }),
-      });
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      setGeneratedQuestions(data.quiz.questions);
-    } catch (error) {
-      console.error("Error generating quiz:", error);
-      alert("Failed to generate quiz. Please try again.");
-    }
-  };
-
-
-   
-
-const handleCreateExam = async () => {
-  if (!examName || !examDescription || selectedQuestions.length === 0) {
-    alert("Please fill in all required fields and select at least one question.");
+  if (!pdfFile) {
+    alert("Please upload a PDF file.");
     return;
   }
-  const userId = parseInt(localStorage.getItem('userId')||'10',10);
-
-
-
-  const examData = {
-    title: examName,
-    description: examDescription,
-    questions: generatedQuestions.filter(q => selectedQuestions.includes(q.id)),
-    duration:duration,
-    teacherId: userId, // Ensure userId is set correctly
-  };
-
 
   try {
-    console.log("Creating exam:", examData);
+    const formData = new FormData();
+    formData.append("file", pdfFile);
+    formData.append("n_questions", numQuestions.toString()); // ✅ Correct key
+    formData.append("question_type", questionType);
 
-    const response = await fetch("http://localhost:5000/api/quiz", {
+    const response = await fetch("http://localhost:8000/quiz/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(examData),
+      body: formData,
     });
 
     if (!response.ok) {
-      throw new Error("Server responded with an error");
+      throw new Error("Failed to generate questions from backend");
     }
 
-    const result = await response.json();
-    console.log("Exam created:", result);
+    const data = await response.json();
+    console.log("Generated questions:", data);
 
-    alert("✅ Exam created successfully!");
-    // Optional: reset state
-    setExamName("");
-    setExamDescription("");
-    setDuration(null);
-    setSelectedQuestions([]);
-    setGeneratedQuestions([]);
+    if (!Array.isArray(data.questions)) {
+      throw new Error("Invalid response format from backend");
+    }
+
+    setGeneratedQuestions(data.questions);
+    setSelectedQuestions(data.questions.map((q: QuizQuestion) => q.id));
+    alert("✅ Questions generated successfully!");
   } catch (error) {
-    console.error("Error creating exam:", error);
-    alert("❌ Failed to create exam. Please try again.");
+    console.error("Error generating quiz:", error);
+    alert("❌ Failed to generate quiz. Please check the PDF upload and try again.");
   }
 };
-  
+
+  const handleCreateExam = async () => {
+    if (!examName || !examDescription || selectedQuestions.length === 0) {
+      alert("Please fill in all required fields and select at least one question.");
+      return;
+    }
+    const userId = parseInt(localStorage.getItem('userId')||'10',10);
+
+    const examData = {
+      title: examName,
+      description: examDescription,
+      questions: generatedQuestions.filter(q => selectedQuestions.includes(q.id)),
+      duration:duration,
+      teacherId: userId,
+    };
+
+    try {
+      console.log("Creating exam:", examData);
+
+      const response = await fetch("http://localhost:5000/api/quiz", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(examData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Server responded with an error");
+      }
+
+      const result = await response.json();
+      console.log("Exam created:", result);
+
+      alert("✅ Exam created successfully!");
+      setExamName("");
+      setExamDescription("");
+      setDuration(null);
+      setSelectedQuestions([]);
+      setGeneratedQuestions([]);
+    } catch (error) {
+      console.error("Error creating exam:", error);
+      alert("❌ Failed to create exam. Please try again.");
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
       {userId ? (
         <>
           <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
-      </aside>
-      <main className="ml-20 p-5 flex-1">
+            <Sidebar role="TEACHER" userId={userId} />
+          </aside>
+          <main className="ml-20 p-5 flex-1">
             <div className={`${raleway.className} text-gray-800`}>
               <div className={`${robotoSlab.className} flex flex-col lg:flex-row gap-6 max-w-screen-xl mx-auto w-full`}>
-                
-                {/* Left Panel */}
                 <div className="w-full lg:w-[55%] flex flex-col space-y-6">
-                  
-                  {/* Quiz Generator Section */}
                   {generatedQuestions.length === 0 && (
                     <>
                       <div>
@@ -147,15 +138,9 @@ const handleCreateExam = async () => {
                         <CardContent className="p-6 space-y-6">
                           <div className="space-y-2 w-full md:w-[400px]">
                             <Label className="flex items-center gap-2 text-[#6941C6] font-semibold">
-                              <FiFileText /> Select or Enter a Topic
+                              <FiFileText /> Upload PDF File
                             </Label>
-                            <Combobox
-                              options={topics}
-                              placeholder="Type or select a topic"
-                              selected={selectedTopic}
-                              onSelect={setSelectedTopic}
-                              allowCustom={true}
-                            />
+                            <Input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files?.[0] || null)} />
                           </div>
 
                           <div className="grid gap-2">
@@ -180,7 +165,7 @@ const handleCreateExam = async () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="mcq">Multiple Choice Questions</SelectItem>
-                                <SelectItem value="cq">Comprehension Questions</SelectItem>
+                                <SelectItem value="short_answer">Comprehension Questions</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -191,7 +176,6 @@ const handleCreateExam = async () => {
                     </>
                   )}
 
-                  {/* Exam Creation Section */}
                   {generatedQuestions.length > 0 && (
                     <Card className="border border-teal-200 shadow-md bg-white/70 backdrop-blur-md rounded-2xl">
                       <CardContent className="p-6 space-y-6">
@@ -231,7 +215,6 @@ const handleCreateExam = async () => {
                   )}
                 </div>
 
-                {/* Right Panel: Questions */}
                 <div className="w-full lg:w-[45%] space-y-6 max-h-[85vh] overflow-y-auto pr-2">
                   {generatedQuestions.length > 0 && (
                     <>

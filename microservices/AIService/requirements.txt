@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+PyPDF2
+scikit-learn
+faiss-cpu
+numpy
+langchain
+langchain-google-genai
