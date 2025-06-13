@@ -9,6 +9,7 @@ import { Enrollment, Lesson } from "@/utils/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
+import { poppins } from "@/utils/font";
 import {
   FiArrowLeft,
   FiBook,
@@ -478,7 +479,9 @@ export default function LearnPage() {
   const hasVideo = !!currentLesson.videoUrl;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex">
+    <div
+            className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
+          >
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-lg fixed left-0 top-0 h-full z-40">
         <div className="p-6">
@@ -552,7 +555,7 @@ export default function LearnPage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Main Content */}
           <div className="flex-1 min-w-0 p-6 overflow-y-auto">
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-6">
+            <div className="bg-white rounded-lg border border-teal-300 overflow-hidden mb-6">
               {/* Video Player */}
               <div ref={playerContainerRef} className="relative bg-black">
                 {hasVideo ? (
@@ -701,7 +704,7 @@ export default function LearnPage() {
             </div>
 
             {/* Lesson Content */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+            <div className="bg-white rounded-lg border-1 border-teal-300 p-6 mb-6">
               <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
                   {currentLesson.title}
@@ -796,8 +799,8 @@ export default function LearnPage() {
           </div>
 
           {/* Course Content Sidebar - Now on Right */}
-          <div className="w-80 flex-shrink-0 p-6 pl-0 overflow-y-auto border-l border-gray-200 bg-white">
-            <div className="bg-white rounded-lg border border-gray-200 h-full flex flex-col sticky top-24">
+          <div className="w-80 flex-shrink-0 p-6 pl-0 overflow-y-auto">
+            <div className="bg-white rounded-lg border-1 border-teal-200 h-full flex flex-col sticky top-24">
               <div className="p-4 border-b border-gray-200 flex-shrink-0">
                 <h2 className="font-semibold text-gray-900">Course Content</h2>
                 <div className="mt-2 text-xs text-gray-500">
@@ -814,7 +817,7 @@ export default function LearnPage() {
                   <button
                     key={lesson.id}
                     onClick={() => handleLessonChange(lesson)}
-                    className={`w-full text-left p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                    className={`w-full text-left p-4 border-b border- hover:bg-gray-50 transition-colors ${
                       currentLesson.id === lesson.id
                         ? "bg-teal-50 border-l-4 border-l-teal-500"
                         : ""

@@ -99,8 +99,9 @@ export default function StudentEnrolledCoursesPage({
   }
 
   return (
+    // Main Container
     <div
-      className={`min-h-screen bg-gradient-to-b from-white to-teal-50 pb-20 ${poppins.className}`}
+      className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
     >
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-purple-600 text-white">
@@ -140,7 +141,7 @@ export default function StudentEnrolledCoursesPage({
 
       {/* Progress Overview Card */}
       <div className="max-w-7xl mx-auto px-4 -mt-8 relative z-10">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl shadow-xl border border-teal-300 p-6">
           <div className="grid md:grid-cols-3 gap-6">
             <div className="flex items-center space-x-4">
               <div className="bg-teal-100 rounded-full p-3">
@@ -182,8 +183,8 @@ export default function StudentEnrolledCoursesPage({
       </div>
 
       {/* Search & Filter */}
-      <div className="max-w-7xl mx-auto px-4 mt-12">
-        <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-4">
+      <div className="max-w-7xl mx-auto px-4 mt-12 bor">
+        <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-4 border-1 border-teal-300">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -216,8 +217,8 @@ export default function StudentEnrolledCoursesPage({
       </div>
 
       {/* Course Grid */}
-      <div className="max-w-7xl mx-auto px-4 mt-12">
-        <div className="flex justify-between items-center mb-8">
+      <div className="max-w-7xl mx-auto px-4 mt-12 b">
+        <div className="flex justify-between items-center mb-8 bo">
           <h2
             className={`text-2xl font-bold text-gray-800 ${raleway.className}`}
           >
@@ -249,7 +250,7 @@ export default function StudentEnrolledCoursesPage({
             </Link>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 ">
             {filteredCourses.map((enrollment) => (
               <CourseCard
                 key={`course-${enrollment.course.id}`}

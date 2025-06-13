@@ -45,7 +45,7 @@ export default function CourseCard({
       }
       className="block"
     >
-      <div className="rounded-lg overflow-hidden bg-white transition-all duration-300 hover:shadow-xl border border-gray-200 h-full">
+      <div className="rounded-lg overflow-hidden bg-white transition-all duration-300 hover:shadow-2xl border-1 border-teal-300 h-full">
         {/* Cover Image */}
         <div className="w-full h-48 relative">
           {course.coverPhotoUrl ? (

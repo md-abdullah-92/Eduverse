@@ -5,6 +5,7 @@ import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import { useToast } from "@/components/ui_elements/toast";
 import { CourseData, Enrollment } from "@/utils/types";
 import Image from "next/image";
+import { poppins } from "@/utils/font";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import {
@@ -146,7 +147,9 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex">
+   <div
+         className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
+       >
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-lg fixed left-0 top-0 h-full z-40">
         <div className="p-6">
