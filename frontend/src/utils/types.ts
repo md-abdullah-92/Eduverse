@@ -203,8 +203,6 @@ model CartItem {
 // -------------------- USER MODELS --------------------
 */
 
-
-
 export type QuestionType = "MCQ" | "CQ";
 export type DifficultyLevel = "EASY" | "MEDIUM" | "HARD";
 
@@ -363,4 +361,22 @@ export interface PaymentConfirmResponse {
     paymentIntentId: string;
     status: string;
   };
+}
+
+export interface TeacherStats {
+  // Course stats (all courses by instructor)
+  totalCourses: number;
+  totalLessons: number;
+
+  // Enrollment stat
+  totalEnrollments: number;
+  totalStudents: number;
+  completedEnrollments: number;
+  completionRate: number;
+  averageProgress: number;
+  activeEnrollments: number;
+  inactiveEnrollments: number;
+
+  // Revenue stats
+  totalRevenue: number;
 }

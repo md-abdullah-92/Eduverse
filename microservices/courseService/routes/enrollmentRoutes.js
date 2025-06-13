@@ -9,5 +9,7 @@ router.get('/student/:studentId', enrollmentController.getStudentEnrollments);
 router.get('/course/:courseId', enrollmentController.getCourseEnrollments);
 router.get('/:id', enrollmentController.getEnrollment);
 router.get('/stats/:studentId', enrollmentController.getStudentStats);
+router.get('/stats/teacher/:instructorId', enrollmentController.getTeacherStats);
 
 module.exports = router;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
