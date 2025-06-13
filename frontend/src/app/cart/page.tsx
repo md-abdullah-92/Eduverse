@@ -38,9 +38,7 @@ const EmptyCart = () => {
   return (
     <div className="text-center py-12">
       <ShoppingCart className="w-24 h-24 text-gray-300 mx-auto mb-4" />
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        Your cart is empty
-      </h2>
+      <h2 className="text-2xl text-gray-900 mb-2">Your cart is empty</h2>
       <p className="text-gray-600 mb-6">
         Add some courses to get started with your learning journey!
       </p>
@@ -82,7 +80,7 @@ const CartItemCard = ({
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <h3 className="font-bold text-xl text-gray-900 group-hover:text-teal-700 transition-colors duration-300">
+            <h3 className=" text-xl text-gray-900 group-hover:text-teal-700 transition-colors duration-300">
               {item.course.title}
             </h3>
             <p className="text-gray-600 font-medium">
@@ -119,9 +117,7 @@ const CartItemCard = ({
         </div>
 
         <div className="text-right">
-          <div className="text-2xl font-bold text-gray-900">
-            ৳ {item.course.price}
-          </div>
+          <div className="text-2xl text-gray-900">৳ {item.course.price}</div>
         </div>
       </div>
     </div>
@@ -138,7 +134,7 @@ const OrderSummary = ({
   isCheckingOut: boolean;
 }) => (
   <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 sticky top-4">
-    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+    <h3 className="text-2xl text-gray-900 mb-6 flex items-center gap-2">
       <CreditCard className="w-6 h-6 text-teal-700" />
       Order Summary
     </h3>
@@ -150,7 +146,7 @@ const OrderSummary = ({
         <span> ৳ {subtotal.toFixed(2)}</span>
       </div>
       <div className="border-t border-gray-200 pt-4">
-        <div className="flex justify-between text-2xl font-bold text-gray-900">
+        <div className="flex justify-between text-2xl text-gray-900">
           <span>Total</span>
           <span> ৳ {subtotal.toFixed(2)}</span>
         </div>
@@ -169,7 +165,7 @@ const OrderSummary = ({
     <button
       onClick={onCheckout}
       disabled={isCheckingOut}
-      className="w-full bg-gradient-to-r from-teal-700 to-purple-600 hover:from-teal-800 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 group disabled:opacity-50 disabled:transform-none disabled:hover:scale-100"
+      className="w-full bg-gradient-to-r from-teal-700 to-purple-600 hover:from-teal-800 hover:to-purple-700 text-white py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2 group disabled:opacity-50 disabled:transform-none disabled:hover:scale-100"
     >
       {isCheckingOut ? (
         <>
@@ -186,7 +182,7 @@ const OrderSummary = ({
 
     {/* Benefits */}
     <div className="mt-6 space-y-3">
-      <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+      <h4 className="text-gray-900 flex items-center gap-2">
         <BookOpen className="w-5 h-5 text-teal-700" />
         What you get:
       </h4>
@@ -326,66 +322,64 @@ const EduverseCart = () => {
   }
 
   return (
-      <div className="flex min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 relative overflow-hidden">
-       <aside className="w-64 bg-white shadow-md p-4">
+    <div className="flex min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 relative overflow-hidden">
+      <aside className="w-64 bg-white shadow-md p-4">
         <Sidebar userId={userId} role={"STUDENT"} />
       </aside>
-       <main className="ml-20 p-5 flex-1">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-teal-700 to-purple-600 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
+      <main className="ml-20 p-5 flex-1">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-teal-700 to-purple-600 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-4xl bg-gradient-to-r from-teal-700 to-purple-600 bg-clip-text text-transparent">
+                Eduverse
+              </h1>
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-teal-700 to-purple-600 bg-clip-text text-transparent">
-              Eduverse
-            </h1>
+            <p className="text-gray-600 text-lg">
+              Complete your learning journey
+            </p>
           </div>
-          <p className="text-gray-600 text-lg">
-            Complete your learning journey
-          </p>
-        </div>
 
-        {cartItems.length === 0 ? (
-          <EmptyCart />
-        ) : (
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <ShoppingCart className="w-6 h-6 text-teal-700" />
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Shopping Cart
-                </h2>
-                <span className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-medium">
-                  {cartItems.length}{" "}
-                  {cartItems.length === 1 ? "course" : "courses"}
-                </span>
+          {cartItems.length === 0 ? (
+            <EmptyCart />
+          ) : (
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Cart Items */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <ShoppingCart className="w-6 h-6 text-teal-700" />
+                  <h2 className="text-2xl text-gray-900">Shopping Cart</h2>
+                  <span className="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm font-medium">
+                    {cartItems.length}{" "}
+                    {cartItems.length === 1 ? "course" : "courses"}
+                  </span>
+                </div>
+
+                {cartItems.map((item, index) => (
+                  <CartItemCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    onRemove={removeItem}
+                    isRemoving={removing[item.course.id]}
+                  />
+                ))}
               </div>
 
-              {cartItems.map((item, index) => (
-                <CartItemCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  onRemove={removeItem}
-                  isRemoving={removing[item.course.id]}
+              {/* Order Summary */}
+              <div className="lg:col-span-1">
+                <OrderSummary
+                  subtotal={subtotal}
+                  onCheckout={handleCheckout}
+                  isCheckingOut={checkingOut}
                 />
-              ))}
+              </div>
             </div>
-
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <OrderSummary
-                subtotal={subtotal}
-                onCheckout={handleCheckout}
-                isCheckingOut={checkingOut}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       </main>
     </div>
   );

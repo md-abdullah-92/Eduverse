@@ -3,9 +3,9 @@
 import { useAuth } from "@/app/auth/context";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import { useToast } from "@/components/ui_elements/toast";
+import { playfair, poppins } from "@/utils/font";
 import { CourseData, Enrollment } from "@/utils/types";
 import Image from "next/image";
-import { poppins } from "@/utils/font";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import {
@@ -147,9 +147,9 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   }
 
   return (
-   <div
-         className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
-       >
+    <div
+      className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
+    >
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-lg fixed left-0 top-0 h-full z-40">
         <div className="p-6">
@@ -212,13 +212,9 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                 {course.level?.toLowerCase() || "Course"}
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+              <h1 className="text-4xl md:text-5xl text-white mb-4 leading-tight gap-3">
                 {course.title}
               </h1>
-
-              <p className="text-lg text-white/90 mb-6 leading-relaxed max-w-3xl">
-                {course.description}
-              </p>
 
               {/* Enhanced Stats */}
               <div className="flex flex-wrap gap-4 mb-6">
@@ -301,7 +297,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold mb-1">
+                    <div className="text-2xl font-semibold mb-1">
                       {course?.lessons?.length
                         ? Math.round(enrollment?.progressPercentage || 0)
                         : 0}
@@ -372,10 +368,12 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
 
                 <div className="p-6">
                   {activeTab === "overview" && (
-                    <div className="space-y-6">
+                    <div className="space-y-6 ">
                       {/* Course Description */}
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">
+                      <div className="gap-6">
+                        <h3
+                          className={`text-3xl text-gray-900 mb-4 ${playfair.className}`}
+                        >
                           About this course
                         </h3>
                         <div className="prose prose-gray max-w-none">
@@ -388,8 +386,10 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
 
                       {/* Learning Outcomes */}
                       {course.outcomes?.length > 0 && (
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <div className="gap-6">
+                          <h3
+                            className={`text-2xl text-gray-900 mb-4 flex items-center ${playfair.className}`}
+                          >
                             <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
                               <FiAward className="w-3 h-3 text-emerald-600" />
                             </div>
@@ -414,9 +414,11 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                       )}
 
                       {/* Course Curriculum */}
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-xl font-bold text-gray-900 flex items-center">
+                      <div className="gap-6">
+                        <div className="flex items-center justify-between mb-4  ">
+                          <h3
+                            className={`text-2xl text-gray-900 flex items-center ${playfair.className}`}
+                          >
                             <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center mr-3">
                               <FiPlay className="w-3 h-3 text-emerald-600" />
                             </div>
@@ -582,7 +584,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                         <span className="text-sm font-medium text-gray-600">
                           Your Progress
                         </span>
-                        <span className="text-sm font-bold text-emerald-600">
+                        <span className="text-sm text-emerald-600">
                           {enrollment?.progressPercentage.toFixed(2) || 0}%
                         </span>
                       </div>
@@ -612,8 +614,8 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                     <>
                       {/* Price */}
                       <div className="text-center mb-5">
-                        <div className="text-3xl font-bold text-gray-900 mb-1">
-                          {course.price ? `${course.price}` : "Free"}
+                        <div className="text-3xl text-gray-900 mb-1">
+                          {course.price ? `৳ ${course.price}` : "Free"}
                         </div>
                         {course.price && (
                           <p className="text-gray-500 text-sm">

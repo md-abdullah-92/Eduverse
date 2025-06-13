@@ -1,6 +1,9 @@
 "use client";
 
+import Sidebar from "@/app/teachers/components/Sidebar";
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { storage } from "@/firebaseConfig";
+import { karma, poppins, raleway, reemKufi, robotoSlab } from "@/utils/font";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import {
   Briefcase,
@@ -14,15 +17,6 @@ import {
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import Sidebar from "@/app/teachers/components/Sidebar";
-import {
-  poppins,
-  robotoSlab,
-  reemKufi,
-  karma,
-  raleway,
-} from '@/utils/font'
-
 
 export default function EditTeacherProfilePage() {
   const { id: userId } = useParams();
@@ -155,14 +149,7 @@ export default function EditTeacherProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-teal-50 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-gray-600 font-medium">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <LoadingIndicator text="Loading profile..." />;
   }
 
   if (notFoundError) {
@@ -189,7 +176,7 @@ export default function EditTeacherProfilePage() {
         <Sidebar role="TEACHER" userId={userId} />
       </aside>
 
-       <main className="ml-20 p-5 flex-1">
+      <main className="ml-20 p-5 flex-1">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
           {/* Cover Section */}
           <div className="relative h-80 group overflow-hidden">
@@ -206,7 +193,7 @@ export default function EditTeacherProfilePage() {
                 type="file"
                 accept="image/*"
                 ref={coverInputRef}
-                onChange={(e) => handleImageUpload(e, 'cover')}
+                onChange={(e) => handleImageUpload(e, "cover")}
                 className="hidden"
               />
             </div>
@@ -215,7 +202,12 @@ export default function EditTeacherProfilePage() {
           {/* Profile Image */}
           <div className="relative px-8">
             <div className="relative w-44 h-44 -mt-20 border-8 border-white rounded-full shadow-xl bg-white group overflow-hidden">
-              <Image src={profileImage} alt="Profile" fill className="rounded-full object-cover" />
+              <Image
+                src={profileImage}
+                alt="Profile"
+                fill
+                className="rounded-full object-cover"
+              />
               <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                 <button
                   onClick={() => profileInputRef.current?.click()}
@@ -227,7 +219,7 @@ export default function EditTeacherProfilePage() {
                   type="file"
                   accept="image/*"
                   ref={profileInputRef}
-                  onChange={(e) => handleImageUpload(e, 'profile')}
+                  onChange={(e) => handleImageUpload(e, "profile")}
                   className="hidden"
                 />
               </div>
@@ -242,12 +234,18 @@ export default function EditTeacherProfilePage() {
                 <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-indigo-600" />
                 </div>
-                <h3 className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}>Basic Information</h3>
+                <h3
+                  className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}
+                >
+                  Basic Information
+                </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                  <label
+                    className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
+                  >
                     <User size={16} /> <span>Full Name</span>
                   </label>
                   <input
@@ -258,7 +256,9 @@ export default function EditTeacherProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                  <label
+                    className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
+                  >
                     <Mail size={16} /> <span>Email Address</span>
                   </label>
                   <input
@@ -277,12 +277,18 @@ export default function EditTeacherProfilePage() {
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                   <GraduationCap className="w-5 h-5 text-green-600" />
                 </div>
-                <h3 className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}>Professional Details</h3>
+                <h3
+                  className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}
+                >
+                  Professional Details
+                </h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                  <label
+                    className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
+                  >
                     <GraduationCap size={16} /> <span>Education</span>
                   </label>
                   <input
@@ -296,7 +302,9 @@ export default function EditTeacherProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                  <label
+                    className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
+                  >
                     <FileText size={16} /> <span>Specialization</span>
                   </label>
                   <input
@@ -310,7 +318,9 @@ export default function EditTeacherProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                  <label
+                    className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
+                  >
                     <Briefcase size={16} /> <span>Experience (years)</span>
                   </label>
                   <input
@@ -325,7 +335,9 @@ export default function EditTeacherProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                  <label
+                    className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
+                  >
                     <Building size={16} /> <span>Institution</span>
                   </label>
                   <input
@@ -346,11 +358,17 @@ export default function EditTeacherProfilePage() {
                 <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-5 h-5 text-teal-600" />
                 </div>
-                <h3 className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}>About You</h3>
+                <h3
+                  className={`${robotoSlab.className} text-xl font-semibold text-gray-900`}
+                >
+                  About You
+                </h3>
               </div>
 
               <div className="space-y-2">
-                <label className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}>
+                <label
+                  className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
+                >
                   <FileText size={16} /> <span>Professional Bio</span>
                 </label>
                 <textarea
@@ -375,10 +393,7 @@ export default function EditTeacherProfilePage() {
             </div>
           </div>
         </div>
-        
       </main>
-      
     </div>
-    
   );
 }

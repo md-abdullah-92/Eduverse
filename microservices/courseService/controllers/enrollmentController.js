@@ -87,7 +87,8 @@ exports.getEnrollment = async (req, res) => {
               orderBy: {
                 orderIndex: 'asc'
               }
-            }
+            },
+            outcomes: true,
           }
         }, 
         lessonCompletions: {

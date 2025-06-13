@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "@/app/students/components/Sidebar";
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { storage } from "@/firebaseConfig";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import {
@@ -19,7 +20,6 @@ import {
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import Footer from "@/components/layout/footer";
 
 export default function EditProfile() {
   const { id: userId } = useParams();
@@ -104,11 +104,11 @@ export default function EditProfile() {
   };
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const res = await fetch(`http://localhost:5000/api/profile/student`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -123,15 +123,14 @@ export default function EditProfile() {
       if (res.ok) {
         setShowModal(true);
       } else {
-        setError('❌ Failed to update: ' + result.message);
+        setError("❌ Failed to update: " + result.message);
       }
     } catch (err) {
-      console.error('Submit error:', err);
-      setError('❌ An error occurred while saving changes.');
+      console.error("Submit error:", err);
+      setError("❌ An error occurred while saving changes.");
     }
   };
 
-  
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "cover" | "profile"
@@ -156,14 +155,7 @@ export default function EditProfile() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-indigo-50 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-          <p className="text-gray-600 font-medium">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <LoadingIndicator text="Loading profile..." />;
   }
 
   if (notFoundError) {
@@ -187,7 +179,7 @@ export default function EditProfile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-indigo-50 py-8 px-4">
       <Sidebar userId={userId} role="STUDENT" />
-      
+
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -517,12 +509,8 @@ export default function EditProfile() {
               </button>
             </div>
           </div>
-          
         </div>
-    
       )}
-    
     </div>
-    
   );
 }

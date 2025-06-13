@@ -3,6 +3,7 @@
 
 import { useAuth } from "@/app/auth/context";
 import { useToast } from "@/components/ui_elements/toast";
+import { playfair } from "@/utils/font";
 import { Review } from "@/utils/types";
 import { useEffect, useState } from "react";
 import { FiEdit2, FiStar, FiTrash2, FiUser } from "react-icons/fi";
@@ -165,9 +166,7 @@ export function ReviewSection({ courseId, isEnrolled }: ReviewSectionProps) {
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-6 border border-emerald-100">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                Student Reviews
-              </h3>
+              <h3 className="text-2xl text-slate-900 mb-2">Student Reviews</h3>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -180,7 +179,7 @@ export function ReviewSection({ courseId, isEnrolled }: ReviewSectionProps) {
                       }`}
                     />
                   ))}
-                  <span className="text-2xl font-bold text-slate-900 ml-2">
+                  <span className="text-2xl text-slate-900 ml-2">
                     {stats.averageRating.toFixed(1)}
                   </span>
                 </div>
@@ -237,7 +236,9 @@ export function ReviewSection({ courseId, isEnrolled }: ReviewSectionProps) {
             />
           ) : (
             <div>
-              <h4 className="text-lg font-semibold text-slate-900 mb-4">
+              <h4
+                className={`text-lg text-slate-900 mb-4 ${playfair.className}`}
+              >
                 Share your experience
               </h4>
               {!showReviewForm ? (
