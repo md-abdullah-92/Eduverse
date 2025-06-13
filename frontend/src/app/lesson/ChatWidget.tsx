@@ -56,10 +56,11 @@ export default function ChatWidget({
   const [position, setPosition] = useState(() => {
     if (typeof window !== 'undefined') {
       return { 
-        x: Math.max(20, window.innerWidth - 500), // 500px from right or 20px from left if screen is too small
+        x: Math.max(20, window.innerWidth - 100), // 500px from right or 20px from left if screen is too small
         y: Math.max(20, window.innerHeight - 100) // 100px from bottom or 20px from top
       };
     }
+    
     return { x: 20, y: 20 }; // Fallback position
   });
   const [dragging, setDragging] = useState(false);

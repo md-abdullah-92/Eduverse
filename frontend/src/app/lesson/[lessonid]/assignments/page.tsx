@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { playfair, lora } from "@/utils/font";
+import ChatWidget from "../../ChatWidget";
 
 type Assignment = {
   title: string;
@@ -138,6 +139,7 @@ export default function AssignmentViewPage() {
             Created: {new Date(assignment.createdAt).toLocaleString()}
           </p>
 
+
           {questions.map((q, idx) => (
             <div key={idx} className="mb-8">
               <label className="block font-semibold text-gray-800 mb-2">
@@ -172,7 +174,7 @@ export default function AssignmentViewPage() {
               )}
             </div>
           ))}
-
+          <ChatWidget/>
           {statusMsg && (
             <p className="text-sm text-gray-600 mt-4">{statusMsg}</p>
           )}

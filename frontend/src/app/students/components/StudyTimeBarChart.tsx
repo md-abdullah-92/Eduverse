@@ -1,66 +1,113 @@
 'use client';
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-  Legend,
-  Cell,
-} from 'recharts';
+import { useEffect, useState } from 'react';
+import { RotateCcw } from 'lucide-react';
+import { useStudentProfile } from '@/hooks/useStudentProfile';
 import ChartCard from '../components/ChartCard';
 
-const studyData = [
-  { day: 'Monday', hours: 2 },
-  { day: 'Tuesday', hours: 3.5 },
-  { day: 'Wednesday', hours: 1.5 },
-  { day: 'Thursday', hours: 4 },
-  { day: 'Friday', hours: 2.5 },
-  { day: 'Saturday', hours: 3 },
-  { day: 'Sunday', hours: 0.5 },
-];
+const radius = 90;
+const circumference = 2 * Math.PI * radius;
 
-const COLORS = ['#2563eb', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6'];
+function getGrade(score: number): string {
+  if (score >= 80) return 'A+';
+  if (score >= 75) return 'A';
+  if (score >= 70) return 'B';
+  if (score >= 65) return 'C';
+  if (score >= 60) return 'D';
+  if (score >= 50) return 'E';
+  return 'F';
+}
 
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const { day, hours } = payload[0].payload;
-    return (
-      <div className="bg-white p-3 border border-gray-300 rounded-md shadow-sm text-sm text-gray-800">
-        <p className="font-medium">{day}</p>
-        <p>Study Time: {hours} {hours === 1 ? 'hour' : 'hours'}</p>
-      </div>
-    );
-  }
-  return null;
-};
+const userId =
+  typeof window !== 'undefined' ? localStorage.getItem('userId') || 'default' : 'default';
 
-const StudyTimeBarChart = () => {
+export default function StudyTimeBarChart() {
+  const { profile, loading } = useStudentProfile(userId);
+  const [average, setAverage] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [attempts, setAttempts] = useState(0);
+
+  const refreshData = () => {
+    if (profile?.quizResults?.length) {
+      const quizzes = profile.quizResults;
+      const percentages = quizzes.map((q) => (q.marks / q.fullmark) * 100);
+      const avg = percentages.reduce((a, b) => a + b, 0) / percentages.length;
+
+      setAverage(avg);
+      setAttempts(quizzes.length);
+
+      // animate
+      setProgress(0);
+      setTimeout(() => {
+        setProgress((circumference * avg) / 100);
+      }, 300);
+    }
+  };
+
+  useEffect(() => {
+    if (profile?.quizResults?.length) {
+      refreshData();
+    }
+  }, [profile]);
+
+  const grade = getGrade(average);
+
   return (
-    
     <ChartCard
-      title="Weekly Study Time Overview"
-      description="This bar graph illustrates the number of hours studied by the student each day throughout the week."
+      title="Average Score & Grade"
+      description="Overall performance based on your quiz attempts"
+      action={
+        <button
+          onClick={refreshData}
+          className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
+        >
+          <RotateCcw className="w-4 h-4" />
+          Refresh
+        </button>
+      }
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={studyData} margin={{ top: 20, right: 30, left: 0, bottom: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="day" stroke="#374151" />
-          <YAxis stroke="#374151" domain={[0, 5]} allowDecimals />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          <Bar dataKey="hours" radius={[8, 8, 0, 0]}>
-            {studyData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      {loading ? (
+        <div className="text-center py-10 text-gray-500">Loading average data...</div>
+      ) : (
+        <div className="relative w-72 h-72 mx-auto">
+          <svg className="w-full h-full transform -rotate-90">
+            <defs>
+              <linearGradient id="avgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#6366F1" />
+                <stop offset="100%" stopColor="#3B82F6" />
+              </linearGradient>
+            </defs>
+
+            <circle
+              cx="50%"
+              cy="50%"
+              r={radius}
+              stroke="#E5E7EB"
+              strokeWidth="18"
+              fill="transparent"
+            />
+            <circle
+              cx="50%"
+              cy="50%"
+              r={radius}
+              stroke="url(#avgGradient)"
+              strokeWidth="18"
+              strokeDasharray={circumference}
+              strokeDashoffset={circumference - progress}
+              strokeLinecap="round"
+              fill="transparent"
+              className="transition-all duration-1000 ease-out drop-shadow"
+            />
+          </svg>
+
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+            <span className="text-4xl font-extrabold text-indigo-700">{average.toFixed(1)}%</span>
+            <span className="text-md text-gray-500">Average Score</span>
+            <span className="text-sm text-gray-400">{attempts} attempts</span>
+            <span className="mt-2 text-lg font-semibold text-green-600">Grade: {grade}</span>
+          </div>
+        </div>
+      )}
     </ChartCard>
   );
-};
-
-export default StudyTimeBarChart;
+}

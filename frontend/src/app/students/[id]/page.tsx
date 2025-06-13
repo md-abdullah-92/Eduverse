@@ -1,7 +1,5 @@
 "use client";
 
-import ChatWidget from "@/app/lesson/ChatWidget";
-
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useParams } from "next/navigation";
@@ -50,7 +48,7 @@ export default function ModernStudentDashboard() {
         <StatGrid studentId={String(userId)} />
         <ChartGrid />
         <div className="fixed bottom-15 right-8 z-50">
-          <ChatWidget />
+          
         </div>
         
           <RecentCourses userId={String(userId)} />

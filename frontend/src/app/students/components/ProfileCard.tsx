@@ -53,9 +53,6 @@ export default function ProfileCard({ student, userInfo }: any) {
           <SocialIcon name="youtube" />
           <SocialIcon name="tiktok" />
           <SocialIcon name="mail" />
-          <button className="px-6 py-3 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-colors duration-200 border border-white/20">
-            Edit Profile
-          </button>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import {
   notoSerif,
   raleway,
 } from "@/utils/font";
+import ChatWidget from "@/app/lesson/ChatWidget";
 
 type QuizResult = {
   id: number;
@@ -168,6 +169,7 @@ export default function QuizResultDetails() {
             ))}
           </div>
         </ScrollArea>
+        <ChatWidget/>
       </div>
     </div>
   );

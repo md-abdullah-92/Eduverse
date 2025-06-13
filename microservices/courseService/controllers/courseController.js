@@ -94,7 +94,8 @@ module.exports = {
         where: { instructorId },
         include: {
           lessons: true,
-          outcomes: true
+          outcomes: true,
+          enrollments: true
         }
       });
       res.json(courses);

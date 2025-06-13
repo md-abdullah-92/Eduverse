@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { dmSerif, notoSerif } from "@/utils/font";
 import { CheckCircle, Circle, ClipboardList,Award } from "lucide-react";
+import ChatWidget from "../../ChatWidget";
 
 
 type Question = {
@@ -218,7 +219,9 @@ export default function StudentExamPage() {
                 Your total score: <strong>{score}</strong>
               </p>
             </CardContent>
+            <ChatWidget/>
           </Card>
+          
         )}
 
         {!hasStarted && !submitted && !loading && (

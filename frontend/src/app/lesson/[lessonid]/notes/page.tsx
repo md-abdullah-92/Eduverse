@@ -13,6 +13,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { playfair, workSans } from '@/utils/font';
 import { useParams } from 'next/navigation';
+import ChatWidget from '../../ChatWidget';
 
 
 // Placeholder Save Slide Button
@@ -141,6 +142,7 @@ export default function LessonNotesPage() {
             disabled={previewOnly} // Disable editing title in previewOnly mode
           />
         </div>
+        <ChatWidget/>
 
         {/* Main content */}
         {previewOnly ? (
