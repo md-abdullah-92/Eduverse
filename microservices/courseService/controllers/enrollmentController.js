@@ -261,12 +261,14 @@ exports.getTeacherStats = async (req, res) => {
         return sum + coursePrice;
       }, 0);
       
-      // Calculate average progress
-      const totalProgress = enrollments.reduce((sum, enrollment) => {
-        return sum + (Number(enrollment?.progressPercentage) || 0);
+      // Calculate average rating, excluding courses with zero ratings
+      const totalRatingCourses = courses.filter(course => Number(course?.averageRating) > 0);
+      const totalRatingCoursesCount = totalRatingCourses.length;
+      const totalRating = totalRatingCourses.reduce((sum, course) => {
+        return sum + Number(course.averageRating);
       }, 0);
-      const averageProgress = totalEnrollments > 0 
-        ? Math.round(totalProgress / totalEnrollments) 
+      const averageRating = totalRatingCoursesCount > 0 
+        ? Math.round((totalRating / totalRatingCoursesCount) * 10) / 10 // Keep one decimal place
         : 0;
       
       // Active vs inactive enrollments (assuming active means progress > 0)
@@ -274,19 +276,12 @@ exports.getTeacherStats = async (req, res) => {
         (enrollment) => (Number(enrollment?.progressPercentage) || 0) > 0
       ).length;
       const inactiveEnrollments = totalEnrollments - activeEnrollments;
-      
-      console.log({
-        totalCourses,
-        totalLessons,
-        totalEnrollments,
-        totalStudents,
-        completedEnrollments,
-        completionRate,
-        totalRevenue,
-        averageProgress,
-        activeEnrollments,
-        inactiveEnrollments
-      });
+
+      const bestSellingCourse = courses.reduce((max, course) => {
+        
+        const enrollmentsCount = course.enrollments.length;
+        return enrollmentsCount > max ? course : max;
+      }, null);
       
       res.status(200).json({
         success: true,
@@ -300,9 +295,11 @@ exports.getTeacherStats = async (req, res) => {
           totalStudents,
           completedEnrollments,
           completionRate,
-          averageProgress,
+          totalRatingCoursesCount,
+          averageRating,
           activeEnrollments,
           inactiveEnrollments,
+          bestSellingCourse,
           
           // Revenue stats
           totalRevenue

@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { TeacherStats } from "@/utils/types";
+import { useCallback, useEffect, useState } from "react";
 
-type TeacherProfile = {
+export type TeacherProfile = {
   user: {
     name: string;
     role: string;
@@ -49,6 +50,7 @@ export const useTeacherProfile = (userId: string | number | undefined) => {
   const [profile, setProfile] = useState<TeacherProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [teacherStats, setTeacherStats] = useState<TeacherStats | null>(null);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -66,7 +68,9 @@ export const useTeacherProfile = (userId: string | number | undefined) => {
       });
 
       if (!res.ok) {
-        throw new Error(`Failed to fetch profile: ${res.status} ${res.statusText}`);
+        throw new Error(
+          `Failed to fetch profile: ${res.status} ${res.statusText}`
+        );
       }
 
       const data = await res.json();
@@ -81,12 +85,20 @@ export const useTeacherProfile = (userId: string | number | undefined) => {
       localStorage.setItem("userId", userId.toString());
       localStorage.setItem("role", data.teacherProfile.user.role || "TEACHER");
       localStorage.setItem("userPhoto", data.teacherProfile.profilePhoto || "");
-      localStorage.setItem("userName", data.teacherProfile.user.name || "Mentor Name");
+      localStorage.setItem(
+        "userName",
+        data.teacherProfile.user.name || "Mentor Name"
+      );
       localStorage.setItem("userEmail", data.teacherProfile.user.email || "");
-      localStorage.setItem("userPhone", data.teacherProfile.user.phone || "N/A");
+      localStorage.setItem(
+        "userPhone",
+        data.teacherProfile.user.phone || "N/A"
+      );
       localStorage.setItem("userBio", data.teacherProfile.user.bio || "N/A");
-      localStorage.setItem("userCoverPhoto", data.teacherProfile.coverPhoto || "N/A");
-
+      localStorage.setItem(
+        "userCoverPhoto",
+        data.teacherProfile.coverPhoto || "N/A"
+      );
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "An unknown error occurred";
@@ -98,8 +110,23 @@ export const useTeacherProfile = (userId: string | number | undefined) => {
   }, [userId]);
 
   useEffect(() => {
+    const fetchTeacherStats = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5001/api/enrollments/stats/teacher/${userId!}`
+        );
+        const stats = await res.json();
+        const data: TeacherStats = stats.data;
+        setTeacherStats(data);
+      } catch (error) {
+        console.log("Failed to fetch enrollments:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTeacherStats();
     fetchProfile();
-  }, [fetchProfile]);
+  }, [fetchProfile, userId]);
 
-  return { profile, loading, error, refetch: fetchProfile };
+  return { profile, teacherStats, loading, error, refetch: fetchProfile };
 };

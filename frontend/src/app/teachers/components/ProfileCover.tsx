@@ -1,12 +1,18 @@
-import { User, Star, Award } from "lucide-react";
 import SocialIcon from "@/components/Common-Components/SocialIcon";
+import { TeacherProfile } from "@/hooks/useTeacherProfile";
+import { TeacherStats } from "@/utils/types";
+import { Star, User } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Props = {
-  profile: any;
+  profile: TeacherProfile;
+  teacherStats: TeacherStats;
 };
 
-const ProfileCover = ({ profile }: Props) => {
-  const userInfo = profile.user;
+const ProfileCover = ({ profile, teacherStats }: Props) => {
+  const userId = localStorage.getItem("userId");
+  const userName = profile.user.name;
+  const router = useRouter();
 
   return (
     <div className="p-5 relative w-full h-100 rounded-3xl overflow-hidden shadow-2xl group">
@@ -41,20 +47,19 @@ const ProfileCover = ({ profile }: Props) => {
             </div>
           </div>
           <div className="text-white pb-4">
-            <h2 className="text-2xl font-bold mb-2">{userInfo.name}</h2>
+            <h2 className="text-2xl font-bold mb-2">{userName}</h2>
             <div className="flex items-center space-x-4 text-white/90">
               <div className="flex items-center space-x-1">
                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                 <span className="font-semibold">
-                  {profile.rating?.toFixed(1) || "N/A"}
+                  {teacherStats?.averageRating?.toFixed(1) || "N/A"}
                 </span>
-                <span className="text-white/70">
-                  ({profile.totalReviews?.toLocaleString() || "0"} reviews)
+                <span className="text-white/600">
+                  (
+                  {teacherStats?.totalRatingCoursesCount?.toLocaleString() ||
+                    "0"}{" "}
+                  ratings)
                 </span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Award className="w-4 h-4" />
-                <span>Top Instructor</span>
               </div>
             </div>
           </div>
@@ -65,7 +70,10 @@ const ProfileCover = ({ profile }: Props) => {
           <SocialIcon name="youtube" />
           <SocialIcon name="tiktok" />
           <SocialIcon name="mail" />
-          <button className="px-6 py-3 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-colors duration-200 border border-white/20">
+          <button
+            onClick={() => router.push(`/updatementors-profile/${userId}`)}
+            className="px-6 py-3 bg-white/20 backdrop-blur-md text-white font-medium rounded-xl hover:bg-white/30 transition-colors duration-200 border border-white/20"
+          >
             Edit Profile
           </button>
         </div>

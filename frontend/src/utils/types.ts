@@ -292,6 +292,7 @@ export interface CourseData extends CourseFormData {
   id: number;
   lessons: Lesson[];
   outcomes: Outcome[];
+  enrollments: Enrollment[];
   reviews?: Review[];
   progress?: number;
 }
@@ -373,10 +374,12 @@ export interface TeacherStats {
   totalStudents: number;
   completedEnrollments: number;
   completionRate: number;
-  averageProgress: number;
+  averageRating: number;
   activeEnrollments: number;
   inactiveEnrollments: number;
+  totalRatingCoursesCount: number;
 
   // Revenue stats
   totalRevenue: number;
+  bestSellingCourse: CourseData;
 }
