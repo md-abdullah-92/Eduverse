@@ -4,12 +4,12 @@ import { useAuth } from "@/app/auth/context";
 import ChatWidget from "@/app/lesson/ChatWidget";
 import Sidebar from "@/app/students/components/Sidebar";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
+import { useStudentProfile } from "@/hooks/useStudentProfile";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
+import { poppins } from "@/utils/font";
 import { Enrollment, Lesson } from "@/utils/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useStudentProfile } from "@/hooks/useStudentProfile";
-import { poppins } from "@/utils/font";
 import {
   FiArrowLeft,
   FiBook,
@@ -129,7 +129,7 @@ export default function LearnPage() {
   const [videoError, setVideoError] = useState<string | null>(null);
 
   const userID = localStorage.getItem("userId");
-  const { profile }=useStudentProfile(userID);
+  const { profile } = useStudentProfile(userID);
 
   const [videoState, setVideoState] = useState<VideoState>({
     isPlaying: false,
@@ -259,7 +259,6 @@ export default function LearnPage() {
       }));
     }
   }, [videoState.isPlaying]);
-  
 
   const handleVideoLoadStart = useCallback(() => {
     setVideoState((prev) => ({ ...prev, isLoading: true }));
@@ -385,57 +384,52 @@ export default function LearnPage() {
     }));
   }, []);
 
-  
- useEffect(() => {
-  if (!currentLesson?.id || !profile?.quizResults) return;
+  useEffect(() => {
+    if (!currentLesson?.id || !profile?.quizResults) return;
 
-  const hasAttemptedQuiz = profile.quizResults.some(
-    (result) => result.lessonId === currentLesson.id
-  );
+    const hasAttemptedQuiz = profile.quizResults.some(
+      (result) => result.lessonId === currentLesson.id
+    );
 
-  if (hasAttemptedQuiz) {
-    setLessonProgress((prev) => ({
-      ...prev,
-      [currentLesson.id]: {
-        ...prev[currentLesson.id],
-        quizCompleted: true,
-      },
-    }));
-  }
-}, [currentLesson?.id, profile?.quizResults, setLessonProgress]);
+    if (hasAttemptedQuiz) {
+      setLessonProgress((prev) => ({
+        ...prev,
+        [currentLesson.id]: {
+          ...prev[currentLesson.id],
+          quizCompleted: true,
+        },
+      }));
+    }
+  }, [currentLesson?.id, profile?.quizResults, setLessonProgress]);
 
+  const handleStartQuiz = useCallback(() => {
+    if (!currentLesson?.id) return;
 
- const handleStartQuiz = useCallback(() => {
-  if (!currentLesson?.id) return;
+    const lessonId = currentLesson.id;
+    const userId = localStorage.getItem("userId");
 
-  const lessonId = currentLesson.id;
-  const userId = localStorage.getItem("userId");
+    // Get the full quiz result object (not just true/false)
+    const attemptedQuiz = profile?.quizResults?.find(
+      (result) => result.lessonId === lessonId
+    );
 
-  // Get the full quiz result object (not just true/false)
-  const attemptedQuiz = profile?.quizResults?.find(
-    (result) => result.lessonId === lessonId
-  );
+    if (attemptedQuiz) {
+      // Navigate to quiz review/details page
+      router.push(`/students/${userId}/quiz/${attemptedQuiz.id}`);
+    } else {
+      // Navigate to quiz attempt page
+      router.push(`/lesson/${lessonId}/quizes`);
 
-  if (attemptedQuiz) {
-    // Navigate to quiz review/details page
-    router.push(`/students/${userId}/quiz/${attemptedQuiz.id}`);
-  } else {
-    // Navigate to quiz attempt page
-    router.push(`/lesson/${lessonId}/quizes`);
-
-    // Mark as completed in local progress
-    setLessonProgress((prev) => ({
-      ...prev,
-      [lessonId]: {
-        ...prev[lessonId],
-        quizCompleted: true,
-      },
-    }));
-  }
-}, [currentLesson?.id, profile?.quizResults, router, setLessonProgress]);
-
-
-
+      // Mark as completed in local progress
+      setLessonProgress((prev) => ({
+        ...prev,
+        [lessonId]: {
+          ...prev[lessonId],
+          quizCompleted: true,
+        },
+      }));
+    }
+  }, [currentLesson?.id, profile?.quizResults, router, setLessonProgress]);
 
   const formatTime = useCallback((seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -480,8 +474,8 @@ export default function LearnPage() {
 
   return (
     <div
-            className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
-          >
+      className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
+    >
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-lg fixed left-0 top-0 h-full z-40">
         <div className="p-6">
@@ -496,7 +490,7 @@ export default function LearnPage() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <ChatWidget/>
+      <ChatWidget />
 
       {/* Main Content Area */}
       <main className="flex-1 ml-90">
@@ -728,7 +722,7 @@ export default function LearnPage() {
 
                 {/* Assignment Button */}
                 <button
-                   onClick={() => {
+                  onClick={() => {
                     router.push(`/lesson/${currentLesson.id}/assignments`);
                     setShowNotes(true);
                   }}
@@ -752,29 +746,27 @@ export default function LearnPage() {
                 </button>
 
                 {/* Quiz Button */}
-              <button
-  onClick={handleStartQuiz}
-  type="button"
-  className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-    lessonProgress[currentLesson.id]?.quizCompleted
-      ? "bg-green-100 text-green-700 ring-green-200 hover:bg-green-200"
-      : "bg-gray-100 text-gray-700 hover:bg-gray-200 ring-gray-300"
-  }`}
->
-  {lessonProgress[currentLesson.id]?.quizCompleted ? (
-    <>
-      <FiCheckCircle className="w-4 h-4" aria-hidden="true" />
-      <span>Quiz Completed</span>
-    </>
-  ) : (
-    <>
-      <FiClipboard className="w-4 h-4" aria-hidden="true" />
-      <span>Start Quiz</span>
-    </>
-  )}
-</button>
-
-
+                <button
+                  onClick={handleStartQuiz}
+                  type="button"
+                  className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                    lessonProgress[currentLesson.id]?.quizCompleted
+                      ? "bg-green-100 text-green-700 ring-green-200 hover:bg-green-200"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 ring-gray-300"
+                  }`}
+                >
+                  {lessonProgress[currentLesson.id]?.quizCompleted ? (
+                    <>
+                      <FiCheckCircle className="w-4 h-4" aria-hidden="true" />
+                      <span>Quiz Completed</span>
+                    </>
+                  ) : (
+                    <>
+                      <FiClipboard className="w-4 h-4" aria-hidden="true" />
+                      <span>Start Quiz</span>
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Navigation */}

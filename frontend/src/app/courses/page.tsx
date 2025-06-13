@@ -142,10 +142,10 @@ export default function AllCoursesPage() {
     <div>
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pb-20">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-teal-700 to-purple-600 text-white py-16 px-4">
-          <div className="max-w-7xl mx-auto">
+        <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-purple-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 py-14">
             <div className="flex flex-col md:flex-row justify-between items-center">
-              <div>
+              <div className="text-center md:text-left">
                 <h1
                   className={`text-4xl md:text-5xl font-medium mb-4 ${playfair.className}`}
                 >

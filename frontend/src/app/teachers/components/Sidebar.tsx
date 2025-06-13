@@ -1,23 +1,22 @@
 "use client";
-import React, {  useState } from "react";
-import { useRouter } from "next/navigation";
+import { dmSerif, poppins } from "@/utils/font";
 import {
-  LayoutDashboard,
   BookOpen,
+  ClipboardEditIcon,
+  LayoutDashboard,
+  Lightbulb,
   LogOut,
-
   Megaphone,
   Package,
   PieChart,
+  Save,
   Star,
   User,
-  Save,
-  ClipboardEditIcon,
-  Lightbulb,
 } from "lucide-react";
-import SidebarItem from "./SidebarItem";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import LogoutModal from "./LogoutModal";
-import { poppins, dmSerif } from "@/utils/font";
+import SidebarItem from "./SidebarItem";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard" },
@@ -27,27 +26,23 @@ const menuItems = [
   {
     icon: Save,
     label: "Study Note",
-    children: [{ label: "Generate Study Notes" },
-      { label: "Saved Study Notes" }],
+    children: [
+      { label: "Generate Study Notes" },
+      { label: "Saved Study Notes" },
+    ],
   },
-  
+
   {
     icon: ClipboardEditIcon,
     label: "Assignment",
-    children: [
-      { label: "Create Assignment" },
-      { label: "Saved Assignments" },
-    ],
+    children: [{ label: "Create Assignment" }, { label: "Saved Assignments" }],
   },
   {
     icon: Lightbulb,
     label: "Quiz",
-    children: [
-      { label: "Create Quiz" },
-      { label: "Saved Quizzes" },
-    ],
+    children: [{ label: "Create Quiz" }, { label: "Saved Quizzes" }],
   },
-  
+
   { icon: Megaphone, label: "Announcements" },
   { icon: PieChart, label: "Analytics" },
   { icon: Star, label: "Reviews" },
@@ -71,7 +66,9 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
       case "Saved Assignments":
         return router.push(`/teachers/${userId}/assignments/saved-assignments`);
       case "Generate Study Notes":
-        return router.push(`/teachers/${userId}/study-notes/generate-study-notes`);
+        return router.push(
+          `/teachers/${userId}/study-notes/generate-study-notes`
+        );
       case "Saved Study Notes":
         return router.push(`/teachers/${userId}/study-notes/saved-study-notes`);
       case "Update Profile":
@@ -118,9 +115,9 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   return (
     <>
       <aside
-        className={`w-80 h-screen fixed top-0 left-0 bg-white backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg z-20 ${poppins.className}`}
+        className={`w-72 h-screen fixed top-0 left-0 bg-white backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg z-20 ${poppins.className}`}
       >
-        <div className="h-14" />
+        <div className="h-7" />
         <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
           <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
             <BookOpen className="w-6 h-6 text-white" />
@@ -134,7 +131,7 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
           </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-1.5">
           {menuItems.map(({ icon, label, children }, i) => (
             <SidebarItem
               key={label}
