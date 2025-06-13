@@ -1,11 +1,6 @@
-
-'use client';
-import React from 'react';
-import { TrendingUp } from 'lucide-react';
-
-
-
-
+"use client";
+import { TrendingUp } from "lucide-react";
+import React from "react";
 
 type StatCardProps = {
   label: string;
@@ -47,7 +42,7 @@ const StatCard = ({
       )}
     </div>
     <div>
-      <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
+      <p className="text-2xl text-gray-900 mb-1">{value}</p>
       <p className="text-sm text-gray-500 font-medium">{label}</p>
     </div>
   </div>

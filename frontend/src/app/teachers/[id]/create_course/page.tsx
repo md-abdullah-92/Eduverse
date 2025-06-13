@@ -277,14 +277,14 @@ export default function AddCoursePage() {
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="text-gray-500 text-lg">৳</span>
+                      <span className="text-black text-lg">৳</span>
                     </div>
                     <input
                       type="text"
                       id="price"
                       name="price"
                       className="w-full p-3 lg:p-4 pl-10 lg:pl-12 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-200 bg-white/70 backdrop-blur-sm placeholder-gray-400 text-sm lg:text-base"
-                      value={formState.price || "0"}
+                      value={formState.price}
                       onChange={handleInputChange}
                       placeholder="25.00"
                       required
@@ -483,7 +483,7 @@ export default function AddCoursePage() {
                   </div>
 
                   <div className="text-lg font-bold text-green-600 mb-3">
-                    ৳{formState.price || "0"}
+                    ৳ {formState.price || "0"}
                   </div>
 
                   <button

@@ -11,7 +11,7 @@ import StatCard from "../components/StatCard";
 
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
-import { playfair } from "@/utils/font";
+import { poppins, raleway } from "@/utils/font";
 
 // Main Dashboard Component
 const ModernDashboard = () => {
@@ -37,13 +37,20 @@ const ModernDashboard = () => {
         <Sidebar role="TEACHER" userId={userId!} />
       </aside>
       <main className="ml-20 p-5 flex-1">
-        <div>
-          <h1
-            className={`p-4 text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent ${playfair.className}`}
-          >
-            Welcome back, {userInfo.name}! 👋
-          </h1>
-        </div>{" "}
+        <div className="flex justify-between items-center px-6 py-4">
+          <div>
+            <h1
+              className={`text-4xl font-bold bg-gradient-to-r from-teal-900 to-teal-600 bg-clip-text text-transparent ${raleway.className}`}
+            >
+              Welcome back, {userInfo.name || "Teacher"}!
+            </h1>
+            <p
+              className={`mt-2 text-gray-600 italic text-base ${poppins.className}`}
+            >
+              Continue your teaching journey and track your courses.
+            </p>
+          </div>
+        </div>
         <CoverProfile profile={profile} teacherStats={teacherStats!} />
         <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           <div className="border-1 border-teal-500 rounded-2xl shadow-sm hover:shadow-md transition duration-300">
@@ -60,7 +67,7 @@ const ModernDashboard = () => {
           <div className="border-1 border-teal-500 rounded-2xl shadow-sm hover:shadow-md transition duration-300">
             <StatCard
               label="Total Revenue"
-              value={`Tk. ${teacherStats?.totalRevenue.toFixed(2) || "0"}`}
+              value={`৳ ${teacherStats?.totalRevenue.toFixed(2) || "0"}`}
               icon={<DollarSign />}
               color="text-green-500"
               trend="+8%"

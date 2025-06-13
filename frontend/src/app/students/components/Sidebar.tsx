@@ -1,65 +1,58 @@
 "use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  User,
-  BookOpen,
-  Heart,
-  ListChecks,
   BadgeCheck,
-  ShoppingCart,
+  BookOpen,
+  LayoutDashboard,
+  ListChecks,
   LogOut,
+  ShoppingCart,
+  User,
 } from "lucide-react";
-import SidebarItem from "./SidebarItem";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import LogoutModal from "./LogoutModel";
+import SidebarItem from "./SidebarItem";
 
 // Fonts
-import {
-  poppins,
-  dmSerif,
-} from "@/utils/font"; // adjust import path if needed
+import { dmSerif, poppins } from "@/utils/font"; // adjust import path if needed
 
 type NavigationItem = {
   icon: React.ElementType;
   label: string;
   badge?: number;
 };
-const enrolled_course=localStorage.getItem("totalEnrolledCourses");
+const enrolled_course = localStorage.getItem("totalEnrolledCourses");
 
 const studentNavigationItems: NavigationItem[] = [
   { icon: LayoutDashboard, label: "Dashboard" },
   { icon: User, label: "Update Profile" },
-  { icon: BookOpen, label: "Enrolled Courses", badge: enrolled_course ? parseInt(enrolled_course) : 0 },
+  {
+    icon: BookOpen,
+    label: "Enrolled Courses",
+    badge: enrolled_course ? parseInt(enrolled_course) : 0,
+  },
   { icon: ListChecks, label: "Quiz Attempts" },
   { icon: BadgeCheck, label: "Certificates" },
   { icon: ShoppingCart, label: "Cart" },
   { icon: LogOut, label: "Logout" },
 ];
 
-const Sidebar = ({
-  userId,
-  role,
-}: {
-  userId: string;
-  role: string;
-}) => {
+const Sidebar = ({ userId, role }: { userId: string; role: string }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeItem] = useState("");
 
   const router = useRouter();
 
   const handleClick = (label: string) => {
-
     if (label === "Logout") {
       setShowLogoutModal(true);
       return;
     }
-    if( label==="Quiz Attempts"){
+    if (label === "Quiz Attempts") {
       router.push(`/students/${userId}/quiz/quizattempts`);
       return;
     }
-    if(label === "Dashboard"){
+    if (label === "Dashboard") {
       router.push(`/students/${userId}`);
       return;
     }
@@ -72,12 +65,12 @@ const Sidebar = ({
       );
       return;
     }
-  
+
     if (label === "Enrolled Courses") {
       router.push(`/students/${userId}/enrolled_course`);
       return;
     }
-    
+
     if (label === "Cart") {
       router.push(`/cart/`);
       return;
@@ -103,7 +96,7 @@ const Sidebar = ({
       <aside
         className={`w-80 h-screen fixed top-0 left-0 bg-white backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg z-20 ${poppins.className}`}
       >
-        <div className="h-16" />
+        <div className="h-7" />
         <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
           <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
             <BookOpen className="w-6 h-6 text-white" />

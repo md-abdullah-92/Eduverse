@@ -21,7 +21,7 @@ const BestSellingCourse: React.FC<{ bestSellingCourse: CourseData }> = ({
   return (
     <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/20">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-gray-900 flex items-center space-x-2">
+        <h3 className="text-xl text-gray-900 flex items-center space-x-2">
           <Award className="w-6 h-6 text-yellow-500" />
           <span>Best Selling Course</span>
         </h3>
@@ -54,14 +54,14 @@ const BestSellingCourse: React.FC<{ bestSellingCourse: CourseData }> = ({
             </div>
           </div>
           {/* Bestseller Badge */}
-          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-sm font-semibold">
+          <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-sm">
             #1 Bestseller
           </div>
         </div>
 
         <div className="flex-1 space-y-4">
           <div>
-            <h4 className="text-xl font-bold text-gray-900 mb-2">
+            <h4 className="text-xl text-gray-900 mb-2">
               {bestSellingCourse.title}
             </h4>
             <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
@@ -81,27 +81,27 @@ const BestSellingCourse: React.FC<{ bestSellingCourse: CourseData }> = ({
           </div>
 
           <div className="flex items-center space-x-3">
-            <span className="text-2xl font-bold text-teal-600">
-              Tk. {bestSellingCourse.price}
+            <span className="text-2xl text-teal-600">
+              ৳ {bestSellingCourse.price}
             </span>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <div className="text-xl font-bold text-gray-900">
+              <div className="text-xl text-gray-900">
                 {bestSellingCourse.enrollments.length}
               </div>
               <div className="text-sm text-gray-600">Enrollments</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <div className="text-xl font-bold text-green-600">
+              <div className="text-xl text-green-600">
                 {bestSellingCourse.enrollments.length *
                   Number(bestSellingCourse.price)}
               </div>
               <div className="text-sm text-gray-600">Revenue</div>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-xl">
-              <div className="text-xl font-bold text-blue-600">
+              <div className="text-xl text-blue-600">
                 {bestSellingCourse.averageRating}
               </div>
               <div className="text-sm text-gray-600">Rating</div>

@@ -1,13 +1,9 @@
-'use client';
-import React from 'react';
-
+"use client";
 
 type ChartCardProps = {
   title: string;
   data?: number[];
 };
-
-
 
 const ChartCard = ({
   title,
@@ -18,7 +14,7 @@ const ChartCard = ({
   return (
     <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20">
       <div className="flex justify-between items-center mb-6">
-        <h4 className="text-lg font-bold text-gray-900">{title}</h4>
+        <h4 className="text-lg text-gray-900">{title}</h4>
         <select className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500">
           <option>This week</option>
           <option>This month</option>
