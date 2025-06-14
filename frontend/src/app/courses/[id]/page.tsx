@@ -9,6 +9,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { QnASection } from "../components/qnaSection";
+import { TeacherQnAManagement } from "../components/TeacherQnAManagement";
 import {
   FiArrowLeft,
   FiAward,
@@ -547,8 +548,26 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                     />
                   )}
 
-                  {activeTab === "qna" && (
-                    <QnASection courseId={parseInt(resolvedParams.id)} />
+                  {activeTab === "qna" && user?.role === "STUDENT" && (
+                   <QnASection
+                    courseId={parseInt(resolvedParams.id)}
+                    currentStudent={{
+                      id: user?.id || 1,
+                      name: localStorage.getItem("userName") || "Guest",
+                      photoUrl: localStorage.getItem("userPhoto")||'/profile.png',
+                   }}
+
+                  />
+                  )}
+                  {activeTab === "qna" && user?.role === "TEACHER" && (
+                   <TeacherQnAManagement
+                    courseId={parseInt(resolvedParams.id)}
+                    teacher={{
+                      id: user?.id || 1,
+                      name: localStorage.getItem("userName") || "Guest",
+                      photoUrl: localStorage.getItem("userPhoto")||'/profile.png',
+                   }}
+                  />
                   )}
                 </div>
               </div>
