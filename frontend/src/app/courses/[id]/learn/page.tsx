@@ -735,12 +735,12 @@ export default function LearnPage() {
                   {lessonProgress[currentLesson.id]?.assignmentCompleted ? (
                     <>
                       <FiCheckCircle className="w-4 h-4" />
-                      Assignment Completed
+                      Practice
                     </>
                   ) : (
                     <>
                       <FiEdit3 className="w-4 h-4" />
-                      Start Assignment
+                      Practice
                     </>
                   )}
                 </button>

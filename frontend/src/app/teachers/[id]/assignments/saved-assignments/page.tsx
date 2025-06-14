@@ -34,17 +34,20 @@ type Assignment = {
   createdAt: string;
 };
 
-
 export default function SavedAssignments() {
   const router = useRouter();
   const userId =
-    typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
+    typeof window !== "undefined"
+      ? localStorage.getItem("userId") || "12345"
+      : "12345";
   const { profile, loading, error } = useTeacherProfile(userId ?? undefined);
 
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<
+    number | null
+  >(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [selectedLessonId, setSelectedLessonId] = useState<string>("");
 
@@ -54,14 +57,17 @@ export default function SavedAssignments() {
     }
   }, [profile]);
 
-  const { courses } = useInstructorCourses(userId||'0');
+  const { courses } = useInstructorCourses(userId || "0");
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this assignment?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/assignment/delete/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/assignment/delete/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (res.ok) {
         setAssignments((prev) => prev.filter((a) => a.id !== id));
       } else {
@@ -79,40 +85,46 @@ export default function SavedAssignments() {
 
   const handleSaveToLesson = async () => {
     if (!selectedAssignmentId || !selectedLessonId) return;
-    const selectedStudynote = assignments.find(q => q.id === selectedAssignmentId);
-    const title = selectedStudynote?.title 
-    const description= selectedStudynote?.description
+    const selectedStudynote = assignments.find(
+      (q) => q.id === selectedAssignmentId
+    );
+    const title = selectedStudynote?.title;
+    const description = selectedStudynote?.description;
     if (!title || !description) {
-    alert("Please provide a title and content for the Study Note.");
-    return;
-  }
-
-  if (!userId || userId === "12345") {
-    alert("Invalid or missing teacher ID.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`http://localhost:5001/api/assignment`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, teacherId: userId,lessonId : parseInt(selectedLessonId) }), 
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Server error:", data.error);
-      alert(`Error: ${data.error}`);
+      alert("Please provide a title and content for the Short Question.");
       return;
     }
-    setIsModalOpen(false);
-    alert("Assignment saved successfully!");
-    
-  } catch (err) {
-    console.error("Failed to save assignment:", err);
-    alert("Failed to save assignment. Please try again.");
-  }
+
+    if (!userId || userId === "12345") {
+      alert("Invalid or missing teacher ID.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/assignment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          teacherId: userId,
+          lessonId: parseInt(selectedLessonId),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Server error:", data.error);
+        alert(`Error: ${data.error}`);
+        return;
+      }
+      setIsModalOpen(false);
+      alert("Short Questions set successfully!");
+    } catch (err) {
+      console.error("Failed to save assignment:", err);
+      alert("Failed to save Short Questions. Please try again.");
+    }
   };
 
   const filteredAssignments = assignments.filter((a) =>
@@ -120,21 +132,23 @@ export default function SavedAssignments() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-purple-100 relative">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative">
       <aside className="w-64 bg-white shadow-md p-4">
         <Sidebar role="TEACHER" userId={userId} />
       </aside>
 
       <main className={`flex-1 p-5 ml-20 ${lora.className}`}>
-        <h1 className={`text-3xl font-bold text-purple-800 mb-6 ${playfair.className}`}>
-          Saved Assignments
+        <h1
+          className={`text-3xl font-bold text-teal-800 mb-6 ${playfair.className}`}
+        >
+          Saved Short Questions
         </h1>
 
         <div className="mb-6">
           <Input
             type="text"
             placeholder="Search by assignment title..."
-            className={`w-full max-w-md border-purple-300 shadow-sm focus:ring-2 focus:ring-purple-300 ${lora.className}`}
+            className={`w-full max-w-md border-teal-300 shadow-sm focus:ring-2 focus:ring-teal-300 ${lora.className}`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -156,7 +170,9 @@ export default function SavedAssignments() {
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
-                      <h2 className={`text-xl font-bold text-purple-800 mb-1 ${playfair.className}`}>
+                      <h2
+                        className={`text-xl font-bold text-teal-800 mb-1 ${playfair.className}`}
+                      >
                         {assignment.title}
                       </h2>
                       <p className="text-sm text-gray-500">
@@ -170,7 +186,7 @@ export default function SavedAssignments() {
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
-                          className="text-purple-700 border-purple-300 hover:bg-purple-100"
+                          className="text-teal-700 border-teal-300 hover:bg-teal-100"
                           onClick={() => handleView(assignment.id)}
                         >
                           View
@@ -185,7 +201,7 @@ export default function SavedAssignments() {
                       </div>
                       <Button
                         variant="secondary"
-                        className="text-purple-600 border-purple-300 hover:bg-purple-100 mt-1"
+                        className="text-teal-600 border-teal-300 hover:bg-teal-100 mt-1"
                         onClick={() => {
                           setSelectedAssignmentId(assignment.id);
                           setIsModalOpen(true);
@@ -255,7 +271,7 @@ export default function SavedAssignments() {
 
           <DialogFooter>
             <Button onClick={handleSaveToLesson} disabled={!selectedLessonId}>
-              Save Assignment to Lesson
+              Save Short Questions to Lesson
             </Button>
           </DialogFooter>
         </DialogContent>

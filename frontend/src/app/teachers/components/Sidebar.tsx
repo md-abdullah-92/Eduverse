@@ -34,17 +34,17 @@ const menuItems = [
 
   {
     icon: ClipboardEditIcon,
-    label: "Assignment",
-    children: [{ label: "Create Assignment" }, { label: "Saved Assignments" }],
+    label: "Short Questions",
+    children: [
+      { label: "Generate Short Questions" },
+      { label: "Saved Questions" },
+    ],
   },
   {
     icon: Lightbulb,
     label: "Quiz",
     children: [{ label: "Create Quiz" }, { label: "Saved Quizzes" }],
   },
-
-  { icon: Megaphone, label: "Announcements" },
-  { icon: PieChart, label: "Analytics" },
   { icon: Star, label: "Reviews" },
   { icon: LogOut, label: "Logout" },
 ];
@@ -61,9 +61,9 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
         return setShowLogoutModal(true);
       case "Announcements":
         return router.push(`/teachers/${userId}/announcements`);
-      case "Create Assignment":
+      case "Generate Short Questions":
         return router.push(`/teachers/${userId}/assignments/generate`);
-      case "Saved Assignments":
+      case "Saved Questions":
         return router.push(`/teachers/${userId}/assignments/saved-assignments`);
       case "Generate Study Notes":
         return router.push(

@@ -15,7 +15,9 @@ import { merriweather } from "@/utils/font";
 import SaveSlideButton from "@/app/teachers/components/PrintButton";
 import Sidebar from "../../../components/Sidebar";
 
-const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
+const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
+  ssr: false,
+});
 
 type Question = {
   number: number;
@@ -32,7 +34,9 @@ export default function GenerateShortQuestionPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const userId =
-    typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
+    typeof window !== "undefined"
+      ? localStorage.getItem("userId") || "12345"
+      : "12345";
 
   const handleGenerateShortQuestions = async () => {
     if (!pdfFile) return alert("Please upload a PDF file!");
@@ -50,12 +54,12 @@ export default function GenerateShortQuestionPage() {
       const markdownText = await res.text();
       setMarkdown(markdownText);
 
-      const parsedQuestions = [...markdownText.matchAll(/^\s*(\d+)\.\s+(.*)$/gm)].map(
-        ([, number, text]) => ({
-          number: parseInt(number),
-          text: text.trim(),
-        })
-      );
+      const parsedQuestions = [
+        ...markdownText.matchAll(/^\s*(\d+)\.\s+(.*)$/gm),
+      ].map(([, number, text]) => ({
+        number: parseInt(number),
+        text: text.trim(),
+      }));
 
       setQuestions(parsedQuestions);
       setShowEditor(true);
@@ -87,7 +91,11 @@ export default function GenerateShortQuestionPage() {
       const res = await fetch("http://localhost:5000/api/assignment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description: content, teacherId: parseInt(userId) }),
+        body: JSON.stringify({
+          title,
+          description: content,
+          teacherId: parseInt(userId),
+        }),
       });
 
       const data = await res.json();
@@ -119,10 +127,10 @@ export default function GenerateShortQuestionPage() {
 
       <main className="ml-20 p-5 flex-1">
         <div
-          className={`min-h-screen bg-gradient-to-br from-yellow-50 to-white px-6 pb-10 ${merriweather.className}`}
+          className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 ${merriweather.className}`}
         >
           <header className="mb-6 pt-8">
-            <h1 className="text-4xl font-bold text-yellow-800 flex items-center gap-3">
+            <h1 className="text-4xl font-bold text-teal-700 flex items-center gap-3">
               <FaTasks />
               Generate Short Questions
             </h1>
@@ -149,7 +157,7 @@ export default function GenerateShortQuestionPage() {
             <Button
               onClick={handleGenerateShortQuestions}
               disabled={isLoading}
-              className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-white flex items-center gap-2"
+              className="mt-4 bg-teal-600 hover:bg-yellow-700 text-white flex items-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -181,7 +189,11 @@ export default function GenerateShortQuestionPage() {
                     variant="outline"
                     className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
                   >
-                    {showPreview ? <EyeOff className="mr-2 w-4 h-4" /> : <Eye className="mr-2 w-4 h-4" />}
+                    {showPreview ? (
+                      <EyeOff className="mr-2 w-4 h-4" />
+                    ) : (
+                      <Eye className="mr-2 w-4 h-4" />
+                    )}
                     {showPreview ? "Hide Preview" : "Show Preview"}
                   </Button>
 
@@ -199,7 +211,12 @@ export default function GenerateShortQuestionPage() {
                   </Button>
 
                   <Button
-                    onClick={() => saveShortQuestion(selectedTitle, generateMarkdownFromQuestions())}
+                    onClick={() =>
+                      saveShortQuestion(
+                        selectedTitle,
+                        generateMarkdownFromQuestions()
+                      )
+                    }
                     className="bg-teal-800 hover:bg-teal-500 text-white"
                   >
                     Save
@@ -207,11 +224,17 @@ export default function GenerateShortQuestionPage() {
                 </div>
               </div>
 
-              <div className={`flex-1 grid ${showPreview ? "md:grid-cols-2" : "grid-cols-1"} gap-6`}>
+              <div
+                className={`flex-1 grid ${
+                  showPreview ? "md:grid-cols-2" : "grid-cols-1"
+                } gap-6`}
+              >
                 {/* Markdown Editor */}
                 <Card className="h-[calc(100vh-300px)] bg-white border border-yellow-200">
                   <div className="p-4 border-b border-yellow-100">
-                    <h2 className="text-lg font-semibold text-yellow-700">Short Question Editor</h2>
+                    <h2 className="text-lg font-semibold text-yellow-700">
+                      Short Question Editor
+                    </h2>
                   </div>
                   <ScrollArea className="flex-1 overflow-auto px-4 py-2">
                     <SimpleMDE
@@ -242,13 +265,20 @@ export default function GenerateShortQuestionPage() {
                 {showPreview && (
                   <Card className="h-[calc(100vh-300px)] bg-white border border-yellow-200">
                     <div className="p-4 border-b border-yellow-100">
-                      <h2 className="text-lg font-semibold text-yellow-700">Preview</h2>
+                      <h2 className="text-lg font-semibold text-yellow-700">
+                        Preview
+                      </h2>
                     </div>
                     <ScrollArea className="flex-1 overflow-auto px-4 py-2">
-                      <h2 className="text-2xl font-bold text-yellow-700 mb-4">{selectedTitle}</h2>
+                      <h2 className="text-2xl font-bold text-yellow-700 mb-4">
+                        {selectedTitle}
+                      </h2>
                       <ol className="list-none space-y-3 ml-2">
                         {questions.map((q, idx) => (
-                          <li key={idx} className="flex items-start justify-between gap-3 group">
+                          <li
+                            key={idx}
+                            className="flex items-start justify-between gap-3 group"
+                          >
                             <span className="flex-1 leading-relaxed">
                               <strong>{idx + 1}.</strong> {q.text}
                             </span>
