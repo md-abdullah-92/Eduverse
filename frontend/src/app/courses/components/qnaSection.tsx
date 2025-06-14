@@ -1,68 +1,110 @@
 "use client";
 
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiMessageSquare, FiSend, FiUser } from "react-icons/fi";
 
-interface Question {
-  id: number;
-  author: string;
-  content: string;
-  createdAt: string;
-  replies: Reply[];
-}
-
 interface Reply {
-  id: number;
-  author: string;
+  id: string;
+  teacherName: string;
   content: string;
+  teacherPhotoUrl?: string | null;
   createdAt: string;
 }
 
-export const QnASection = ({ courseId }: { courseId: number }) => {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: 1,
-      author: "John Doe",
-      content: "What are the prerequisites for this course?",
-      createdAt: "2023-05-15T10:30:00Z",
-      replies: [
-        {
-          id: 1,
-          author: "Course Instructor",
-          content: "Basic programming knowledge is recommended.",
-          createdAt: "2023-05-15T11:45:00Z",
-        },
-      ],
-    },
-    {
-      id: 2,
-      author: "Jane Smith",
-      content: "Will there be any certification provided after completion?",
-      createdAt: "2023-05-16T09:15:00Z",
-      replies: [],
-    },
-  ]);
+interface Question {
+  id: string;
+  studentName: string;
+  studentPhotoUrl?: string | null;
+  title: string;
+  content: string;
+  createdAt: string;
+  answer?: Reply | null;
+}
 
+interface QnASectionProps {
+  courseId: number;
+  // You might want to pass current student info from your auth context
+  currentStudent: {
+    id: number;
+    name: string;
+    photoUrl?: string;
+  };
+}
+
+export const QnASection = ({ courseId, currentStudent }: QnASectionProps) => {
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [newQuestion, setNewQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmitQuestion = (e: React.FormEvent) => {
+  // Fetch questions on mount or courseId change
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch(`http://localhost:5001/api/qna/courses/${courseId}/questions`);
+        if (!res.ok) throw new Error("Failed to fetch questions");
+        const data: Question[] = await res.json();
+        setQuestions(data);
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [courseId]);
+
+  // Submit a new question
+  const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newQuestion.trim()) return;
 
-    const question: Question = {
-      id: questions.length + 1,
-      author: "You",
-      content: newQuestion,
-      createdAt: new Date().toISOString(),
-      replies: [],
-    };
+    setLoading(true);
+    setError(null);
 
-    setQuestions([...questions, question]);
-    setNewQuestion("");
+    try {
+      const payload = {
+        studentId: currentStudent.id,
+        studentName: currentStudent.name,
+        studentPhotoUrl: currentStudent.photoUrl || null,
+        title: newQuestion, // you can split title/content in UI if needed
+        content: newQuestion,
+        courseId,
+      };
+     console.log("Submitting question:", payload);
+      const res = await fetch("http://localhost:5001/api/qna/questions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to submit question");
+      }
+
+      const data = await res.json();
+
+      // Add new question to the list
+      setQuestions((prev) => [...prev, data.question]);
+
+      // Clear input
+      setNewQuestion("");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-3xl mx-auto">
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-xl font-semibold mb-4">Ask a Question</h3>
         <form onSubmit={handleSubmitQuestion}>
@@ -70,19 +112,24 @@ export const QnASection = ({ courseId }: { courseId: number }) => {
             <input
               type="text"
               value={newQuestion}
-              onChange={(e) => setNewQuestion(e.target)}
+              onChange={(e) => setNewQuestion(e.target.value)}
               placeholder="Type your question here..."
               className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               required
+              disabled={loading}
             />
             <button
               type="submit"
-              className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+              className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+              disabled={loading}
             >
               <FiSend className="w-4 h-4" />
               Ask
             </button>
           </div>
+          {error && (
+            <p className="text-red-600 mt-2 text-sm font-medium">{error}</p>
+          )}
         </form>
       </div>
 
@@ -91,7 +138,9 @@ export const QnASection = ({ courseId }: { courseId: number }) => {
           Questions ({questions.length})
         </h3>
 
-        {questions.length === 0 ? (
+        {loading && questions.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">Loading questions...</div>
+        ) : questions.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No questions yet. Be the first to ask!
           </div>
@@ -103,11 +152,13 @@ export const QnASection = ({ courseId }: { courseId: number }) => {
                 className="bg-white rounded-lg shadow-sm p-6"
               >
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="bg-emerald-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                    <FiUser className="text-emerald-600 w-4 h-4" />
-                  </div>
+                  <img
+                    src={question.studentPhotoUrl || "/default-user.png"}
+                    alt={question.studentName}
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                  />
                   <div>
-                    <div className="font-medium">{question.author}</div>
+                    <div className="font-medium">{question.studentName}</div>
                     <div className="text-xs text-gray-500">
                       {new Date(question.createdAt).toLocaleDateString()}
                     </div>
@@ -115,33 +166,26 @@ export const QnASection = ({ courseId }: { courseId: number }) => {
                 </div>
                 <p className="ml-11 mb-4">{question.content}</p>
 
-                {question.replies.length > 0 && (
+                {question.answer && (
                   <div className="ml-11 pl-4 border-l-2 border-gray-200 space-y-4">
-                    {question.replies.map((reply) => (
-                      <div key={reply.id} className="pt-3">
-                        <div className="flex items-start gap-3 mb-2">
-                          <div className="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0">
-                            <FiUser className="text-blue-600 w-4 h-4" />
-                          </div>
-                          <div>
-                            <div className="font-medium">{reply.author}</div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(reply.createdAt).toLocaleDateString()}
-                            </div>
+                    <div className="pt-3">
+                      <div className="flex items-start gap-3 mb-2">
+                        <img
+                          src={question.answer.teacherPhotoUrl || "/default-teacher.png"}
+                          alt={question.answer.teacherName}
+                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        />
+                        <div>
+                          <div className="font-medium">{question.answer.teacherName}</div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(question.answer.createdAt).toLocaleDateString()}
                           </div>
                         </div>
-                        <p className="ml-11">{reply.content}</p>
                       </div>
-                    ))}
+                      <p className="ml-11">{question.answer.content}</p>
+                    </div>
                   </div>
                 )}
-
-                <div className="ml-11 mt-4">
-                  <button className="text-sm text-emerald-600 hover:text-emerald-800 flex items-center gap-1">
-                    <FiMessageSquare className="w-4 h-4" />
-                    Reply
-                  </button>
-                </div>
               </div>
             ))}
           </div>
