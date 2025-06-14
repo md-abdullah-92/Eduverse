@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { dmSerif, notoSerif } from "@/utils/font";
-import { CheckCircle, Circle, ClipboardList,Award } from "lucide-react";
+import { Award, CheckCircle, Circle, ClipboardList } from "lucide-react";
+import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import ChatWidget from "../../ChatWidget";
-
 
 type Question = {
   id: string;
@@ -30,7 +29,7 @@ export default function StudentExamPage() {
   const [duration, setDuration] = useState(0);
   const [startDelay, setStartDelay] = useState(10);
   const [hasStarted, setHasStarted] = useState(false);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const answersRef = useRef<Record<string, string>>({});
   const courseId = localStorage.getItem("courseId") || "";
@@ -39,13 +38,12 @@ export default function StudentExamPage() {
   console.log("Course ID:", courseId);
   console.log("Student ID:", studentId);
   const lessonId = useParams().lessonid as string;
-  const Id=parseInt(lessonId, 10);
-  let fullmark=0
+  const Id = parseInt(lessonId, 10);
+  let fullmark = 0;
   questions.forEach((q) => {
     if (q.type === "cq") {
       fullmark += 5; // Assuming each CQ is worth 5 points
-    }
-    else if (q.type === "mcq") {
+    } else if (q.type === "mcq") {
       fullmark += 1; // Assuming each MCQ is worth 1 point
     }
   });
@@ -53,12 +51,14 @@ export default function StudentExamPage() {
   useEffect(() => {
     async function fetchNote() {
       try {
-        const res = await fetch(`http://localhost:5001/api/quizes/lesson/${lessonId}`);
+        const res = await fetch(
+          `http://localhost:5001/api/quizes/lesson/${lessonId}`
+        );
         const data = await res.json();
-         setTitle(data[0]?.title || "Quiz");
+        setTitle(data[0]?.title || "Quiz");
         setQuestions(data[0]?.questions || []);
         setDuration(data[0]?.duration || 0);
-        setDescription(data[0]?.description || '');
+        setDescription(data[0]?.description || "");
       } catch (err) {
         alert("Failed to fetch questions. Please try again later.");
         console.error("Fetch error:", err);
@@ -74,7 +74,7 @@ export default function StudentExamPage() {
     if (submitted || hasStarted || loading) return;
 
     const delayInterval = setInterval(() => {
-      setStartDelay(prev => {
+      setStartDelay((prev) => {
         if (prev <= 1) {
           clearInterval(delayInterval);
           const start = new Date();
@@ -113,75 +113,79 @@ export default function StudentExamPage() {
     answersRef.current = newAnswers;
     setAnswers(newAnswers);
   };
-  
+
   const handleSubmit = async () => {
-  if (submitted) return;
+    if (submitted) return;
 
-  let total = 0;
-  const cqAnswers: { id: string; question: string; answer: string }[] = [];
+    let total = 0;
+    const cqAnswers: { id: string; question: string; answer: string }[] = [];
 
-  questions.forEach((q) => {
-    const userAns = answersRef.current[q.id]?.trim();
-    if (q.type === "mcq") {
-      if (userAns?.toUpperCase() === q.correctAnswer?.toUpperCase()) total++;
-    } else if (q.type === "cq") {
-      cqAnswers.push({ id: q.id, question: q.question, answer: userAns || "" });
+    questions.forEach((q) => {
+      const userAns = answersRef.current[q.id]?.trim();
+      if (q.type === "mcq") {
+        if (userAns?.toUpperCase() === q.correctAnswer?.toUpperCase()) total++;
+      } else if (q.type === "cq") {
+        cqAnswers.push({
+          id: q.id,
+          question: q.question,
+          answer: userAns || "",
+        });
+      }
+    });
+
+    let cqMarks = 0;
+
+    try {
+      if (cqAnswers.length > 0) {
+        const res = await fetch("/api/review-cq", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cqAnswers }),
+        });
+
+        const result = await res.json();
+        cqMarks =
+          typeof result.totalCQMarks === "number" ? result.totalCQMarks : 0;
+      }
+    } catch (error) {
+      console.error("CQ Evaluation Error:", error);
+      alert("Failed to evaluate CQ answers.");
     }
-  });
 
-  let cqMarks = 0;
+    const finalScore = total + cqMarks;
+    const quizScore = (finalScore / fullmark) * 100;
+    setScore(quizScore);
+    setSubmitted(true);
 
-  try {
-    if (cqAnswers.length > 0) {
-      const res = await fetch("/api/review-cq", {
+    const answeredquestions = questions.map((q) => ({
+      question: q.question,
+      correctAnswer: q.correctAnswer || null,
+      options: q.options || [],
+      explanation: q.explanation || null,
+      difficulty: q.difficulty || "medium",
+      type: q.type,
+      useranswer: answersRef.current[q.id] || "",
+    }));
+
+    try {
+      await fetch("http://localhost:5000/api/result", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cqAnswers }),
+        body: JSON.stringify({
+          title: title,
+          marks: quizScore,
+          studentId: parseInt(studentId),
+          fullmark: fullmark,
+          lessonId: Id,
+          courseId: parseInt(courseId),
+          answeredquestions,
+        }),
       });
-
-      const result = await res.json();
-      cqMarks = typeof result.totalCQMarks === "number" ? result.totalCQMarks : 0;
+    } catch (err) {
+      console.error("Failed to save result:", err);
+      alert("Something went wrong while submitting results.");
     }
-  } catch (error) {
-    console.error("CQ Evaluation Error:", error);
-    alert("Failed to evaluate CQ answers.");
-  }
-
-  const finalScore = total + cqMarks;
-  setScore(finalScore);
-  setSubmitted(true);
-
-  const answeredquestions = questions.map((q) => ({
-    question: q.question,
-    correctAnswer: q.correctAnswer || null,
-    options: q.options || [],
-    explanation: q.explanation || null,
-    difficulty: q.difficulty || "medium",
-    type: q.type,
-    useranswer: answersRef.current[q.id] || "",
-  }));
-
-  try {
-    await fetch("http://localhost:5000/api/result", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: title,
-        marks: finalScore,
-        studentId: parseInt(studentId),
-        fullmark: fullmark,
-        lessonId: Id,
-        courseId: parseInt(courseId),
-        answeredquestions,
-      }),
-    });
-  } catch (err) {
-    console.error("Failed to save result:", err);
-    alert("Something went wrong while submitting results.");
-  }
-};
-
-
+  };
 
   const formatTime = (seconds: number) => {
     const min = Math.floor(seconds / 60);
@@ -192,24 +196,22 @@ export default function StudentExamPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 py-10 px-4">
       <div className="max-w-4xl mx-auto space-y-10">
-         {!submitted && (
-        <div className="text-center space-y-2">
-          <h1
-            className={`${dmSerif.className} text-3xl text-gray-800 font-bold flex items-center justify-center gap-2`}
-          >
-            <ClipboardList className="w-7 h-7 text-teal-600" />
-            Take Your Exam
-          </h1>
-          <p className="text-gray-600">
-            MCQs: 1pt each · CQs: 5pts each.
-          </p>
-        </div>
-         )}
+        {!submitted && (
+          <div className="text-center space-y-2">
+            <h1
+              className={`${dmSerif.className} text-3xl text-gray-800 font-bold flex items-center justify-center gap-2`}
+            >
+              <ClipboardList className="w-7 h-7 text-teal-600" />
+              Take Your Exam
+            </h1>
+            <p className="text-gray-600">MCQs: 1pt each · CQs: 5pts each.</p>
+          </div>
+        )}
 
-        {submitted && (   
+        {submitted && (
           <Card className="bg-white border border-teal-200 shadow-lg rounded-2xl mt-8 text-center">
             <CardContent className="p-6 space-y-3">
-               <h2
+              <h2
                 className={`${dmSerif.className} text-2xl text-teal-800 font-semibold flex items-center justify-center gap-2`}
               >
                 <Award className="w-6 h-6 text-green-600" />
@@ -219,15 +221,16 @@ export default function StudentExamPage() {
                 Your total score: <strong>{score}</strong>
               </p>
             </CardContent>
-            <ChatWidget/>
+            <ChatWidget />
           </Card>
-          
         )}
 
         {!hasStarted && !submitted && !loading && (
           <Card className="bg-white/90 border shadow-lg rounded-2xl">
             <CardContent className="p-6 space-y-3">
-              <h2 className="text-xl text-teal-700 font-semibold">📋 Exam Description</h2>
+              <h2 className="text-xl text-teal-700 font-semibold">
+                📋 Exam Description
+              </h2>
               <p className="text-gray-700">{description}</p>
             </CardContent>
           </Card>
@@ -235,13 +238,15 @@ export default function StudentExamPage() {
 
         {!hasStarted && !submitted && (
           <div className="text-center text-xl font-medium text-teal-700">
-            ⏳ Your exam starts in <span className="font-bold">{startDelay}</span> seconds...
+            ⏳ Your exam starts in{" "}
+            <span className="font-bold">{startDelay}</span> seconds...
           </div>
         )}
 
         {hasStarted && !submitted && (
           <div className="text-right text-sm font-medium text-teal-700">
-            ⏱️ Time Left: <span className="font-bold">{formatTime(remainingTime)}</span>
+            ⏱️ Time Left:{" "}
+            <span className="font-bold">{formatTime(remainingTime)}</span>
             <Progress
               className="mt-1 h-2"
               value={((duration * 60 - remainingTime) / (duration * 60)) * 100}
@@ -254,53 +259,61 @@ export default function StudentExamPage() {
             {questions.map((q, index) => {
               const userAnswer = answers[q.id];
               return (
-                <Card key={q.id} className="bg-white border shadow-md rounded-2xl">
+                <Card
+                  key={q.id}
+                  className="bg-white border shadow-md rounded-2xl"
+                >
                   <CardContent className="p-6 space-y-4">
                     <div className="flex gap-3 items-start">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-purple-600 text-purple-700 font-bold">
                         {index + 1}
                       </div>
-                      <div className={`${notoSerif.className} text-lg text-gray-800`}>
+                      <div
+                        className={`${notoSerif.className} text-lg text-gray-800`}
+                      >
                         {q.question}
                       </div>
                     </div>
 
-                    {q.type === "mcq" && q.options?.map((opt, i) => {
-                      const optionLetter = String.fromCharCode(65 + i);
-                      const isSelected = userAnswer === optionLetter;
-                      const isCorrect = q.correctAnswer === optionLetter;
+                    {q.type === "mcq" &&
+                      q.options?.map((opt, i) => {
+                        const optionLetter = String.fromCharCode(65 + i);
+                        const isSelected = userAnswer === optionLetter;
+                        const isCorrect = q.correctAnswer === optionLetter;
 
-                      return (
-                        <div
-                          key={i}
-                          className={`flex items-start gap-3 p-4 rounded-xl border text-sm md:text-base ${
-                            submitted && isCorrect
-                              ? "bg-green-50 border-green-500"
-                              : "bg-white border-gray-300 hover:border-teal-500"
-                          } transition-all cursor-pointer`}
-                          onClick={() => !submitted && handleChange(q.id, optionLetter)}
-                        >
-                          <div className="pt-1">
-                            {isSelected ? (
-                              <CheckCircle className="text-teal-600 w-5 h-5" />
-                            ) : (
-                              <Circle className="text-gray-400 w-5 h-5" />
-                            )}
+                        return (
+                          <div
+                            key={i}
+                            className={`flex items-start gap-3 p-4 rounded-xl border text-sm md:text-base ${
+                              submitted && isCorrect
+                                ? "bg-green-50 border-green-500"
+                                : "bg-white border-gray-300 hover:border-teal-500"
+                            } transition-all cursor-pointer`}
+                            onClick={() =>
+                              !submitted && handleChange(q.id, optionLetter)
+                            }
+                          >
+                            <div className="pt-1">
+                              {isSelected ? (
+                                <CheckCircle className="text-teal-600 w-5 h-5" />
+                              ) : (
+                                <Circle className="text-gray-400 w-5 h-5" />
+                              )}
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-800">
+                                {optionLetter}.
+                              </span>{" "}
+                              <span className="text-gray-700">{opt}</span>
+                              {submitted && isSelected && !isCorrect && (
+                                <span className="text-red-500 ml-2">❌</span>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-semibold text-gray-800">{optionLetter}.</span>{" "}
-                            <span className="text-gray-700">{opt}</span>
-                            {submitted && isSelected && !isCorrect && (
-                              <span className="text-red-500 ml-2">❌</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-              
+                        );
+                      })}
 
                     {q.type !== "mcq" && (
-                      
                       <textarea
                         disabled={submitted}
                         rows={6}
@@ -319,9 +332,13 @@ export default function StudentExamPage() {
                           </div>
                         )}
                         {q.explanation && (
-                          <div>💡 <strong>Explanation:</strong> {q.explanation}</div>
+                          <div>
+                            💡 <strong>Explanation:</strong> {q.explanation}
+                          </div>
                         )}
-                        <div className="text-gray-500">Difficulty: {q.difficulty}</div>
+                        <div className="text-gray-500">
+                          Difficulty: {q.difficulty}
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -338,7 +355,6 @@ export default function StudentExamPage() {
             </Button>
           </div>
         )}
-
       </div>
     </div>
   );
