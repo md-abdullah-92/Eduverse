@@ -154,3 +154,4 @@ model AnsweredQuestion{
   quizResultId String
   quiz          Quizresults?    @relation(fields: [quizResultId], references: [id], onDelete: Cascade) 
 }
+

@@ -64,10 +64,24 @@ exports.answerQuestion = async (req, res) => {
   try {
     const { questionId, content, teacherId, teacherName, teacherPhotoUrl } = req.body;
 
-    // Check if already answered
-    const existing = await prisma.teacherAnswer.findUnique({ where: { questionId } });
-    if (existing) return res.status(400).json({ error: "Question already answered" });
+    // Validate required fields
+    if (!questionId || !content || !teacherId || !teacherName) {
+      console.log(questionId, content, teacherId, teacherName, teacherPhotoUrl);
+      console.error("Missing required fields for answer");
+      return res.status(400).json({ error: "Missing required fields." });
 
+    }
+
+    // Check if already answered
+    const existing = await prisma.teacherAnswer.findUnique({
+      where: { questionId },
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: "This question has already been answered." });
+    }
+
+    // Create the answer
     const answer = await prisma.teacherAnswer.create({
       data: {
         content,
@@ -78,18 +92,19 @@ exports.answerQuestion = async (req, res) => {
       },
     });
 
-    // Update the isAnswered flag
+    // Mark the question as answered
     await prisma.studentQuestion.update({
       where: { id: questionId },
       data: { isAnswered: true },
     });
 
-    res.status(201).json({ message: "Answer submitted", answer });
+    res.status(201).json({ message: "Answer submitted successfully.", answer });
   } catch (error) {
     console.error("Answer Question Error:", error);
-    res.status(500).json({ error: "Failed to submit answer" });
+    res.status(500).json({ error: "Failed to submit answer. Please try again later." });
   }
 };
+
 
 // 5. Get all unanswered questions for a course
 exports.getUnansweredQuestions = async (req, res) => {

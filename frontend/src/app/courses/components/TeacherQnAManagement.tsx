@@ -52,6 +52,7 @@ export const TeacherQnAManagement = ({
   const handleSubmitAnswer = async (questionId: string) => {
     const answerText = answers[questionId]?.trim();
     if (!answerText) return;
+    console.log("Submitting answer for question:", questionId, "Answer:", answerText);
 
     setLoading(true);
     try {
@@ -60,6 +61,7 @@ export const TeacherQnAManagement = ({
         headers: {
           "Content-Type": "application/json",
         },
+        
         body: JSON.stringify({
           questionId,
           teacherId: teacher.id,
