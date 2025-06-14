@@ -45,6 +45,8 @@ model Course {
   reviews       Review[]
   averageRating Float?           @default(0)
   cartItems     CartItem[]
+  studentQuestions StudentQuestion[]  // ✅ relation added
+
 
   @@index([instructorId])
 }
@@ -199,4 +201,33 @@ model CartItem {
   @@unique([studentId, courseId])
   @@index([studentId])
   @@index([courseId])
+}
+
+model StudentQuestion {
+  id              String           @id @default(cuid())
+  studentName     String
+  studentPhotoUrl String?     
+  title           String
+  content         String           @db.Text
+  studentId       Int
+  student         StudentProfile   @relation(fields: [studentId], references: [userId], onDelete: Cascade)
+  courseId        Int              // ✅ now required
+  course          Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  isAnswered      Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  answer          TeacherAnswer?
+}
+
+model TeacherAnswer {
+  id              String           @id @default(cuid())
+  content         String           @db.Text
+  teacherName     String 
+  teacherPhotoUrl String?
+  questionId      String
+  question        StudentQuestion  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  teacherId       Int
+  teacher         TeacherProfile   @relation(fields: [teacherId], references: [userId], onDelete: Cascade)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
