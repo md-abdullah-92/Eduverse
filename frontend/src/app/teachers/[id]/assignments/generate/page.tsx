@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaTasks } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
@@ -32,11 +32,31 @@ export default function GenerateShortQuestionPage() {
   const [showEditor, setShowEditor] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [timer, setTimer] = useState(60);
 
   const userId =
     typeof window !== "undefined"
       ? localStorage.getItem("userId") || "12345"
       : "12345";
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isLoading) {
+      setTimer(60);
+      interval = setInterval(() => {
+        setTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const handleGenerateShortQuestions = async () => {
     if (!pdfFile) return alert("Please upload a PDF file!");
@@ -162,7 +182,7 @@ export default function GenerateShortQuestionPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin w-4 h-4" />
-                  Generating...
+                  Generating... ({timer}s)
                 </>
               ) : (
                 "Generate Short Questions"

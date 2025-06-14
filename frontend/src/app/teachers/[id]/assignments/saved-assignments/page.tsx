@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 import Sidebar from "../../../components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
@@ -45,11 +45,10 @@ export default function SavedAssignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<
-    number | null
-  >(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [selectedLessonId, setSelectedLessonId] = useState<string>("");
+  const [loadingAssignmentId, setLoadingAssignmentId] = useState<number | null>(null);
 
   useEffect(() => {
     if (profile?.assignments) {
@@ -80,14 +79,13 @@ export default function SavedAssignments() {
   };
 
   const handleView = (id: number) => {
+    setLoadingAssignmentId(id);
     router.push(`/teachers/${userId}/assignments/${id}`);
   };
 
   const handleSaveToLesson = async () => {
     if (!selectedAssignmentId || !selectedLessonId) return;
-    const selectedStudynote = assignments.find(
-      (q) => q.id === selectedAssignmentId
-    );
+    const selectedStudynote = assignments.find((q) => q.id === selectedAssignmentId);
     const title = selectedStudynote?.title;
     const description = selectedStudynote?.description;
     if (!title || !description) {
@@ -138,9 +136,7 @@ export default function SavedAssignments() {
       </aside>
 
       <main className={`flex-1 p-5 ml-20 ${lora.className}`}>
-        <h1
-          className={`text-3xl font-bold text-teal-800 mb-6 ${playfair.className}`}
-        >
+        <h1 className={`text-3xl font-bold text-teal-800 mb-6 ${playfair.className}`}>
           Saved Short Questions
         </h1>
 
@@ -170,9 +166,7 @@ export default function SavedAssignments() {
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div className="flex-1">
-                      <h2
-                        className={`text-xl font-bold text-teal-800 mb-1 ${playfair.className}`}
-                      >
+                      <h2 className={`text-xl font-bold text-teal-800 mb-1 ${playfair.className}`}>
                         {assignment.title}
                       </h2>
                       <p className="text-sm text-gray-500">
@@ -186,11 +180,20 @@ export default function SavedAssignments() {
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
-                          className="text-teal-700 border-teal-300 hover:bg-teal-100"
+                          className="text-teal-700 border-teal-300 hover:bg-teal-100 flex items-center gap-2"
                           onClick={() => handleView(assignment.id)}
+                          disabled={loadingAssignmentId === assignment.id}
                         >
-                          View
+                          {loadingAssignmentId === assignment.id ? (
+                            <>
+                              <Loader2 className="animate-spin w-4 h-4" />
+                              Loading...
+                            </>
+                          ) : (
+                            "View"
+                          )}
                         </Button>
+
                         <Button
                           variant="destructive"
                           className="hover:bg-red-700"
@@ -199,6 +202,7 @@ export default function SavedAssignments() {
                           <Trash2 className="w-4 h-4 mr-1" /> Delete
                         </Button>
                       </div>
+
                       <Button
                         variant="secondary"
                         className="text-teal-600 border-teal-300 hover:bg-teal-100 mt-1"

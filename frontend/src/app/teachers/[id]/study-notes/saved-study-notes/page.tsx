@@ -27,13 +27,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
 type Studynote = {
   id: number;
   title: string;
   description: string;
   createdAt: string;
-}
+};
 
 export default function SavedStudyNotes() {
   const router = useRouter();
@@ -45,7 +44,8 @@ export default function SavedStudyNotes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null);
-  
+  const [viewingNoteId, setViewingNoteId] = useState<number | null>(null);
+
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [selectedLessonId, setSelectedLessonId] = useState<string>("");
 
@@ -53,8 +53,7 @@ export default function SavedStudyNotes() {
     if (profile?.studyNotes) setNotes(profile.studyNotes);
   }, [profile]);
 
- const { courses } = useInstructorCourses(userId||'0');
- console.log("Courses:", courses);
+  const { courses } = useInstructorCourses(userId || "0");
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this study note?")) return;
@@ -72,45 +71,54 @@ export default function SavedStudyNotes() {
     }
   };
 
-  const handleView = (id: number) => router.push(`/teachers/${userId}/study-notes/${id}`);
+  const handleView = (id: number) => {
+    setViewingNoteId(id);
+    setTimeout(() => {
+      router.push(`/teachers/${userId}/study-notes/${id}`);
+    }, 500); // Optional simulated delay
+  };
 
   const handleSaveToLesson = async () => {
     if (!selectedNoteId || !selectedLessonId) return;
-    
-    const selectedStudynote = notes.find(q => q.id === selectedNoteId);
-    const title = selectedStudynote?.title 
-    const description= selectedStudynote?.description
+
+    const selectedStudynote = notes.find((q) => q.id === selectedNoteId);
+    const title = selectedStudynote?.title;
+    const description = selectedStudynote?.description;
     if (!title || !description) {
-    alert("Please provide a title and content for the Study Note.");
-    return;
-  }
-
-  if (!userId || userId === "12345") {
-    alert("Invalid or missing teacher ID.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`http://localhost:5001/api/studynote`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, teacherId: userId,lessonId : parseInt(selectedLessonId) }), 
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Server error:", data.error);
-      alert(`Error: ${data.error}`);
+      alert("Please provide a title and content for the Study Note.");
       return;
     }
-    setIsModalOpen(false);
-    alert("Study Note saved successfully!");
-    
-  } catch (err) {
-    console.error("Failed to save assignment:", err);
-    alert("Failed to save assignment. Please try again.");
-  }
+
+    if (!userId || userId === "12345") {
+      alert("Invalid or missing teacher ID.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/studynote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description,
+          teacherId: userId,
+          lessonId: parseInt(selectedLessonId),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Server error:", data.error);
+        alert(`Error: ${data.error}`);
+        return;
+      }
+      setIsModalOpen(false);
+      alert("Study Note saved successfully!");
+    } catch (err) {
+      console.error("Failed to save assignment:", err);
+      alert("Failed to save assignment. Please try again.");
+    }
   };
 
   const filteredNotes = notes.filter((n) =>
@@ -169,8 +177,34 @@ export default function SavedStudyNotes() {
                           variant="outline"
                           className="text-teal-700 border-teal-300 hover:bg-teal-100"
                           onClick={() => handleView(note.id)}
+                          disabled={viewingNoteId === note.id}
                         >
-                          View
+                          {viewingNoteId === note.id ? (
+                            <span className="flex items-center gap-1">
+                              <svg
+                                className="animate-spin h-4 w-4 text-teal-700"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  fill="none"
+                                />
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+                                />
+                              </svg>
+                              Loading...
+                            </span>
+                          ) : (
+                            "View"
+                          )}
                         </Button>
                         <Button
                           variant="destructive"

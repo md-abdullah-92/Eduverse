@@ -10,6 +10,7 @@ import { poppins } from "@/utils/font";
 import { Enrollment, Lesson } from "@/utils/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   FiArrowLeft,
   FiBook,
@@ -25,6 +26,7 @@ import {
   FiSkipForward,
   FiVideo,
   FiVolume2,
+  FiLoader,
 } from "react-icons/fi";
 
 interface VideoState {
@@ -124,6 +126,8 @@ export default function LearnPage() {
   const [lessonProgress, setLessonProgress] = useState<LessonProgress>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingButton, setLoadingButton] = useState<"notes" | "assignments" | null>(null);
 
   const userID = localStorage.getItem("userId");
   const { profile } = useStudentProfile(userID);
@@ -400,33 +404,24 @@ export default function LearnPage() {
   }, [currentLesson?.id, profile?.quizResults, setLessonProgress]);
 
   const handleStartQuiz = useCallback(() => {
-    if (!currentLesson?.id) return;
+  if (!currentLesson?.id) return;
 
-    const lessonId = currentLesson.id;
-    const userId = localStorage.getItem("userId");
+  setIsLoading(true); // Start loading
+  const lessonId = currentLesson.id;
+  const userId = localStorage.getItem("userId");
 
-    // Get the full quiz result object (not just true/false)
-    const attemptedQuiz = profile?.quizResults?.find(
-      (result) => result.lessonId === lessonId
-    );
+  const attemptedQuiz = profile?.quizResults?.find(
+    (result) => result.lessonId === lessonId
+  );
 
-    if (attemptedQuiz) {
-      // Navigate to quiz review/details page
-      router.push(`/students/${userId}/quiz/${attemptedQuiz.id}`);
-    } else {
-      // Navigate to quiz attempt page
-      router.push(`/lesson/${lessonId}/quizes`);
+  if (attemptedQuiz) {
+    router.push(`/students/${userId}/quiz/${attemptedQuiz.id}`);
+  } else {
+    router.push(`/lesson/${lessonId}/quizes`);
+  }
 
-      // Mark as completed in local progress
-      setLessonProgress((prev) => ({
-        ...prev,
-        [lessonId]: {
-          ...prev[lessonId],
-          quizCompleted: true,
-        },
-      }));
-    }
-  }, [currentLesson?.id, profile?.quizResults, router, setLessonProgress]);
+  // DO NOT set isLoading(false) here
+}, [currentLesson?.id, profile?.quizResults, router]);
 
   const formatTime = useCallback((seconds: number) => {
     if (isNaN(seconds)) return "0:00";
@@ -693,64 +688,106 @@ export default function LearnPage() {
                   <p className="text-gray-600">{currentLesson.description}</p>
                 )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-                {/* Notes Button */}
-                <button
-                  onClick={() => {
-                    router.push(`/lesson/${currentLesson.id}/notes`);
-                  }}
-                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors"
-                >
-                  <FiBookOpen className="w-4 h-4" />
-                  View Notes
-                </button>
+          
 
-                {/* Assignment Button */}
-                <button
-                  onClick={() => {
-                    router.push(`/lesson/${currentLesson.id}/assignments`);
-                  }}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    lessonProgress[currentLesson.id]?.assignmentCompleted
-                      ? "bg-green-100 text-green-700"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {lessonProgress[currentLesson.id]?.assignmentCompleted ? (
-                    <>
-                      <FiCheckCircle className="w-4 h-4" />
-                      Practice
-                    </>
-                  ) : (
-                    <>
-                      <FiEdit3 className="w-4 h-4" />
-                      Practice
-                    </>
-                  )}
-                </button>
+
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+  {/* Notes Button */}
+  <button
+    onClick={() => {
+      setLoadingButton("notes");
+      setTimeout(() => {
+        router.push(`/lesson/${currentLesson.id}/notes`);
+      }, 500); // small delay to show loading effect
+    }}
+    disabled={loadingButton !== null}
+    className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+      lessonProgress[currentLesson.id]?.notesViewed
+        ? "bg-blue-100 text-blue-700"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+    } ${loadingButton === "notes" ? "opacity-50 cursor-not-allowed" : ""}`}
+  >
+    {loadingButton === "notes" ? (
+      <>
+        <FiLoader className="w-4 h-4 animate-spin" />
+        Loading...
+      </>
+    ) : lessonProgress[currentLesson.id]?.notesViewed ? (
+      <>
+        <FiCheckCircle className="w-4 h-4" />
+        Notes Viewed
+      </>
+    ) : (
+      <>
+        <FiBookOpen className="w-4 h-4" />
+        View Notes
+      </>
+    )}
+  </button>
+
+  {/* Assignment Button */}
+  <button
+    onClick={() => {
+      setLoadingButton("assignments");
+      setTimeout(() => {
+        router.push(`/lesson/${currentLesson.id}/assignments`);
+      }, 500);
+    }}
+    disabled={loadingButton !== null}
+    className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+      lessonProgress[currentLesson.id]?.assignmentCompleted
+        ? "bg-green-100 text-green-700"
+        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+    } ${loadingButton === "assignments" ? "opacity-50 cursor-not-allowed" : ""}`}
+  >
+    {loadingButton === "assignments" ? (
+      <>
+        <FiLoader className="w-4 h-4 animate-spin" />
+        Loading...
+      </>
+    ) : lessonProgress[currentLesson.id]?.assignmentCompleted ? (
+      <>
+        <FiCheckCircle className="w-4 h-4" />
+        Practice Done
+      </>
+    ) : (
+      <>
+        <FiEdit3 className="w-4 h-4" />
+        Practice
+      </>
+    )}
+  </button>
+
 
                 {/* Quiz Button */}
-                <button
-                  onClick={handleStartQuiz}
-                  type="button"
-                  className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                    lessonProgress[currentLesson.id]?.quizCompleted
-                      ? "bg-green-100 text-green-700 ring-green-200 hover:bg-green-200"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 ring-gray-300"
-                  }`}
-                >
-                  {lessonProgress[currentLesson.id]?.quizCompleted ? (
-                    <>
-                      <FiCheckCircle className="w-4 h-4" aria-hidden="true" />
-                      <span>Quiz Completed</span>
-                    </>
-                  ) : (
-                    <>
-                      <FiClipboard className="w-4 h-4" aria-hidden="true" />
-                      <span>Start Quiz</span>
-                    </>
-                  )}
-                </button>
+           <button
+      onClick={handleStartQuiz}
+      type="button"
+      disabled={isLoading}
+      className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+        lessonProgress[currentLesson.id]?.quizCompleted
+          ? "bg-green-100 text-green-700 ring-green-200 hover:bg-green-200"
+          : "bg-gray-100 text-gray-700 hover:bg-gray-200 ring-gray-300"
+      }`}
+    >
+      {isLoading ? (
+        <>
+          <FiLoader className="w-4 h-4 animate-spin" />
+          <span>Loading...</span>
+        </>
+      ) : lessonProgress[currentLesson.id]?.quizCompleted ? (
+        <>
+          <FiCheckCircle className="w-4 h-4" aria-hidden="true" />
+          <span>Quiz Completed</span>
+        </>
+      ) : (
+        <>
+          <FiClipboard className="w-4 h-4" aria-hidden="true" />
+          <span>Start Quiz</span>
+        </>
+      )}
+    </button>
+
               </div>
 
               {/* Navigation */}

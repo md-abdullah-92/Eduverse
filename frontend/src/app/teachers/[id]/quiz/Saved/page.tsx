@@ -10,9 +10,6 @@ import { toast } from "sonner";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { useInstructorCourses } from "@/hooks/useInstructorCourses";
 
-
-
-
 import {
   Dialog,
   DialogTrigger,
@@ -33,6 +30,7 @@ import {
 export default function PublishedQuiz() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
+  const [viewLoadingId, setViewLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     const uid = localStorage.getItem("userId");
@@ -63,11 +61,9 @@ export default function PublishedQuiz() {
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [selectedLesson, setSelectedLesson] = useState("");
-  const { courses } = useInstructorCourses(userId||'0');
-  
+  const { courses } = useInstructorCourses(userId || "0");
 
   // Fetch teacher's courses with lessons
-  
   console.log(courses);
 
   const handleDelete = async (id: string) => {
@@ -91,8 +87,11 @@ export default function PublishedQuiz() {
     }
   };
 
-  const handleViewDetails = (id: string) => {
+  const handleViewDetails = async (id: string) => {
+    setViewLoadingId(id);
     router.push(`/teachers/${userId}/quiz/${id}`);
+    // If you have async fetches before navigation, await them here
+    // setViewLoadingId(null); // clear loading after navigation if needed
   };
 
   // Assign quiz to course lesson
@@ -101,46 +100,44 @@ export default function PublishedQuiz() {
       toast.error("Please select all fields");
       return;
     }
-const selectedQuiz = quizzes.find(q => q.id === selectedQuizId);
+    const selectedQuiz = quizzes.find((q) => q.id === selectedQuizId);
 
-if (!selectedQuiz) {
-  alert("Quiz not found!");
-  return;
-}
+    if (!selectedQuiz) {
+      alert("Quiz not found!");
+      return;
+    }
 
-const examData = {
-  title: selectedQuiz.title,
-  description: selectedQuiz.description,
-  questions: selectedQuiz.questions,
-  duration: selectedQuiz.duration,
-  lessonId: selectedLesson ,
-};
+    const examData = {
+      title: selectedQuiz.title,
+      description: selectedQuiz.description,
+      questions: selectedQuiz.questions,
+      duration: selectedQuiz.duration,
+      lessonId: selectedLesson,
+    };
 
-try {
-  console.log("Creating exam:", examData);
+    try {
+      console.log("Creating exam:", examData);
 
-  const response = await fetch("http://localhost:5001/api/quizes", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(examData),
-  });
+      const response = await fetch("http://localhost:5001/api/quizes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(examData),
+      });
 
-  if (!response.ok) {
-    throw new Error("Server responded with an error");
-  }
+      if (!response.ok) {
+        throw new Error("Server responded with an error");
+      }
 
-  const result = await response.json();
-  console.log("Exam created:", result);
-  setOpenDialog(false);
-  alert("✅ Exam created successfully!");
-  
-} catch (error) {
-  console.error("Error creating exam:", error);
-  alert("❌ Failed to create exam. Please try again.");
-}
-
+      const result = await response.json();
+      console.log("Exam created:", result);
+      setOpenDialog(false);
+      alert("✅ Exam created successfully!");
+    } catch (error) {
+      console.error("Error creating exam:", error);
+      alert("❌ Failed to create exam. Please try again.");
+    }
   };
 
   if (!userId) {
@@ -189,7 +186,6 @@ try {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h2 className="text-2xl font-semibold text-teal-800">{exam.title}</h2>
-                      
                     </div>
                     <span className="text-sm text-gray-500 mt-1">
                       📅 {new Date(exam.createdAt).toLocaleString()}
@@ -204,10 +200,44 @@ try {
                   <div className="flex gap-4 mt-4 flex-wrap">
                     <Button
                       onClick={() => handleViewDetails(exam.id)}
-                      className="bg-teal-600 hover:bg-teal-700 text-white text-base px-6"
+                      className="bg-teal-600 hover:bg-teal-700 text-white text-base px-6 flex items-center justify-center"
+                      disabled={viewLoadingId === exam.id}
                     >
-                      View Details
+                     <Button
+  onClick={() => handleViewDetails(exam.id)}
+  className="bg-teal-600 hover:bg-teal-700 text-white text-base px-6 flex items-center justify-center"
+  disabled={viewLoadingId === exam.id}
+>
+  {viewLoadingId === exam.id ? (
+    <span className="flex items-center gap-2">
+      <svg
+        className="animate-spin h-4 w-4 text-teal-700"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+          fill="none"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+        />
+      </svg>
+      Loading...
+    </span>
+  ) : (
+    "View Details"
+  )}
+</Button>
+
                     </Button>
+
                     <Button
                       variant="destructive"
                       onClick={() => handleDelete(exam.id)}
@@ -217,7 +247,10 @@ try {
                     </Button>
 
                     {/* Set Quiz to Lesson Button & Modal */}
-                    <Dialog open={openDialog && selectedQuizId === exam.id} onOpenChange={setOpenDialog}>
+                    <Dialog
+                      open={openDialog && selectedQuizId === exam.id}
+                      onOpenChange={setOpenDialog}
+                    >
                       <DialogTrigger asChild>
                         <Button
                           className="bg-amber-500 hover:bg-amber-600 text-white"

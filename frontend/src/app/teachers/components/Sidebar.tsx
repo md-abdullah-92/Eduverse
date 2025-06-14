@@ -6,9 +6,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   LogOut,
-  Megaphone,
   Package,
-  PieChart,
   Save,
   Star,
   User,
@@ -31,7 +29,6 @@ const menuItems = [
       { label: "Saved Study Notes" },
     ],
   },
-
   {
     icon: ClipboardEditIcon,
     label: "Short Questions",
@@ -51,46 +48,52 @@ const menuItems = [
 
 const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loadingLabel, setLoadingLabel] = useState<string | undefined>();
+
   const router = useRouter();
 
-  const handleClick = (label: string) => {
+  const handleClick = async (label: string) => {
+    setLoadingLabel(label);
+
+    const routePush = (path: string) => {
+      router.push(path);
+    };
+
     switch (label) {
       case "Dashboard":
-        return router.push(`/teachers/${userId}`);
+        return routePush(`/teachers/${userId}`);
       case "Logout":
-        return setShowLogoutModal(true);
+        setShowLogoutModal(true);
+        setLoadingLabel(undefined);
+        return;
       case "Announcements":
-        return router.push(`/teachers/${userId}/announcements`);
+        return routePush(`/teachers/${userId}/announcements`);
       case "Generate Short Questions":
-        return router.push(`/teachers/${userId}/assignments/generate`);
+        return routePush(`/teachers/${userId}/assignments/generate`);
       case "Saved Questions":
-        return router.push(`/teachers/${userId}/assignments/saved-assignments`);
+        return routePush(`/teachers/${userId}/assignments/saved-assignments`);
       case "Generate Study Notes":
-        return router.push(
-          `/teachers/${userId}/study-notes/generate-study-notes`
-        );
+        return routePush(`/teachers/${userId}/study-notes/generate-study-notes`);
       case "Saved Study Notes":
-        return router.push(`/teachers/${userId}/study-notes/saved-study-notes`);
+        return routePush(`/teachers/${userId}/study-notes/saved-study-notes`);
       case "Update Profile":
-        return router.push(
+        return routePush(
           role === "TEACHER"
             ? `/updatementors-profile/${userId}`
             : `/update-profile/${userId}`
         );
       case "Create Quiz":
-        return router.push(`/teachers/${userId}/quiz/manage/`);
+        return routePush(`/teachers/${userId}/quiz/manage/`);
       case "Saved Quizzes":
-        return router.push(`/teachers/${userId}/quiz/Saved/`);
+        return routePush(`/teachers/${userId}/quiz/Saved/`);
       case "My Courses":
-        return router.push(
+        return routePush(
           role === "TEACHER"
             ? `/teachers/${userId}/all/`
             : `/students/${userId}/enrolled_course`
         );
       case "Create Course":
-        if (role === "TEACHER")
-          return router.push(`/teachers/${userId}/create_course/`);
-        break;
+        return role === "TEACHER" && routePush(`/teachers/${userId}/create_course/`);
       default:
         return;
     }
@@ -132,16 +135,21 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
         </div>
 
         <nav className="space-y-1.5">
-          {menuItems.map(({ icon, label, children }, i) => (
-            <SidebarItem
-              key={label}
-              icon={icon}
-              label={label}
-              onClick={handleClick}
-              children={children}
-            />
-          ))}
-        </nav>
+          
+  {menuItems.map(({ icon, label, children }) => (
+    <SidebarItem
+      key={label}
+      icon={icon}
+      label={label}
+      onClick={handleClick}
+      isActive={loadingLabel === label}
+      loadingLabel={loadingLabel}
+      subItems={children}
+    />
+  ))}
+</nav>
+
+        
       </aside>
 
       <LogoutModal

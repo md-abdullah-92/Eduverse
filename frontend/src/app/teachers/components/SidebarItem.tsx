@@ -1,5 +1,5 @@
 "use client";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import React, { useState } from "react";
 
 type SidebarItemProps = {
@@ -8,7 +8,8 @@ type SidebarItemProps = {
   onClick: (label: string) => void;
   badge?: number;
   isActive?: boolean;
-  children?: { label: string }[];
+  loadingLabel?: string;
+  subItems?: { label: string }[];
 };
 
 const SidebarItem = ({
@@ -17,13 +18,17 @@ const SidebarItem = ({
   onClick,
   badge,
   isActive,
-  children = [],
+  loadingLabel,
+  subItems,
 }: SidebarItemProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const hasChildren = children.length > 0;
+  const hasSubItems = subItems && subItems.length > 0;
+
+  const isLoading = loadingLabel === label;
 
   const handleClick = () => {
-    if (hasChildren) {
+    if (isLoading) return;
+    if (hasSubItems) {
       setIsExpanded(!isExpanded);
     } else {
       onClick(label);
@@ -31,41 +36,50 @@ const SidebarItem = ({
   };
 
   const handleChildClick = (childLabel: string) => {
+    if (loadingLabel === childLabel) return;
     onClick(childLabel);
   };
 
   return (
     <div>
       <div
-        className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 ${
-          isActive
+        className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 transform ${
+          isLoading
+            ? "bg-teal-50 text-teal-400 opacity-70"
+            : isActive
             ? "bg-gradient-to-r from-teal-700 to-purple-600 text-white shadow-lg"
-            : "hover:bg-gray-50 text-gray-700 hover:text-teal-600"
+            : "hover:bg-gray-50 text-gray-700 hover:text-teal-600 hover:scale-105"
         }`}
         onClick={handleClick}
       >
         <div className="flex items-center space-x-3">
-          <Icon
-            size={20}
-            className={`transition-colors duration-300 ${
-              isActive
-                ? "text-white"
-                : "text-teal-500 group-hover:text-teal-600"
-            }`}
-          />
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
+          ) : (
+            <Icon
+              size={20}
+              className={`transition-colors duration-300 ${
+                isActive
+                  ? "text-white"
+                  : "text-teal-500 group-hover:text-teal-600"
+              }`}
+            />
+          )}
           <span className="font-medium text-sm">{label}</span>
         </div>
         <div className="flex items-center space-x-2">
           {badge && (
             <span
               className={`px-2 py-1 text-xs rounded-full font-semibold ${
-                isActive ? "bg-white/20 text-white" : "bg-teal-100 text-teal-600"
+                isActive
+                  ? "bg-white/20 text-white"
+                  : "bg-teal-100 text-teal-600"
               }`}
             >
               {badge}
             </span>
           )}
-          {hasChildren ? (
+          {hasSubItems ? (
             isExpanded ? (
               <ChevronDown size={16} />
             ) : (
@@ -82,17 +96,27 @@ const SidebarItem = ({
         </div>
       </div>
 
-      {hasChildren && isExpanded && (
+      {hasSubItems && isExpanded && (
         <div className="ml-7 mt-1 space-y-1">
-          {children.map((child) => (
-            <div
-              key={child.label}
-              className="text-sm text-gray-600 hover:text-teal-600 hover:underline cursor-pointer px-2 py-1 rounded-md transition-all duration-200"
-              onClick={() => handleChildClick(child.label)}
-            >
-              {child.label}
-            </div>
-          ))}
+          {subItems!.map((child) => {
+            const childIsLoading = loadingLabel === child.label;
+            return (
+              <div
+                key={child.label}
+                className={`text-sm flex items-center gap-2 px-2 py-1 rounded-md transition-all duration-200 ${
+                  childIsLoading
+                    ? "text-teal-500 bg-teal-50 cursor-wait opacity-70"
+                    : "text-gray-600 hover:text-teal-600 hover:underline cursor-pointer"
+                }`}
+                onClick={() => handleChildClick(child.label)}
+              >
+                {childIsLoading && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                )}
+                {child.label}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

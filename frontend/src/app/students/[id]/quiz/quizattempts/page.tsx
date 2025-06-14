@@ -6,11 +6,11 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
 import Sidebar from "@/app/students/components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
-
 
 type quizResults = {
   id: number;
@@ -41,11 +41,10 @@ export default function SavedQuizResults() {
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
   const { profile, loading, error } = useStudentProfile(userId);
-  
 
   const [quizResults, setQuizResults] = useState<quizResults[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
- 
+  const [loadingQuizId, setLoadingQuizId] = useState<number | null>(null);
 
   useEffect(() => {
     if (profile?.quizResults) {
@@ -53,13 +52,11 @@ export default function SavedQuizResults() {
     }
   }, [profile?.quizResults]);
 
-  
-
   const handleView = (id: number) => {
+    setLoadingQuizId(id);
     router.push(`/students/${userId}/quiz/${id}`);
   };
 
-  
   const filteredQuizResults = quizResults.filter((q) =>
     q.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -122,12 +119,19 @@ export default function SavedQuizResults() {
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
-                          className="text-purple-700 border-purple-300 hover:bg-purple-100"
+                          className="text-purple-700 border-purple-300 hover:bg-purple-100 flex items-center gap-2"
                           onClick={() => handleView(quiz.id)}
+                          disabled={loadingQuizId === quiz.id}
                         >
-                          View
+                          {loadingQuizId === quiz.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Loading
+                            </>
+                          ) : (
+                            "View"
+                          )}
                         </Button>
-                        
                       </div>
                     </div>
                   </div>
@@ -137,8 +141,6 @@ export default function SavedQuizResults() {
           </ScrollArea>
         )}
       </main>
-
-     
     </div>
   );
 }
