@@ -1,6 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-
+const prisma = require('../prismaClient');
 // 1. Ask a new question (Student)
 exports.askQuestion = async (req, res) => {
   try {

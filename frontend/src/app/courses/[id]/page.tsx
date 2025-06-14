@@ -8,6 +8,7 @@ import { CourseData, Enrollment } from "@/utils/types";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import { QnASection } from "../components/qnaSection";
 import {
   FiArrowLeft,
   FiAward,
@@ -44,8 +45,8 @@ import {
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { CourseUtils } from "@/utils/courseUtils";
 import { EnrollmentUtils } from "@/utils/enrollmentUtils";
-import Sidebar from "../../students/components/Sidebar";
 import { ReviewSection } from "../components/reviewSection";
+import { FileQuestionIcon } from "lucide-react";
 
 export default function CourseDetails({ params }: CourseDetailsProps) {
   const resolvedParams = use(params);
@@ -62,7 +63,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
   const [error, setError] = useState<string | null>(null);
   const [progress] = useState<number>(0);
 
-  const [activeTab, setActiveTab] = useState<"overview" | "reviews">(
+  const [activeTab, setActiveTab] = useState<"overview" | "reviews" | "qna">(
     "overview"
   );
 
@@ -151,14 +152,9 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
       className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
     >
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg fixed left-0 top-0 h-full z-40">
-        <div className="p-6">
-          <Sidebar userId={user?.id || ""} role={user?.role || "STUDENT"} />
-        </div>
-      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64">
+      <main className="flex-1">
         {/* Enhanced Hero Section */}
         <div className="relative overflow-hidden">
           {/* Background with improved overlay */}
@@ -349,10 +345,13 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                     {[
                       { key: "overview", label: "Overview", icon: FiBook },
                       { key: "reviews", label: "Reviews", icon: FiStar },
+                      { key: "qna", label: "Q&A", icon: FileQuestionIcon },
                     ].map(({ key, label, icon: Icon }) => (
                       <button
                         key={key}
-                        onClick={() => setActiveTab(key as any)}
+                        onClick={() =>
+                          setActiveTab(key as "overview" | "reviews" | "qna")
+                        }
                         className={`flex items-center space-x-2 px-6 py-3 font-medium transition-all ${
                           activeTab === key
                             ? "text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50"
@@ -541,12 +540,15 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                       </div>
                     </div>
                   )}
-
                   {activeTab === "reviews" && (
                     <ReviewSection
                       courseId={parseInt(resolvedParams.id)}
                       isEnrolled={isEnrolled}
                     />
+                  )}
+
+                  {activeTab === "qna" && (
+                    <QnASection courseId={parseInt(resolvedParams.id)} />
                   )}
                 </div>
               </div>

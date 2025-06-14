@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const qnaController = require("../controllers/qnaController");
+const qnaController = require("../controllers/qnaControllers");
 
 router.post("/questions", qnaController.askQuestion);
 router.get("/courses/:courseId/questions", qnaController.getQuestionsByCourse);
