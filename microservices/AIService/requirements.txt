@@ -7,3 +7,5 @@ faiss-cpu
 numpy
 langchain
 langchain-google-genai
+langchain_community
+openai

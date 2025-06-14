@@ -7,20 +7,25 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 import faiss
 import numpy as np
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
-from langchain import LLMChain, PromptTemplate
+from langchain.chains import LLMChain
+from langchain_core.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.schema import Document
+from langchain.chat_models import ChatOpenAI 
+
+
 # env
 load_dotenv()
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    raise ValueError("GOOGLE_API_KEY not found in environment variables.")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY not found in environment variables.")
 
 # llm model
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=GOOGLE_API_KEY)
+llm = ChatOpenAI(
+    model="gpt-4o",
+    openai_api_key=OPENAI_API_KEY
+)
 
 app = FastAPI()
 app.add_middleware(
