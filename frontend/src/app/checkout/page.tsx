@@ -54,10 +54,6 @@ const CheckoutPage: React.FC = () => {
 
   return (
     <div className="checkout-container">
-      <div className="order-summary">
-        <h3>Order Summary</h3>
-        <p>Total: ${paymentData.amount.toFixed(2)}</p>
-      </div>
       <div className="payment-section">
         <Elements options={options} stripe={stripePromise}>
           <PaymentForm

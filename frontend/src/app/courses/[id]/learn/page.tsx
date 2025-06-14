@@ -17,7 +17,6 @@ import {
   FiCheckCircle,
   FiClipboard,
   FiEdit3,
-  FiFileText,
   FiMaximize,
   FiMenu,
   FiPause,
@@ -26,7 +25,6 @@ import {
   FiSkipForward,
   FiVideo,
   FiVolume2,
-  FiX,
 } from "react-icons/fi";
 
 interface VideoState {
@@ -122,7 +120,6 @@ export default function LearnPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState("");
   const [lessonProgress, setLessonProgress] = useState<LessonProgress>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -530,17 +527,6 @@ export default function LearnPage() {
                     />
                   </div>
                 </div>
-
-                <button
-                  onClick={() => setShowNotes(!showNotes)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    showNotes
-                      ? "bg-teal-100 text-teal-700"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  <FiFileText className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
@@ -712,7 +698,6 @@ export default function LearnPage() {
                 <button
                   onClick={() => {
                     router.push(`/lesson/${currentLesson.id}/notes`);
-                    setShowNotes(true);
                   }}
                   className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-teal-700 bg-teal-100 rounded-lg hover:bg-teal-200 transition-colors"
                 >
@@ -724,7 +709,6 @@ export default function LearnPage() {
                 <button
                   onClick={() => {
                     router.push(`/lesson/${currentLesson.id}/assignments`);
-                    setShowNotes(true);
                   }}
                   className={`flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     lessonProgress[currentLesson.id]?.assignmentCompleted
@@ -852,34 +836,6 @@ export default function LearnPage() {
               </div>
             </div>
           </div>
-
-          {/* Notes Panel */}
-          {showNotes && (
-            <div className="w-80 flex-shrink-0 p-6 pl-0">
-              <div className="bg-white rounded-lg border border-gray-200 h-fit sticky top-24">
-                <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-900">My Notes</h3>
-                  <button
-                    onClick={() => setShowNotes(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <FiX className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="p-4">
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Take notes for this lesson..."
-                    className="w-full h-64 resize-none border border-gray-200 rounded-lg p-3 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  />
-                  <button className="mt-3 w-full px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors">
-                    Save Notes
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </main>
     </div>

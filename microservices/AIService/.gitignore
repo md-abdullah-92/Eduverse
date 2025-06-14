@@ -1,5 +1,6 @@
 node_modules
 .env
+venv
 
 # Logs
 logs
@@ -10,6 +11,8 @@ dist
 jspm_packages
 # Optional npm cache directory
 .npm
-# Optional eslint cache         
+# Optional eslint cache   
+
+
 
 __pycache__

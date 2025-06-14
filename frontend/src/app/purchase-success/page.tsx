@@ -1,5 +1,6 @@
 "use client";
 import { useAuth } from "@/app/auth/context";
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import {
   ArrowRight,
   BookOpen,
@@ -36,11 +37,7 @@ const PurchaseSuccessPage = () => {
   }, [isMounted]); // Change dependency
 
   if (isLoading || !isMounted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-      </div>
-    );
+    return <LoadingIndicator text="Loading..." />;
   }
 
   return (
