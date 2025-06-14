@@ -4,11 +4,7 @@ import { useParams } from "next/navigation";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { playfair, lora } from "@/utils/font"; // ⬅️ updated font imports
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { playfair, lora } from "@/utils/font";
 
 export default function AssignmentViewPage() {
   const { assignmentid } = useParams();
@@ -39,44 +35,28 @@ export default function AssignmentViewPage() {
 
           <ScrollArea className="flex-1 overflow-auto px-4 py-2">
             <div className={`prose prose-yellow max-w-none ${lora.className}`}>
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  h1: (props) => <h1 className={`text-3xl font-bold mt-4 mb-3 text-yellow-800 ${playfair.className}`} {...props} />,
-                  h2: (props) => <h2 className={`text-2xl font-bold mt-3 mb-2 text-yellow-700 ${playfair.className}`} {...props} />,
-                  h3: (props) => <h3 className={`text-xl font-semibold mt-3 mb-2 text-yellow-600 ${playfair.className}`} {...props} />,
-                  p: (props) => <p className="text-gray-700 mb-3 leading-relaxed" {...props} />,
-                  ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
-                  ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
-                  li: (props) => <li className="text-gray-700 mb-1" {...props} />,
-                  strong: (props) => <strong className="font-bold text-yellow-600" {...props} />,
-                  em: (props) => <em className="italic" {...props} />,
-                  del: (props) => <del className="line-through" {...props} />,
-                  code({ inline, className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || "");
-                    return !inline && match ? (
-                      <SyntaxHighlighter
-                        style={oneLight}
-                        language={match[1]}
-                        PreTag="div"
-                        className="rounded-md my-3"
-                        {...props}
-                      >
-                        {String(children).replace(/\n$/, "")}
-                      </SyntaxHighlighter>
-                    ) : (
-                      <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props}>
-                        {children}
-                      </code>
+              {description
+                .split(/\r?\n/)
+                .map((line, idx) => {
+                  const match = line.match(/^\s*(\d+)\.\s+(.*)/);
+                  if (match) {
+                    const [, number, content] = match;
+                    return (
+                      <div key={idx} className="flex gap-2 items-start mb-2 ml-2">
+                        <span className="font-semibold text-gray-800">{number}.</span>
+                        <span className="text-gray-800">{content}</span>
+                      </div>
                     );
-                  },
-                  blockquote: (props) => (
-                    <blockquote className="border-l-4 border-yellow-300 pl-3 italic text-gray-600 my-3" {...props} />
-                  ),
-                }}
-              >
-                {description}
-              </ReactMarkdown>
+                  } else if (line.trim() === "") {
+                    return <br key={idx} />;
+                  } else {
+                    return (
+                      <p key={idx} className="text-gray-700 mb-2 leading-relaxed">
+                        {line}
+                      </p>
+                    );
+                  }
+                })}
             </div>
           </ScrollArea>
         </Card>

@@ -29,63 +29,71 @@ export default function QuizManagementPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
+  // Loading states for buttons
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
   useEffect(() => {
     const uid = localStorage.getItem("userId");
     setUserId(uid);
   }, []);
 
   const handleGenerateQuiz = async () => {
-  if (!pdfFile) {
-    alert("Please upload a PDF file.");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("file", pdfFile);
-    formData.append("n_questions", numQuestions.toString()); // ✅ Correct key
-    formData.append("question_type", questionType);
-
-    const response = await fetch("http://localhost:8000/quiz/", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to generate questions from backend");
+    if (!pdfFile) {
+      alert("Please upload a PDF file.");
+      return;
     }
 
-    const data = await response.json();
-    console.log("Generated questions:", data);
+    setIsGenerating(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", pdfFile);
+      formData.append("n_questions", numQuestions.toString());
+      formData.append("question_type", questionType);
 
-    if (!Array.isArray(data.questions)) {
-      throw new Error("Invalid response format from backend");
+      const response = await fetch("http://localhost:8000/quiz/", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate questions from backend");
+      }
+
+      const data = await response.json();
+      console.log("Generated questions:", data);
+
+      if (!Array.isArray(data.questions)) {
+        throw new Error("Invalid response format from backend");
+      }
+
+      setGeneratedQuestions(data.questions);
+      setSelectedQuestions(data.questions.map((q: QuizQuestion) => q.id));
+      alert("✅ Questions generated successfully!");
+    } catch (error) {
+      console.error("Error generating quiz:", error);
+      alert("❌ Failed to generate quiz. Please check the PDF upload and try again.");
+    } finally {
+      setIsGenerating(false);
     }
-
-    setGeneratedQuestions(data.questions);
-    setSelectedQuestions(data.questions.map((q: QuizQuestion) => q.id));
-    alert("✅ Questions generated successfully!");
-  } catch (error) {
-    console.error("Error generating quiz:", error);
-    alert("❌ Failed to generate quiz. Please check the PDF upload and try again.");
-  }
-};
+  };
 
   const handleCreateExam = async () => {
     if (!examName || !examDescription || selectedQuestions.length === 0) {
       alert("Please fill in all required fields and select at least one question.");
       return;
     }
-    const userId = parseInt(localStorage.getItem('userId')||'10',10);
+    const userIdNum = parseInt(localStorage.getItem("userId") || "10", 10);
 
     const examData = {
       title: examName,
       description: examDescription,
-      questions: generatedQuestions.filter(q => selectedQuestions.includes(q.id)),
-      duration:duration,
-      teacherId: userId,
+      questions: generatedQuestions.filter((q) => selectedQuestions.includes(q.id)),
+      duration: duration,
+      teacherId: userIdNum,
     };
 
+    setIsCreating(true);
     try {
       console.log("Creating exam:", examData);
 
@@ -113,6 +121,8 @@ export default function QuizManagementPage() {
     } catch (error) {
       console.error("Error creating exam:", error);
       alert("❌ Failed to create exam. Please try again.");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -125,33 +135,56 @@ export default function QuizManagementPage() {
           </aside>
           <main className="ml-20 p-5 flex-1">
             <div className={`${raleway.className} text-gray-800`}>
-              <div className={`${robotoSlab.className} flex flex-col lg:flex-row gap-6 max-w-screen-xl mx-auto w-full`}>
+              <div
+                className={`${robotoSlab.className} flex flex-col lg:flex-row gap-6 max-w-screen-xl mx-auto w-full`}
+              >
                 <div className="w-full lg:w-[55%] flex flex-col space-y-6">
                   {generatedQuestions.length === 0 && (
                     <>
                       <div>
-                        <h1 className="text-3xl font-bold text-teal-700">💡 Generate Quiz</h1>
-                        <p className="text-sm text-muted-foreground">Quickly create quizzes for your students.</p>
+                        <h1 className="text-3xl font-bold text-teal-700">
+                          💡 Generate Quiz
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                          Quickly create quizzes for your students.
+                        </p>
                       </div>
 
                       <Card className="border border-teal-200 shadow-md bg-white/70 backdrop-blur-md rounded-2xl">
                         <CardContent className="p-6 space-y-6">
                           <div className="space-y-2 w-full md:w-[400px]">
-                            <Label className="flex items-center gap-2 text-[#6941C6] font-semibold">
+                            <Label
+                              className="flex items-center gap-2 text-[#6941C6] font-semibold"
+                              htmlFor="pdf-upload"
+                            >
                               <FiFileText /> Upload PDF File
                             </Label>
-                            <Input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files?.[0] || null)} />
+                            <Input
+                              id="pdf-upload"
+                              type="file"
+                              accept="application/pdf"
+                              onChange={(e) =>
+                                setPdfFile(e.target.files?.[0] || null)
+                              }
+                            />
                           </div>
 
                           <div className="grid gap-2">
-                            <Label htmlFor="numQuestions">Number of Questions</Label>
-                            <Select value={numQuestions.toString()} onValueChange={(v) => setNumQuestions(Number(v))}>
+                            <Label htmlFor="numQuestions">
+                              Number of Questions
+                            </Label>
+                            <Select
+                              value={numQuestions.toString()}
+                              onValueChange={(v) => setNumQuestions(Number(v))}
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select number of questions" />
                               </SelectTrigger>
                               <SelectContent>
-                                {[5, 10, 15, 20].map(num => (
-                                  <SelectItem key={num} value={num.toString()}>{num} Questions</SelectItem>
+                                {[5, 10, 15, 20].map((num) => (
+                                  <SelectItem key={num} value={num.toString()}>
+                                    {num} Questions
+                                  </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
@@ -159,18 +192,27 @@ export default function QuizManagementPage() {
 
                           <div className="grid gap-2">
                             <Label htmlFor="questionType">Question Type</Label>
-                            <Select value={questionType} onValueChange={setQuestionType}>
+                            <Select
+                              value={questionType}
+                              onValueChange={setQuestionType}
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select question type" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="mcq">Multiple Choice Questions</SelectItem>
-                                <SelectItem value="short_answer">Comprehension Questions</SelectItem>
+                                <SelectItem value="mcq">
+                                  Multiple Choice Questions
+                                </SelectItem>
+                                <SelectItem value="short_answer">
+                                  Comprehension Questions
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
 
-                          <Button onClick={handleGenerateQuiz}>Generate Quiz</Button>
+                          <Button onClick={handleGenerateQuiz} disabled={isGenerating}>
+                            {isGenerating ? "Generating..." : "Generate Quiz"}
+                          </Button>
                         </CardContent>
                       </Card>
                     </>
@@ -180,19 +222,31 @@ export default function QuizManagementPage() {
                     <Card className="border border-teal-200 shadow-md bg-white/70 backdrop-blur-md rounded-2xl">
                       <CardContent className="p-6 space-y-6">
                         <div className="space-y-2">
-                          <h2 className="text-2xl font-semibold text-teal-700">📝 Create Exam</h2>
-                          <p className="text-sm text-muted-foreground">Finalize your quiz and prepare for the exam.</p>
+                          <h2 className="text-2xl font-semibold text-teal-700">
+                            📝 Create Exam
+                          </h2>
+                          <p className="text-sm text-muted-foreground">
+                            Finalize your quiz and prepare for the exam.
+                          </p>
                         </div>
 
                         <div className="grid gap-4">
                           <div className="grid gap-2">
                             <Label htmlFor="examName">Exam Title</Label>
-                            <Input id="examName" value={examName} onChange={(e) => setExamName(e.target.value)} />
+                            <Input
+                              id="examName"
+                              value={examName}
+                              onChange={(e) => setExamName(e.target.value)}
+                            />
                           </div>
 
                           <div className="grid gap-2">
                             <Label htmlFor="examDescription">Description</Label>
-                            <Textarea id="examDescription" value={examDescription} onChange={(e) => setExamDescription(e.target.value)} />
+                            <Textarea
+                              id="examDescription"
+                              value={examDescription}
+                              onChange={(e) => setExamDescription(e.target.value)}
+                            />
                           </div>
 
                           <div className="grid gap-2">
@@ -208,7 +262,13 @@ export default function QuizManagementPage() {
                               }}
                             />
                           </div>
-                          <Button onClick={handleCreateExam} className="w-full">Create Exam</Button>
+                          <Button
+                            onClick={handleCreateExam}
+                            disabled={isCreating}
+                            className="w-full"
+                          >
+                            {isCreating ? "Creating Exam..." : "Create Exam"}
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -219,31 +279,43 @@ export default function QuizManagementPage() {
                   {generatedQuestions.length > 0 && (
                     <>
                       <div>
-                        <h2 className="text-3xl font-bold text-teal-700">📚 Generated Questions</h2>
-                        <p className="text-sm text-muted-foreground">Select questions to include in your exam.</p>
+                        <h2 className="text-3xl font-bold text-teal-700">
+                          📚 Generated Questions
+                        </h2>
+                        <p className="text-sm text-muted-foreground">
+                          Select questions to include in your exam.
+                        </p>
                       </div>
 
                       <Card>
                         <CardContent className="p-6 space-y-6">
                           {generatedQuestions.map((q, idx) => (
-                            <div key={q.id} className="flex items-start gap-4 border-b pb-4">
+                            <div
+                              key={q.id}
+                              className="flex items-start gap-4 border-b pb-4"
+                            >
                               <input
                                 type="checkbox"
                                 className="mt-2"
                                 checked={selectedQuestions.includes(q.id)}
                                 onChange={(e) => {
-                                  setSelectedQuestions(prev =>
+                                  setSelectedQuestions((prev) =>
                                     e.target.checked
                                       ? [...prev, q.id]
-                                      : prev.filter(id => id !== q.id)
+                                      : prev.filter((id) => id !== q.id)
                                   );
                                 }}
                               />
                               <div className="space-y-2">
-                                <p className="font-semibold text-gray-800">Q{idx + 1}: {q.question}</p>
-                                {q.type === "mcq" && q.options?.map((opt, i) => (
-                                  <div key={i} className="ml-4 text-sm">{opt}</div>
-                                ))}
+                                <p className="font-semibold text-gray-800">
+                                  Q{idx + 1}: {q.question}
+                                </p>
+                                {q.type === "mcq" &&
+                                  q.options?.map((opt, i) => (
+                                    <div key={i} className="ml-4 text-sm">
+                                      {opt}
+                                    </div>
+                                  ))}
                                 <p className="text-sm text-green-700 font-medium">
                                   ✅ Correct Answer: {q.correctAnswer}
                                 </p>
@@ -252,7 +324,9 @@ export default function QuizManagementPage() {
                                     Explanation: {q.explanation}
                                   </p>
                                 )}
-                                <p className="text-sm text-gray-500">Difficulty: {q.difficulty}</p>
+                                <p className="text-sm text-gray-500">
+                                  Difficulty: {q.difficulty}
+                                </p>
                               </div>
                             </div>
                           ))}

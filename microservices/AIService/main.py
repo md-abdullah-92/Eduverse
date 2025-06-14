@@ -1,6 +1,6 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, Response
 from fastapi.middleware.cors import CORSMiddleware
-import tempfile, os, random, uuid
+import tempfile, os, random, uuid, time
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -15,17 +15,23 @@ from langchain.schema import Document
 from langchain.chat_models import ChatOpenAI 
 
 
-# env
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("OPENAI_API_KEY not found in environment variables.")
+from dotenv import load_dotenv
+import os
+from langchain_google_genai import ChatGoogleGenerativeAI
 
-# llm model
-llm = ChatOpenAI(
-    model="gpt-4o",
-    openai_api_key=OPENAI_API_KEY
+# Load environment variables
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")  # Update the key name if needed
+
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY not found in environment variables.")
+
+# Initialize Gemini model
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash",  # or "gemini-1.5-pro", "gemini-1.5-flash"
+    google_api_key=GEMINI_API_KEY
 )
+
 
 app = FastAPI()
 app.add_middleware(
@@ -241,3 +247,92 @@ async def quiz(
             print("Parsing error:", e)
 
     return {"questions": questions}
+@app.post("/study-notes/")
+async def generate_study_notes(file: UploadFile = File(...)):
+    # Save uploaded PDF to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(await file.read())
+        path = tmp.name
+
+    try:
+        # Read entire PDF content
+        all_text = ""
+        reader = PdfReader(path)
+        for page in reader.pages:
+            content = page.extract_text()
+            if content:
+                content = ' '.join(content.replace('\n\n\n', '\n\n').split())
+                all_text += content + "\n\n"
+
+        if not all_text.strip():
+            return {"error": "No readable content found in the PDF."}
+
+        # Prompt to send to LLM
+        prompt = f"""
+Generate a formal study note for students in a classroom setting based on the following topic content:
+- Use clear headings and bullet points.
+- The tone should be academic and student-friendly.
+- Include key concepts, definitions, and important points.
+
+Content:
+\"\"\"
+{all_text}
+\"\"\"
+"""
+
+        # Call your LLM (Gemini/OpenAI/etc.)
+        response = llm.invoke(prompt)  # Make sure this returns an object with `.content`
+
+        notes = response.content.strip() if hasattr(response, "content") else str(response).strip()
+
+        return {
+            "notes": notes,
+            "length": len(notes.split()),
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+    finally:
+        os.remove(path)
+
+
+
+
+@app.post("/short-questions/")
+async def generate_all_short_questions(file: UploadFile = File(...)):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(await file.read())
+        path = tmp.name
+
+    try:
+        chunks = chunking(path)
+        question_list = []
+
+        start_time = time.time()
+        TIME_LIMIT = 60  # seconds
+
+        for i, chunk in enumerate(chunks):
+            if time.time() - start_time >= TIME_LIMIT:
+                print("Time limit reached. Stopping early.")
+                break
+
+            try:
+                out = short_chain.invoke({"content": chunk})["text"]
+                parsed = short_parser.parse(out)
+
+                question_text = parsed.get("question")
+                if question_text:
+                    question_list.append(f"{len(question_list) + 1}. {question_text.strip()}")
+                    print(f"Chunk {i}: {question_text.strip()}")
+
+            except Exception as e:
+                print(f"Error on chunk {i}: {e}")
+                continue
+
+        full_text = "\n".join(question_list)
+
+        return Response(content=full_text, media_type="text/markdown")
+
+    finally:
+        os.remove(path)

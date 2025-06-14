@@ -4,8 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { FaFileAlt } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
-import {  Type, Eye, EyeOff } from "lucide-react";
-import { Combobox } from "@/components/ui/combobox";
+import { Type, Eye, EyeOff } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,81 +20,99 @@ import SaveSlideButton from "./components/PrintButton";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
-const topics = [
-  "Artificial Intelligence",
-  "Machine Learning",
-  "Data Structures",
-  "Networking",
-  "Cybersecurity",
-  "Cloud Computing",
-];
-
 export default function GenerateSlidePage() {
-  const [selectedTopic, setSelectedTopic] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [markdown, setMarkdown] = useState("");
   const [showPreview, setShowPreview] = useState(true);
   const [showSlideEditor, setShowSlideEditor] = useState(false);
   const userId = typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
   const [showEditor, setShowEditor] = useState(false);
+  const [title, setTitle] = useState("");
+  const [isLoading, setIsLoading] = useState(false);  // Loading state added
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setSelectedFile(e.target.files[0]);
+      setTitle(e.target.files[0].name.replace(".pdf", ""));
+    }
+  };
 
   const handleGenerateMarkdown = async () => {
-    if (!selectedTopic) return alert("Please select or enter a topic!");
+    if (!selectedFile) {
+      alert("Please select a PDF file!");
+      return;
+    }
+
+    if (selectedFile.type !== "application/pdf") {
+      alert("Only PDF files are supported.");
+      return;
+    }
+
+    setIsLoading(true);  // Start loading
 
     try {
-      const res = await fetch("/api/generate-markdown", {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const res = await fetch("http://localhost:8000/study-notes/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: selectedTopic }),
+        body: formData,
       });
 
       const data = await res.json();
 
-      if (data.error) {
-        alert(data.error);
+      if (!res.ok || data.error) {
+        alert(data.error || "Something went wrong while generating study notes.");
         return;
       }
 
-      setMarkdown(data.markdown || "");
+      console.log("Generated Study Note:", data);
+      setMarkdown(data.notes || "");
       setShowSlideEditor(true);
     } catch (err) {
       console.error("Markdown generation failed:", err);
+      alert("Failed to generate study note.");
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
+
   const saveStudyNote = async (title: string, description: string) => {
-  if (!title || !description) {
-    alert("Please provide a title and content for the Study Note.");
-    return;
-  }
-
-  if (!userId || userId === "12345") {
-    alert("Invalid or missing teacher ID.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`http://localhost:5000/api/studynote`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, teacherId: parseInt(userId) }), 
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Server error:", data.error);
-      alert(`Error: ${data.error}`);
+    if (!title || !description) {
+      alert("Please provide a title and content for the Study Note.");
       return;
     }
 
-    alert("Study Note saved successfully!");
-    setMarkdown("");
-    setSelectedTopic("");
-    setShowEditor(false);
-  } catch (err) {
-    console.error("Failed to save assignment:", err);
-    alert("Failed to save assignment. Please try again.");
-  }
-};
+    if (!userId || userId === "12345") {
+      alert("Invalid or missing teacher ID.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/studynote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description, teacherId: parseInt(userId) }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Server error:", data.error);
+        alert(`Error: ${data.error}`);
+        return;
+      }
+
+      alert("Study Note saved successfully!");
+      setMarkdown("");
+      setSelectedFile(null);
+      setShowEditor(false);
+    } catch (err) {
+      console.error("Failed to save assignment:", err);
+      alert("Failed to save assignment. Please try again.");
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
       <aside className="w-64 bg-white shadow-md p-4">
@@ -103,37 +120,51 @@ export default function GenerateSlidePage() {
       </aside>
       <main className="ml-20 p-5 flex-1">
         <div className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 flex flex-col ${merriweather.className}`}>
-          {/* HEADER */}
           <header className="mb-6 pt-8">
             <h1 className="text-4xl font-bold text-teal-800 flex items-center gap-3">
               <FaFileAlt />
               Generate Study Notes
             </h1>
-            <p className="text-gray-600 mt-2 text-base">
-              Create beautifully formatted Study Notes for your students.
-            </p>
+            <p className="text-gray-600 mt-2 text-base">Upload a PDF and generate structured study notes.</p>
           </header>
 
-          {/* TOPIC SELECT */}
           <div className="mt-4 space-y-2 w-full md:w-[400px]">
             <Label className="flex items-center gap-2 text-[#6941C6] font-semibold">
               <FiFileText />
-              Select or Enter a Topic
+              Select PDF File
             </Label>
-            <Combobox
-              options={topics}
-              placeholder="Type or select a topic"
-              selected={selectedTopic}
-              onSelect={setSelectedTopic}
-              allowCustom={true}
-            />
-            <Button onClick={handleGenerateMarkdown} className="mt-4 bg-teal-600 hover:bg-teal-700 text-white">
-              Generate Study Note
+            <Input type="file" accept="application/pdf" onChange={handleFileChange} />
+            <Button
+              onClick={handleGenerateMarkdown}
+              disabled={isLoading}
+              className="mt-4 bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-2"
+            >
+              {isLoading && (
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  ></path>
+                </svg>
+              )}
+              {isLoading ? "Generating..." : "Generate Study Note"}
             </Button>
-            
           </div>
 
-          {/* SLIDE EDITOR & PREVIEW */}
           {showSlideEditor && (
             <>
               <div className="flex flex-col md:flex-row items-start md:items-end gap-4 mt-10 mb-6">
@@ -142,8 +173,8 @@ export default function GenerateSlidePage() {
                   <Input
                     className="border-none focus-visible:ring-0 text-lg placeholder:text-gray-400"
                     placeholder="Enter slide title..."
-                    value={selectedTopic}
-                    onChange={(e) => setSelectedTopic(e.target.value)}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                   />
                 </div>
 
@@ -157,9 +188,9 @@ export default function GenerateSlidePage() {
                     {showPreview ? "Hide Preview" : "Show Preview"}
                   </Button>
 
-                    <SaveSlideButton title={selectedTopic} />
+                  <SaveSlideButton title={title} />
                   <Button
-                    onClick={() => saveStudyNote(selectedTopic, markdown)}
+                    onClick={() => saveStudyNote(title, markdown)}
                     variant="outline"
                     className="border-teal-300 text-teal-700 hover:bg-teal-50"
                   >
@@ -186,8 +217,8 @@ export default function GenerateSlidePage() {
                         toolbar: [
                           "bold", "italic", "heading", "|",
                           "quote", "unordered-list", "ordered-list", "|",
-                          "link", "image", "|", "preview", "guide"
-                        ]
+                          "link", "image", "|", "preview", "guide",
+                        ],
                       }}
                     />
                   </ScrollArea>
@@ -195,13 +226,12 @@ export default function GenerateSlidePage() {
 
                 {/* MARKDOWN PREVIEW */}
                 {showPreview && (
-                  <Card id="slide-preview"  
-                  className="h-[calc(100vh-300px)] flex flex-col bg-white rounded-xl border border-teal-200 shadow-md overflow-hidden">
+                  <Card id="slide-preview" className="h-[calc(100vh-300px)] flex flex-col bg-white rounded-xl border border-teal-200 shadow-md overflow-hidden">
                     <div className="p-4 border-b border-teal-100">
                       <h2 className="text-lg font-semibold text-teal-700">Note Preview</h2>
                     </div>
                     <ScrollArea className="flex-1 overflow-auto px-4 py-2">
-                      <h2 className="text-2xl font-bold text-teal-700 mb-4">{selectedTopic}</h2>
+                      <h2 className="text-2xl font-bold text-teal-700 mb-4">{title}</h2>
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
@@ -218,16 +248,10 @@ export default function GenerateSlidePage() {
                           del: (props) => <del className="line-through" {...props} />,
                           a: (props) => <a className="text-teal-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
                           code({ inline, className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(className || '');
+                            const match = /language-(\w+)/.exec(className || "");
                             return !inline && match ? (
-                              <SyntaxHighlighter
-                                style={oneLight}
-                                language={match[1]}
-                                PreTag="div"
-                                className="rounded-md my-3"
-                                {...props}
-                              >
-                                {String(children).replace(/\n$/, '')}
+                              <SyntaxHighlighter style={oneLight} language={match[1]} PreTag="div" className="rounded-md my-3" {...props}>
+                                {String(children).replace(/\n$/, "")}
                               </SyntaxHighlighter>
                             ) : (
                               <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props}>
@@ -244,12 +268,8 @@ export default function GenerateSlidePage() {
                               <table className="min-w-full border-collapse my-3" {...props} />
                             </div>
                           ),
-                          th: (props) => (
-                            <th className="border border-gray-300 px-3 py-1 bg-gray-100 font-semibold text-left" {...props} />
-                          ),
-                          td: (props) => (
-                            <td className="border border-gray-300 px-3 py-1" {...props} />
-                          ),
+                          th: (props) => <th className="border border-gray-300 px-3 py-1 bg-gray-100 font-semibold text-left" {...props} />,
+                          td: (props) => <td className="border border-gray-300 px-3 py-1" {...props} />,
                         }}
                       >
                         {markdown}
