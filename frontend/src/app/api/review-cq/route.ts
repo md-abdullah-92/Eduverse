@@ -22,11 +22,11 @@ export async function POST(req: NextRequest) {
     let totalCQMarks = 0;
 
     for (const item of cqAnswers) {
-      const { answer, question } = item;
+      const { id, answer, question } = item;
       console.log("Processing CQ entry:", item);
 
       if (!answer || typeof answer !== "string" || !question) {
-        console.warn("Skipping invalid CQ entry with ID  item", item);
+        console.warn("Skipping invalid CQ entry:", item);
         continue;
       }
 
@@ -47,7 +47,8 @@ Respond ONLY with a number (0–5), no explanation or extra text.`;
           const response = await result.response;
           const text = response.text().trim();
 
-          // Extract numeric value (in case Gemini returns extra text)
+          console.log(`Gemini raw response for CQ ID ${id}:`, text);
+
           const extractedMark = parseFloat(text.match(/\d+(\.\d+)?/)?.[0] || "NaN");
 
           if (!isNaN(extractedMark)) {
@@ -70,6 +71,7 @@ Respond ONLY with a number (0–5), no explanation or extra text.`;
       }
 
       totalCQMarks += mark;
+      console.log(`CQ ID ${id} evaluated. Mark: ${mark}`);
     }
 
     return NextResponse.json({ totalCQMarks });

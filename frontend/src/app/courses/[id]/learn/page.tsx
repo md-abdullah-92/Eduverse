@@ -263,17 +263,26 @@ export default function LearnPage() {
   }, [currentLesson?.id]);
 
   // Update quiz completion status from profile
-  useEffect(() => {
-    if (!currentLesson?.id || !profile?.quizResults) return;
+ useEffect(() => {
+  if (!currentLesson?.id || !profile?.quizResults) return;
 
-    const quizResult = profile.quizResults.find(
-      (result: any) => result.lessonId === currentLesson.id!.toString()
-    );
+  const lessonId = currentLesson.id;
 
-    if (quizResult && quizResult.score !== undefined) {
-      markQuizCompleted(currentLesson.id!.toString(), quizResult.score);
-    }
-  }, [currentLesson?.id, profile?.quizResults, markQuizCompleted]);
+  const quizResult = profile.quizResults
+    .filter(result => result.lessonId === lessonId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+  if (!quizResult) {
+    console.log("No quiz result found for this lesson.");
+    return;
+  }
+
+  const score = (quizResult.marks / quizResult.fullmark) * 100;
+  console.log("Quiz Result:", quizResult, "Score:", score);
+
+  markQuizCompleted(lessonId, score);
+}, [currentLesson?.id, profile?.quizResults]);
+
 
   // Event Handlers
   const handleProgressBarClick = useCallback(
@@ -308,24 +317,36 @@ export default function LearnPage() {
   );
 
   const handleStartQuiz = useCallback(() => {
-    if (!currentLesson?.id) return;
+  if (!currentLesson?.id) return;
 
-    setIsLoading(true); // Start loading
-    const lessonId = currentLesson.id;
-    const userId = localStorage.getItem("userId");
+  setIsLoading(true); // Start loading
 
-    const attemptedQuiz = profile?.quizResults?.find(
-      (result) => result.lessonId === lessonId
-    );
+  const lessonId = currentLesson.id;
+  const userId = localStorage.getItem("userId");
 
-    if (attemptedQuiz) {
-      router.push(`/students/${userId}/quiz/${attemptedQuiz.id}`);
-    } else {
-      router.push(`/lesson/${lessonId}/quizes`);
-    }
+  const quizResults = profile?.quizResults ?? []; // ensure it's an array
 
-    // DO NOT set isLoading(false) here
-  }, [currentLesson?.id, profile?.quizResults, router]);
+  const quizResult = quizResults
+    .filter(result => result.lessonId === lessonId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+  // No quiz attempt found — go to quiz start page
+  if (!quizResult) {
+    router.push(`/lesson/${lessonId}/quizes`);
+    return;
+  }
+
+  const score = (quizResult.marks / quizResult.fullmark) * 100;
+
+  if (score >= 60) {
+    router.push(`/students/${userId}/quiz/${quizResult.id}`);
+  } else {
+    router.push(`/lesson/${lessonId}/quizes`);
+  }
+
+  // Do not setIsLoading(false) here — handled after route change
+}, [currentLesson?.id, profile?.quizResults, router]);
+
 
   const formatTime = useCallback((seconds: number) => {
     if (isNaN(seconds)) return "0:00";

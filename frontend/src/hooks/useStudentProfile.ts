@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 type StudentProfile = {
+ 
   user: { 
     name: string; 
     role: string;
@@ -16,6 +17,7 @@ type StudentProfile = {
     courseId: string;
     title: string;
     studentId: string;
+    fullmark: number;
     marks: number;
     answeredQuestions: {
       id: string;
@@ -30,9 +32,8 @@ type StudentProfile = {
       quizResultId: string;
     }[];
     createdAt: string;
-  };
+  }[]; // Made this an array
 }
-
 
 export function useStudentProfile(userId: string | null) {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
