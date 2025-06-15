@@ -157,9 +157,11 @@ exports.getStudentStats = async (req, res) => {
       : 0;
 
     // Count completed courses (progress >= 100%)
-    const completedCourses = enrollments.filter(
+    const completedCoursesData = enrollments.filter(
       (enrollment) => (Number(enrollment?.progressPercentage) || 0) >= 100
-    ).length;
+    );
+
+    const completedCourses = completedCoursesData.length;
 
     // Calculate total lessons across all enrolled courses
     const totalLessons = enrollments.reduce((sum, enrollment) => {
@@ -181,6 +183,7 @@ exports.getStudentStats = async (req, res) => {
         totalEnrollments,
         averageProgress,
         completedCourses,
+        completedCoursesData,
         totalLessons,
         completedLessons,
       }
