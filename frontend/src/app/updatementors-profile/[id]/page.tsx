@@ -5,6 +5,8 @@ import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { storage } from "@/firebaseConfig";
 import { karma, poppins, raleway, reemKufi, robotoSlab } from "@/utils/font";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { ToastContext } from "@/components/ui_elements/toast";
+import { useContext } from "react";
 import {
   Briefcase,
   Building,
@@ -20,6 +22,7 @@ import { useEffect, useRef, useState } from "react";
 
 export default function EditTeacherProfilePage() {
   const { id: userId } = useParams();
+  const { showToast } = useContext(ToastContext); 
 
   const [formData, setFormData] = useState({
     education: "",
@@ -115,13 +118,13 @@ export default function EditTeacherProfilePage() {
       const result = await res.json();
 
       if (res.ok) {
-        alert("Profile updated successfully!");
+        showToast("Profile updated successfully!");
       } else {
-        alert("Failed to update profile: " + result.message);
+        showToast("Failed to update profile: " + result.message);
       }
     } catch (err) {
       console.error("Submit error:", err);
-      alert("An error occurred while saving changes.");
+      showToast("An error occurred while saving changes.");
     }
   };
 
@@ -144,7 +147,7 @@ export default function EditTeacherProfilePage() {
       else setProfileImage(downloadURL);
     } catch (error) {
       console.error("Image upload failed:", error);
-      alert("Failed to upload image.");
+      showToast("Failed to upload image.");
     }
   };
 

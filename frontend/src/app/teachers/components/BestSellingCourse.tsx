@@ -19,7 +19,7 @@ const BestSellingCourse: React.FC<{ bestSellingCourse: CourseData }> = ({
   const router = useRouter();
 
   return (
-    <div className="p-5 bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-lg border border-white/20">
+    <div className="p-5 bg-white/70 backdrop-blur-xl rounded-3xl p-8 shadow-lg border border-1 border-teal-200">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl text-gray-900 flex items-center space-x-2">
           <Award className="w-6 h-6 text-yellow-500" />

@@ -4,7 +4,6 @@ import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { BookOpen, DollarSign, Users } from "lucide-react";
 import { useParams } from "next/navigation";
 import BestSellingCourse from "../components/BestSellingCourse";
-import ChartCard from "../components/ChartCard";
 import CoverProfile from "../components/ProfileCover";
 import Sidebar from "../../../components/Common-Components/Sidebar";
 import StatCard from "../components/StatCard";
@@ -12,6 +11,7 @@ import StatCard from "../components/StatCard";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { poppins, raleway } from "@/utils/font";
+import TeacherStatsPage from "../components/TeacherStatsPage";
 
 // Main Dashboard Component
 const ModernDashboard = () => {
@@ -52,6 +52,7 @@ const ModernDashboard = () => {
           </div>
         </div>
         <CoverProfile profile={profile} teacherStats={teacherStats!} />
+        
         <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           <div className="border-1 border-teal-500 rounded-2xl shadow-sm hover:shadow-md transition duration-300">
             <StatCard
@@ -86,16 +87,12 @@ const ModernDashboard = () => {
             />
           </div>
         </div>
-        <div className="p-5 grid lg:grid-cols-2 gap-8">
-          <ChartCard
-            title="Student Growth"
-            data={[45, 52, 68, 84, 102, 110, 125]}
-          />
-          <ChartCard
-            title="Revenue Trend"
-            data={[1200, 1900, 3000, 5000, 4200, 3800, 4500]}
-          />
-        </div>
+        
+         <TeacherStatsPage teacherId={userId!} />
+
+         {/*some space*/}
+        <div className="h-10"></div>
+         
         {bestSellingCourse && (
           <BestSellingCourse bestSellingCourse={bestSellingCourse!} />
         )}

@@ -38,11 +38,13 @@ export type TeacherProfile = {
     id: number;
     title: string;
     description: string;
+    createdAt: string;
   }[];
   studyNotes?: {
     id: number;
     title: string;
     description: string;
+    createdAt: string;
   }[];
 };
 

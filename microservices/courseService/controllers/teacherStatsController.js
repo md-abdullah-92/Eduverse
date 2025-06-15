@@ -19,7 +19,7 @@ exports.getTeacherStats = async (req, res) => {
         }
       }
     });
-    console.log("Courses found:", courses);
+    
 
 
     const stats = courses.map(course => {
