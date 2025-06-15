@@ -9,7 +9,7 @@ import { playfair, poppins } from "@/utils/font";
 import { CourseFormData } from "@/utils/types";
 import { useParams, useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
-import Sidebar from "../../components/Sidebar";
+import Sidebar from "../../../../components/Common-Components/Sidebar";
 
 export default function AddCoursePage() {
   const params = useParams();

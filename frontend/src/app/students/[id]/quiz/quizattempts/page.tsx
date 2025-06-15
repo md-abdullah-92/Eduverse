@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 
-import Sidebar from "@/app/students/components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
 
@@ -64,7 +64,7 @@ export default function SavedQuizResults() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-purple-100 relative">
       <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
+        <Sidebar role="STUDENT" userId={userId} />
       </aside>
 
       <main className={`flex-1 p-5 ml-20 ${lora.className}`}>

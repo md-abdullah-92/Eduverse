@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import BestSellingCourse from "../components/BestSellingCourse";
 import ChartCard from "../components/ChartCard";
 import CoverProfile from "../components/ProfileCover";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../../../components/Common-Components/Sidebar";
 import StatCard from "../components/StatCard";
 
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";

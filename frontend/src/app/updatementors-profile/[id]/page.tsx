@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "@/app/teachers/components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { storage } from "@/firebaseConfig";
 import { karma, poppins, raleway, reemKufi, robotoSlab } from "@/utils/font";

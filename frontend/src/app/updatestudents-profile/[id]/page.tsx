@@ -1,6 +1,6 @@
 "use client";
 
-import Sidebar from "@/app/students/components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { storage } from "@/firebaseConfig";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";

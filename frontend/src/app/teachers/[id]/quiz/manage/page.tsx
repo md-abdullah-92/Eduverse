@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { QuizQuestion } from "@/types/quiz";
-import Sidebar from "../../../components/Sidebar";
+import Sidebar from "../../../../../components/Common-Components/Sidebar";
 import { robotoSlab, raleway } from "@/utils/font";
 import { FiFileText } from "react-icons/fi";
 

@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import ChartGrid from "../components/ChartGrid";
 import ProfileCard from "../components/ProfileCard";
 import RecentCourses from "../components/Recent-Courses";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import StatGrid from "../components/StatGrid";
 export default function ModernStudentDashboard() {
   const params = useParams();

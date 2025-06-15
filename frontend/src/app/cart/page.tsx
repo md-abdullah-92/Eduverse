@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Sidebar from "../students/components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 
 // Helper functions
 const getLevelColor = (level: string) => {

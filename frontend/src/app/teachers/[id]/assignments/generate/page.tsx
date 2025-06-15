@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { merriweather } from "@/utils/font";
 import SaveSlideButton from "@/app/teachers/components/PrintButton";
-import Sidebar from "../../../components/Sidebar";
+import Sidebar from "../../../../../components/Common-Components/Sidebar";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,

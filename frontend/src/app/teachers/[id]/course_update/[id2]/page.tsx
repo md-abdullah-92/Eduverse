@@ -3,7 +3,7 @@ import CourseForm from "@/app/teachers/[id]/course_update/components/CourseForm"
 import LessonForm from "@/app/teachers/[id]/course_update/components/LessonForm";
 import LessonList from "@/app/teachers/[id]/course_update/components/LessonList";
 import { useCourse } from "@/app/teachers/[id]/course_update/hooks/useCourse";
-import Sidebar from "@/app/teachers/components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { Lesson } from "@/utils/types";

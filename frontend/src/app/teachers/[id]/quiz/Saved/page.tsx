@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Sidebar from "../../../components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import { robotoSlab } from "@/utils/font";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";

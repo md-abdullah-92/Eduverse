@@ -3,7 +3,7 @@
 
 import { useAuth } from "@/app/auth/context";
 import ChatWidget from "@/app/lesson/ChatWidget";
-import Sidebar from "@/app/students/components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
 import { poppins } from "@/utils/font";

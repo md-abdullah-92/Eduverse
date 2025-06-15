@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
-import Sidebar from "@/app/teachers/components/Sidebar";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { useInstructorCourses } from "@/hooks/useInstructorCourses";
