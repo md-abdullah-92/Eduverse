@@ -1,19 +1,34 @@
 "use client";
+
 import { useAuth } from "@/app/auth/context";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { playfair } from "@/utils/font";
 import { Enrollment } from "@/utils/types";
-import { Award, BookOpen, Clock, Users } from "lucide-react";
+import { Award, BookOpen, Clock, Search, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Sidebar from "@/components/Common-Components/Sidebar";
+import { Input } from "@/components/ui/input";
 
 export default function CompletedCoursesList() {
   const [completedCourses, setCompletedCourses] = useState<Enrollment[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (user) {
@@ -24,12 +39,22 @@ export default function CompletedCoursesList() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const query = searchQuery.toLowerCase();
+    const filtered = completedCourses.filter(
+      (c) =>
+        c.course.title.toLowerCase().includes(query) ||
+        c.course.topic.toLowerCase().includes(query)
+    );
+    setFilteredCourses(filtered);
+  }, [searchQuery, completedCourses]);
+
   const fetchCompletedCourses = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
-      setError(""); // Clear any previous errors
+      setError("");
       const response = await fetch(
         `http://localhost:5001/api/enrollments/stats/${user.id}`
       );
@@ -41,10 +66,9 @@ export default function CompletedCoursesList() {
       }
 
       const data = await response.json();
-
-      // Safely handle the response data
       const courses = data?.data.completedCoursesData || [];
       setCompletedCourses(courses);
+      setFilteredCourses(courses);
     } catch (err) {
       setError("Failed to fetch completed courses");
       console.error("Error:", err);
@@ -54,121 +78,135 @@ export default function CompletedCoursesList() {
   };
 
   const handleCourseClick = (courseId: number) => {
-    // Navigate to certificate page
     router.push(`/certificates/${courseId}`);
   };
 
-  if (loading) {
-    return <LoadingIndicator text="Loading completed courses..." />;
-  }
-
-  if (error) {
-    return <ErrorDisplay error={error} onRetry={fetchCompletedCourses} />;
-  }
-
-  if (completedCourses.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            No Completed Courses Yet
-          </h3>
-          <p className="text-gray-600">
-            Complete your first course to earn a certificate!
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-6xl mx-auto p-6 gap-6">
-      <div className="mb-8 flex flex-col items-center justify-center gap-4">
-        <h1
-          className={`text-3xl text-gray-900 mb-2 font-bold ${playfair.className}`}
-        >
-          Completed Courses
-        </h1>
-        <p className="text-gray-600">
-          Congratulations! You have completed {completedCourses.length} course
-          {completedCourses.length !== 1 ? "s" : ""}. Click to view and download
-          your certificate.
-        </p>
-      </div>
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 font-sans">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white shadow-md p-4">
+        <Sidebar userId={String(user?.id)} role={user?.role || "STUDENT"} />
+      </aside>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {completedCourses.map((enrollment) => (
-          <div
-            key={enrollment.course.id}
-            onClick={() => handleCourseClick(enrollment.courseId)}
-            className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer transform hover:scale-105 transition-transform duration-200"
-          >
-            <div className="relative">
-              <img
-                src={enrollment.course.coverPhotoUrl || ""}
-                alt={enrollment.course.title}
-                className="w-full h-48 object-cover rounded-t-lg"
-              />
-              <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center">
-                <Award className="w-4 h-4 mr-1" />
-                Completed
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="mb-2">
-                <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                  {enrollment.course.topic}
-                </span>
-              </div>
-
-              <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                {enrollment.course.title}
+      {/* Main Content */}
+      <main className="flex-1 px-6 py-10 overflow-auto">
+        {loading ? (
+          <LoadingIndicator text="Loading completed courses..." />
+        ) : error ? (
+          <ErrorDisplay error={error} onRetry={fetchCompletedCourses} />
+        ) : completedCourses.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[80vh]">
+            <div className="text-center space-y-2">
+              <BookOpen className="w-16 h-16 text-gray-400 mx-auto" />
+              <h3 className="text-xl font-semibold text-gray-900">
+                No Completed Courses Yet
               </h3>
-
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                {enrollment.course.description}
+              <p className="text-gray-600">
+                Complete your first course to earn a certificate!
               </p>
-
-              <div className="space-y-2 text-sm text-gray-500">
-                <div className="flex items-center">
-                  <Users className="w-4 h-4 mr-2" />
-                  <span>Instructor: {enrollment.course.instructorId}</span>
-                </div>
-
-                <div className="flex items-center">
-                  <Clock className="w-4 h-4 mr-2" />
-                  <span>
-                    Duration:{" "}
-                    {Array.isArray(enrollment.course.lessons)
-                      ? enrollment.course.lessons.length
-                      : 0}{" "}
-                    lessons
-                  </span>
-                </div>
-
-                <div className="flex items-center">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  <span>
-                    {Array.isArray(enrollment.course.lessons)
-                      ? enrollment.course.lessons.length
-                      : 0}{" "}
-                    lessons completed
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <button className="w-full bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition-colors flex items-center justify-center">
-                  <Award className="w-4 h-4 mr-2" />
-                  View Certificate
-                </button>
-              </div>
             </div>
           </div>
-        ))}
-      </div>
+        ) : (
+          <section className="max-w-7xl mx-auto space-y-10">
+            {/* Header with Search */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <div className="text-center md:text-left">
+                <h1
+                  className={`text-4xl font-bold text-teal-800 ${playfair.className}`}
+                >
+                  Completed Courses
+                </h1>
+                <p className="text-gray-700 mt-1 text-base">
+                  You’ve completed{" "}
+                  <span className="font-semibold text-teal-700">
+                    {completedCourses.length}
+                  </span>{" "}
+                  course
+                  {completedCourses.length !== 1 && "s"}. Click a card to view
+                  your certificate.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <Search className="w-5 h-5 text-gray-500" />
+                <Input
+                  type="text"
+                  placeholder="Search by title or topic"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full md:w-64"
+                />
+              </div>
+            </div>
+
+            {/* Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCourses.map((enrollment) => (
+                <Card
+                  key={enrollment.course.id}
+                  onClick={() => handleCourseClick(enrollment.courseId)}
+                  className="transition shadow-sm border border-teal-300 hover:shadow-lg hover:border-teal-500 cursor-pointer group"
+                >
+                  <div className="relative">
+                    <img
+                      src={enrollment.course.coverPhotoUrl || ""}
+                      alt={enrollment.course.title}
+                      className="w-full h-48 object-cover rounded-t-md group-hover:brightness-90 transition"
+                    />
+                    <Badge
+                      variant="default"
+                      className="absolute top-3 right-3 bg-teal-600 hover:bg-teal-700 text-white"
+                    >
+                      <Award className="w-4 h-4 mr-1" />
+                      Completed
+                    </Badge>
+                  </div>
+
+                  <CardHeader>
+                    <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 w-fit text-xs">
+                      {enrollment.course.topic}
+                    </Badge>
+                    <CardTitle className="text-lg text-teal-800 font-semibold line-clamp-2">
+                      {enrollment.course.title}
+                    </CardTitle>
+                    <CardDescription className="line-clamp-2 text-sm text-gray-500">
+                      {enrollment.course.description}
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="space-y-2 text-sm text-gray-700">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-teal-600" />
+                      <span>Instructor: {enrollment.course.instructorId}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-teal-600" />
+                      <span>
+                        Duration: {enrollment.course.lessons?.length ?? 0}{" "}
+                        lessons
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-teal-600" />
+                      <span>
+                        Lessons Completed:{" "}
+                        {enrollment.course.lessons?.length ?? 0}
+                      </span>
+                    </div>
+                  </CardContent>
+
+                  <CardFooter>
+                    <Button className="w-full bg-teal-600 hover:bg-teal-700 text-white">
+                      <Award className="w-4 h-4 mr-2" />
+                      View Certificate
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+      </main>
     </div>
   );
 }
