@@ -62,24 +62,36 @@ export default function MentorsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchMentors = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:5000/api/profile/teacher/all"
-        );
-        const data = await res.json();
-        setMentors(data.teachers);
-        console.log(
-          "Profile photo:",
-          data.teachers[0]?.teacherProfile.profilePhoto
-        );
-      } catch (err: any) {
-        console.error("Failed to fetch mentors", err);
-        setError("Failed to load mentors.");
-      } finally {
-        setLoading(false);
-      }
-    };
+   const fetchMentors = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/profile/teacher/all");
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data?.teachers && Array.isArray(data.teachers)) {
+      setMentors(data.teachers);
+      console.log("Profile photo:", data.teachers[0]?.teacherProfile?.profilePhoto);
+    } else {
+      throw new Error("Invalid data format received");
+    }
+  } catch (err: unknown) {
+    // Narrow error type safely
+    if (err instanceof Error) {
+      console.error("Failed to fetch mentors:", err.message);
+      setError(err.message);
+    } else {
+      console.error("Failed to fetch mentors: Unknown error");
+      setError("Failed to load mentors.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     fetchMentors();
   }, []);

@@ -12,29 +12,7 @@ import {
 } from "@/utils/font";
 import ChatWidget from "@/app/lesson/ChatWidget";
 
-type QuizResult = {
-  id: number;
-  lessonId: string;
-  courseId: string;
-  title: string;
-  studentId: string;
-  marks: number;
-  answeredQuestions: Answeredquestion[];
-  createdAt: string;
-};
 
-type Answeredquestion = {
-  id: string;
-  question: string;
-  correctAnswer?: string;
-  userAnswer?: string;
-  options?: string[];
-  explanation?: string;
-  difficulty: string;
-  type: string;
-  quizId?: string;
-  quizResultId: string;
-};
 
 export default function QuizResultDetails() {
   const { resultid } = useParams();

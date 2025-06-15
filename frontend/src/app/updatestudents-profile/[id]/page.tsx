@@ -175,22 +175,16 @@ export default function EditProfile() {
       </div>
     );
   }
+  const id = userId as string;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-indigo-50 py-8 px-4">
-      <Sidebar userId={userId} role="STUDENT" />
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
+      <aside className="w-64 bg-white shadow-md p-4">
+        <Sidebar role="STUDENT" userId={id} />
+      </aside>
 
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Edit Student Profile
-          </h1>
-          <p className="text-gray-600">
-            Update your academic information and personal details
-          </p>
-        </div>
-
+      <main className="ml-20 p-5 flex-1">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
           {/* Cover Section */}
           <div className="relative h-64 bg-white group overflow-hidden">
@@ -511,6 +505,8 @@ export default function EditProfile() {
           </div>
         </div>
       )}
+    
+      </main>
     </div>
   );
 }

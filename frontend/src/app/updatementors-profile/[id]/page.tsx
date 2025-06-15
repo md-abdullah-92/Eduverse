@@ -169,11 +169,12 @@ export default function EditTeacherProfilePage() {
       </div>
     );
   }
+   const id = userId as string;
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
       <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
+        <Sidebar role="TEACHER" userId={id} />
       </aside>
 
       <main className="ml-20 p-5 flex-1">

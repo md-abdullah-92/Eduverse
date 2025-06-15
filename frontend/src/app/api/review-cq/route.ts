@@ -11,6 +11,9 @@ const RETRY_DELAY_MULTIPLIER = 2;
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+// Optional: custom error type for Gemini
+type GeminiError = Error & { status?: number };
+
 export async function POST(req: NextRequest) {
   try {
     const { cqAnswers } = await req.json();
@@ -57,14 +60,16 @@ Respond ONLY with a number (0–5), no explanation or extra text.`;
           } else {
             throw new Error("Invalid mark format returned by Gemini");
           }
-        } catch (error: any) {
-          if (error.status === 503) {
+        } catch (error: unknown) {
+          const err = error as GeminiError;
+
+          if (err.status === 503) {
             console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
             await sleep(delay);
             delay *= RETRY_DELAY_MULTIPLIER;
             retries++;
           } else {
-            console.error(`Error evaluating CQ ID ${id}:`, error);
+            console.error(`Error evaluating CQ ID ${id}:`, err);
             break;
           }
         }
@@ -75,7 +80,7 @@ Respond ONLY with a number (0–5), no explanation or extra text.`;
     }
 
     return NextResponse.json({ totalCQMarks });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("CQ Review Error:", err);
     return NextResponse.json({ error: "Failed to review CQ answers" }, { status: 500 });
   }

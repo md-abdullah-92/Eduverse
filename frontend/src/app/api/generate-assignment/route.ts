@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { sleep } from "@/utils/sleep";
 
-
 const MAX_RETRIES = 3;
 const RETRY_DELAY_BASE = 1000;
 const RETRY_DELAY_MULTIPLIER = 2;
@@ -44,16 +43,21 @@ export async function POST(req: Request) {
         const result = await chat.sendMessage(prompt);
         const response = await result.response;
         const assignment = response.text();
-        
+
         return NextResponse.json({ markdown: assignment });
-      } catch (error: any) {
-        if (error.status === 503) {
-          console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
-          await sleep(delay);
-          delay *= RETRY_DELAY_MULTIPLIER;
-          retries++;
-          continue;
+      } catch (error: unknown) {
+        // ✅ Safe type check
+        if (typeof error === "object" && error !== null && "status" in error) {
+          const status = (error as { status?: number }).status;
+          if (status === 503) {
+            console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
+            await sleep(delay);
+            delay *= RETRY_DELAY_MULTIPLIER;
+            retries++;
+            continue;
+          }
         }
+
         throw error;
       }
     }

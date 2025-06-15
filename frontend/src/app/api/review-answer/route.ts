@@ -68,8 +68,14 @@ Suggestion: <short_feedback>
         }
 
         return NextResponse.json({ mark, suggestion });
-      } catch (error: any) {
-        if (error.status === 503) {
+      } catch (error: unknown) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "status" in error &&
+          typeof (error as { status: number }).status === "number" &&
+          (error as { status: number }).status === 503
+        ) {
           console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
           await sleep(delay);
           delay *= RETRY_DELAY_MULTIPLIER;

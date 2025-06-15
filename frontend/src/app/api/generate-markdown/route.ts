@@ -44,14 +44,24 @@ export async function POST(req: Request) {
         const response = await result.response;
         const markdown = response.text();
         return NextResponse.json({ markdown });
-      } catch (error: any) {
-        if (error.status === 503) {
-          console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
-          await sleep(delay);
-          delay *= RETRY_DELAY_MULTIPLIER;
-          retries++;
-          continue;
+      } catch (error: unknown) {
+        // Type guard to check if error is an object with a status
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "status" in error &&
+          typeof (error as { status?: number }).status === "number"
+        ) {
+          const status = (error as { status: number }).status;
+          if (status === 503) {
+            console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
+            await sleep(delay);
+            delay *= RETRY_DELAY_MULTIPLIER;
+            retries++;
+            continue;
+          }
         }
+
         throw error;
       }
     }

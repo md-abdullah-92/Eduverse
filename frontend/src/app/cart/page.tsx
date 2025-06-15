@@ -315,7 +315,7 @@ const EduverseCart = () => {
   };
 
   const subtotal = calculateSubtotal(cartItems);
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("userId")||'default';
 
   if (loading) {
     return <LoadingIndicator />;
