@@ -20,7 +20,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const  studynoteRoutes = require('./routes/studynoteRoutes')
 const assignmentRoutes = require('./routes/assignmentRoutes');
 const qnaRoutes = require("./routes/qnaRoutes");
-
+const teacherStatsRoutes = require("./routes/teacherStatsRoutes");
 
 // Use routes as middleware
 app.use('/api/courses', courseRoutes);
@@ -35,6 +35,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/studynote', studynoteRoutes);
 app.use('/api/assignment', assignmentRoutes);
 app.use("/api/qna", qnaRoutes);
+app.use("/api/teacher-stats", teacherStatsRoutes);
 
 // Default route
 app.get('/', (req, res) => {
