@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import dynamic from "next/dynamic";
 import { FaFileAlt } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
@@ -17,16 +17,18 @@ import Sidebar from "@/components/Common-Components/Sidebar";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import SaveSlideButton from "./components/PrintButton";
+import { ToastContext } from "@/components/ui_elements/toast";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
 
 export default function GenerateSlidePage() {
+  const { showToast } = useContext(ToastContext);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [markdown, setMarkdown] = useState("");
   const [showPreview, setShowPreview] = useState(true);
   const [showSlideEditor, setShowSlideEditor] = useState(false);
   const userId = typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
-  const [showEditor, setShowEditor] = useState(false);
+
   const [title, setTitle] = useState("");
   const [isLoading, setIsLoading] = useState(false);  // Loading state added
 
@@ -39,12 +41,12 @@ export default function GenerateSlidePage() {
 
   const handleGenerateMarkdown = async () => {
     if (!selectedFile) {
-      alert("Please select a PDF file!");
+      showToast("Please select a PDF file!", "error");
       return;
     }
 
     if (selectedFile.type !== "application/pdf") {
-      alert("Only PDF files are supported.");
+      showToast("Only PDF files are supported.", "error");
       return;
     }
 
@@ -62,7 +64,7 @@ export default function GenerateSlidePage() {
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        alert(data.error || "Something went wrong while generating study notes.");
+        showToast(data.error || "Something went wrong while generating study notes.", "error");
         return;
       }
 
@@ -71,7 +73,7 @@ export default function GenerateSlidePage() {
       setShowSlideEditor(true);
     } catch (err) {
       console.error("Markdown generation failed:", err);
-      alert("Failed to generate study note.");
+      showToast("Failed to generate study note.", "error");
     } finally {
       setIsLoading(false); // Stop loading
     }
@@ -79,12 +81,12 @@ export default function GenerateSlidePage() {
 
   const saveStudyNote = async (title: string, description: string) => {
     if (!title || !description) {
-      alert("Please provide a title and content for the Study Note.");
+      showToast("Please provide a title and content for the Study Note.", "error");
       return;
     }
 
     if (!userId || userId === "12345") {
-      alert("Invalid or missing teacher ID.");
+      showToast("Invalid or missing teacher ID.", "error");
       return;
     }
 
@@ -99,17 +101,17 @@ export default function GenerateSlidePage() {
 
       if (!res.ok) {
         console.error("Server error:", data.error);
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
         return;
       }
 
-      alert("Study Note saved successfully!");
+      showToast("Study Note saved successfully!", "success");
       setMarkdown("");
       setSelectedFile(null);
-      setShowEditor(false);
+
     } catch (err) {
       console.error("Failed to save assignment:", err);
-      alert("Failed to save assignment. Please try again.");
+      showToast("Failed to save assignment. Please try again.", "error");
     }
   };
 

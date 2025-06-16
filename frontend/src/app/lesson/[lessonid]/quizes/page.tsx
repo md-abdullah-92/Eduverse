@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress";
 import { dmSerif, notoSerif } from "@/utils/font";
 import { CheckCircle, Circle, ClipboardList,Award } from "lucide-react";
 import ChatWidget from "../../ChatWidget";
+import { ToastContext } from "@/components/ui_elements/toast";
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 
 
 type Question = {
@@ -21,6 +23,7 @@ type Question = {
 };
 
 export default function StudentExamPage() {
+  const { showToast } = useContext(ToastContext);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -62,7 +65,7 @@ export default function StudentExamPage() {
         setDuration(data[0]?.duration || 0);
         setDescription(data[0]?.description || '');
       } catch (err) {
-        alert("Failed to fetch questions. Please try again later.");
+        showToast("Failed to fetch questions. Please try again later.", "error");
         console.error("Fetch error:", err);
       } finally {
         setLoading(false);
@@ -119,7 +122,7 @@ export default function StudentExamPage() {
   const handleSubmit = async () => {
   if (submitted || isSubmitting) return;
 
-  setIsSubmitting(true); // 🔄 Start loading
+  setIsSubmitting(true); // 
 
   let total = 0;
   const cqAnswers: { id: string; question: string; answer: string }[] = [];
@@ -157,7 +160,7 @@ export default function StudentExamPage() {
     }
   } catch (error) {
     console.error("CQ Evaluation Error:", error);
-    alert("Failed to evaluate CQ answers.");
+    showToast("Failed to evaluate CQ answers.", "error");
   }
 
   const finalScore = total + cqMarks;
@@ -190,10 +193,10 @@ export default function StudentExamPage() {
     });
   } catch (err) {
     console.error("Failed to save result:", err);
-    alert("Something went wrong while submitting results.");
+    showToast("Something went wrong while submitting results.", "error");
   }
 
-  setIsSubmitting(false); // ✅ End loading
+  setIsSubmitting(false); // 
 };
 
 
@@ -203,7 +206,20 @@ export default function StudentExamPage() {
     const sec = seconds % 60;
     return `${min}:${sec < 10 ? "0" + sec : sec}`;
   };
-
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingIndicator text="Loading Questions..." />
+      </div>
+    );
+  }
+  if (questions.length === 0 && !loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-gray-600">No questions found.</div>
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 py-10 px-4">
       <div className="max-w-4xl mx-auto space-y-10">

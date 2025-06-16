@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +11,7 @@ import Sidebar from "../../../../../components/Common-Components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { useInstructorCourses } from "@/hooks/useInstructorCourses";
+import { ToastContext } from "@/components/ui_elements/toast";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ type Assignment = {
 };
 
 export default function SavedAssignments() {
+  const { showToast } = useContext(ToastContext);
   const router = useRouter();
   const userId =
     typeof window !== "undefined"
@@ -59,7 +61,6 @@ export default function SavedAssignments() {
   const { courses } = useInstructorCourses(userId || "0");
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this assignment?")) return;
     try {
       const res = await fetch(
         `http://localhost:5000/api/assignment/delete/${id}`,
@@ -71,7 +72,7 @@ export default function SavedAssignments() {
         setAssignments((prev) => prev.filter((a) => a.id !== id));
       } else {
         const errData = await res.json();
-        alert(`Failed to delete: ${errData.error}`);
+        showToast(`Failed to delete: ${errData.error}`, "error");
       }
     } catch (err) {
       console.error("Delete failed:", err);
@@ -89,12 +90,12 @@ export default function SavedAssignments() {
     const title = selectedStudynote?.title;
     const description = selectedStudynote?.description;
     if (!title || !description) {
-      alert("Please provide a title and content for the Short Question.");
+      showToast("Please provide a title and content for the Short Question.", "error");
       return;
     }
 
     if (!userId || userId === "12345") {
-      alert("Invalid or missing teacher ID.");
+      showToast("Invalid or missing teacher ID.", "error");
       return;
     }
 
@@ -114,14 +115,14 @@ export default function SavedAssignments() {
 
       if (!res.ok) {
         console.error("Server error:", data.error);
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
         return;
       }
       setIsModalOpen(false);
-      alert("Short Questions set successfully!");
+      showToast("Short Questions set successfully!", "success");
     } catch (err) {
       console.error("Failed to save assignment:", err);
-      alert("Failed to save Short Questions. Please try again.");
+      showToast("Failed to save Short Questions. Please try again.", "error");
     }
   };
 

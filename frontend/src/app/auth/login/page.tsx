@@ -40,7 +40,7 @@ export default function LoginRegister() {
     if (email) {
       router.push(`/auth/otp?email=${encodeURIComponent(email)}`);
     } else {
-      alert("Email not available!");
+      showToast("Email not available!", "error");
     }
   };
   const handleSubmit = async (e: React.FormEvent) => {

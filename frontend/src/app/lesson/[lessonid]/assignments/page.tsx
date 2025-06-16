@@ -1,11 +1,12 @@
 "use client";
-
+import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { playfair, lora } from "@/utils/font";
 import ChatWidget from "../../ChatWidget";
-
+import { AlertTriangle } from "lucide-react";
+import { useRouter } from "next/navigation";
 type Assignment = {
   title: string;
   description: string;
@@ -19,7 +20,13 @@ type Review = {
 
 export default function AssignmentViewPage() {
   const lessonId = useParams().lessonid as string;
-  const [assignment, setAssignment] = useState<Assignment | null>(null);
+  const router = useRouter();
+  const [assignment, setAssignment] = useState<Assignment>({
+  title: "",
+  description: "",
+  createdAt: "",
+});
+
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState<string[]>([]);
   const [reviews, setReviews] = useState<(Review | null)[]>([]);
@@ -118,11 +125,33 @@ export default function AssignmentViewPage() {
       setSubmitting([...updatedSubmitting]);
     }
   };
+  useEffect(() => {
+  if (!assignment && !loading) {
+    const timer = setTimeout(() => {
+      router.back();
+    }, 2000); // 4 seconds delay before going back
 
-  if (loading)
-    return <div className="p-6 text-gray-600">Loading assignment...</div>;
-  if (!assignment)
-    return <div className="p-6 text-gray-600">Short Questions not found.</div>;
+    return () => clearTimeout(timer); // cleanup
+  }
+}, [assignment, loading]);
+  if (loading) return <LoadingIndicator text="Loading Questions..." />;
+  if (!assignment && !loading)
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
+      <Card className="max-w-md text-center p-8 shadow-md bg-white">
+        <div className="flex justify-center text-teal-600 mb-4">
+          <AlertTriangle className="w-10 h-10" />
+        </div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">
+          No Practice Questions Included Found
+        </h2>
+        <p className="text-gray-600 mb-2">
+          Redirecting you back to the previous page...
+        </p>
+      </Card>
+    </div>
+  );
+
 
   return (
     <div
@@ -133,7 +162,7 @@ export default function AssignmentViewPage() {
           <h1
             className={`text-3xl font-bold text-teal-800 ${playfair.className}`}
           >
-            {assignment.title}
+            {assignment.title} 
           </h1>
           <p className="text-sm text-gray-500">
             Created: {new Date(assignment.createdAt).toLocaleString()}

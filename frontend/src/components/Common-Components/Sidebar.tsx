@@ -75,8 +75,7 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
         return go(`/teachers/${userId}/quiz/manage/`);
       case "Saved Quizzes":
         return go(`/teachers/${userId}/quiz/Saved/`);
-      case "Reviews":
-        return go(`/teachers/${userId}/reviews`);
+      
       case "Enrolled Courses":
         return go(`/students/${userId}/enrolled_course`);
       case "Quiz Attempts":
@@ -135,7 +134,7 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
         { label: "Saved Quizzes" },
       ],
     },
-    { icon: Star, label: "Reviews" },
+    
     { icon: LogOut, label: "Logout" },
   ];
 

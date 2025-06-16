@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -11,6 +11,8 @@ import Sidebar from "@/components/Common-Components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { useInstructorCourses } from "@/hooks/useInstructorCourses";
+import { ToastContext } from "@/components/ui_elements/toast";
+import DeleteConfirmationDialog from "@/app/teachers/components/DeleteConfirmationDialog";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,7 @@ type Studynote = {
 };
 
 export default function SavedStudyNotes() {
+  const { showToast } = useContext(ToastContext);
   const router = useRouter();
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
@@ -49,25 +52,38 @@ export default function SavedStudyNotes() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [selectedLessonId, setSelectedLessonId] = useState<string>("");
 
+  // New states for delete confirmation dialog
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [noteIdToDelete, setNoteIdToDelete] = useState<number | null>(null);
+
   useEffect(() => {
     if (profile?.studyNotes) setNotes(profile.studyNotes);
   }, [profile]);
 
   const { courses } = useInstructorCourses(userId || "0");
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this study note?")) return;
+  // Delete handler triggered from confirmation dialog confirm
+  const handleDeleteConfirmed = async () => {
+    if (noteIdToDelete === null) return;
+
     try {
-      const res = await fetch(`http://localhost:5000/api/studynote/delete/${id}`, {
+      const res = await fetch(`http://localhost:5000/api/studynote/delete/${noteIdToDelete}`, {
         method: "DELETE",
       });
-      if (res.ok) setNotes((prev) => prev.filter((n) => n.id !== id));
-      else {
+
+      if (res.ok) {
+        setNotes((prev) => prev.filter((n) => n.id !== noteIdToDelete));
+        showToast("Study Note deleted successfully!", "success");
+      } else {
         const errData = await res.json();
-        alert(`Failed to delete: ${errData.error}`);
+        showToast(`Failed to delete: ${errData.error}`, "error");
       }
     } catch (err) {
       console.error("Delete failed:", err);
+      showToast("Delete failed due to network error", "error");
+    } finally {
+      setShowDeleteDialog(false);
+      setNoteIdToDelete(null);
     }
   };
 
@@ -85,12 +101,12 @@ export default function SavedStudyNotes() {
     const title = selectedStudynote?.title;
     const description = selectedStudynote?.description;
     if (!title || !description) {
-      alert("Please provide a title and content for the Study Note.");
+      showToast("Please provide a title and content for the Study Note.", "error");
       return;
     }
 
     if (!userId || userId === "12345") {
-      alert("Invalid or missing teacher ID.");
+      showToast("Invalid or missing teacher ID.", "error");
       return;
     }
 
@@ -110,14 +126,14 @@ export default function SavedStudyNotes() {
 
       if (!res.ok) {
         console.error("Server error:", data.error);
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
         return;
       }
       setIsModalOpen(false);
-      alert("Study Note saved successfully!");
+      showToast("Study Note saved successfully!", "success");
     } catch (err) {
       console.error("Failed to save assignment:", err);
-      alert("Failed to save assignment. Please try again.");
+      showToast("Failed to save assignment. Please try again.", "error");
     }
   };
 
@@ -209,7 +225,10 @@ export default function SavedStudyNotes() {
                         <Button
                           variant="destructive"
                           className="hover:bg-red-700"
-                          onClick={() => handleDelete(note.id)}
+                          onClick={() => {
+                            setNoteIdToDelete(note.id);
+                            setShowDeleteDialog(true);
+                          }}
                         >
                           <Trash2 className="w-4 h-4 mr-1" /> Delete
                         </Button>
@@ -233,7 +252,7 @@ export default function SavedStudyNotes() {
         )}
       </main>
 
-      {/* Modal */}
+      {/* Save to Lesson Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -291,6 +310,19 @@ export default function SavedStudyNotes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && noteIdToDelete !== null && (
+        <DeleteConfirmationDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={handleDeleteConfirmed}
+          onCancel={() => {
+            setShowDeleteDialog(false);
+            setNoteIdToDelete(null);
+          }}
+        />
+      )}
     </div>
   );
 }

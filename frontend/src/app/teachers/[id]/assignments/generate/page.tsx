@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import dynamic from "next/dynamic";
 import { FaTasks } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { merriweather } from "@/utils/font";
 import SaveSlideButton from "@/app/teachers/components/PrintButton";
 import Sidebar from "../../../../../components/Common-Components/Sidebar";
+import { ToastContext } from "@/components/ui_elements/toast";
 
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,
@@ -25,6 +26,7 @@ type Question = {
 };
 
 export default function GenerateShortQuestionPage() {
+  const { showToast } = useContext(ToastContext);
   const [selectedTitle, setSelectedTitle] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -59,7 +61,7 @@ export default function GenerateShortQuestionPage() {
   }, [isLoading]);
 
   const handleGenerateShortQuestions = async () => {
-    if (!pdfFile) return alert("Please upload a PDF file!");
+    if (!pdfFile) return showToast("Please upload a PDF file!", "error");
 
     setIsLoading(true);
     try {
@@ -85,7 +87,7 @@ export default function GenerateShortQuestionPage() {
       setShowEditor(true);
     } catch (err) {
       console.error("Short question generation failed:", err);
-      alert("Failed to generate questions.");
+      showToast("Failed to generate questions.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -98,12 +100,12 @@ export default function GenerateShortQuestionPage() {
 
   const saveShortQuestion = async (title: string, content: string) => {
     if (!title || !content) {
-      alert("Please provide a title and content.");
+      showToast("Please provide a title and content.", "error");
       return;
     }
 
     if (!userId || userId === "12345") {
-      alert("Invalid or missing teacher ID.");
+      showToast("Invalid or missing teacher ID.", "error");
       return;
     }
 
@@ -121,18 +123,18 @@ export default function GenerateShortQuestionPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
         return;
       }
 
-      alert("Short questions saved successfully!");
+      showToast("Short questions saved successfully!", "success");
       setMarkdown("");
       setSelectedTitle("");
       setShowEditor(false);
       setQuestions([]);
     } catch (err) {
       console.error("Failed to save:", err);
-      alert("Failed to save. Please try again.");
+      showToast("Failed to save. Please try again.", "error");
     }
   };
 

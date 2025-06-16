@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react';
 import SimpleMDE from 'react-simplemde-editor';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -14,22 +13,15 @@ import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { playfair, workSans } from '@/utils/font';
 import { useParams } from 'next/navigation';
 import ChatWidget from '../../ChatWidget';
+import LoadingIndicator from '@/components/ui_elements/loadingIndicator';
+import { AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 // Placeholder Save Slide Button
-const SaveSlideButton = ({ title }: { title: string }) => (
-  <Button
-    title={`Slide: ${title}`}
-    variant="outline"
-    className="border-teal-300 text-teal-700 hover:bg-teal-50"
-  >
-    Slide
-  </Button>
-);
+
 
 // Save Study Note Logic
-const saveStudyNote = (title: string, content: string) => {
-  console.log('Saving:', title, content);
-};
 
 // Typed Code component for ReactMarkdown code block rendering
 interface CodeProps extends HTMLAttributes<HTMLElement> {
@@ -74,10 +66,11 @@ const Code: React.FC<CodeProps> = ({ inline, className, children, ...props }) =>
 
 export default function LessonNotesPage() {
   const lessonId = useParams().lessonid as string;
+  const router = useRouter();
   const [title, setTitle] = useState('');
   const [markdown, setMarkdown] = useState('');
   const [loading, setLoading] = useState(true);
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview] = useState(true);
   const [previewOnly, setPreviewOnly] = useState(false);
 
   useEffect(() => {
@@ -95,9 +88,47 @@ export default function LessonNotesPage() {
     }
     fetchNote();
   }, [lessonId]);
+  useEffect(() => {
+    if (!title || !markdown) {
+      const timer = setTimeout(() => {
+        router.back();
+      }, 4000); // 4 seconds before going back
+
+      return () => clearTimeout(timer); // cleanup on unmount
+    }
+  }, [title, markdown, router]);
 
   if (loading) {
-    return <div className={`p-6 text-gray-600 text-lg ${workSans.className}`}>Loading lesson notes...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-teal-50">
+        <LoadingIndicator text='Loading...' />
+      </div>
+    );
+  }
+
+
+  
+
+  if (!title || !markdown) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <Card className="max-w-md text-center p-8 shadow-md bg-white">
+            <div className="flex justify-center text-teal-600 mb-4">
+              <AlertTriangle className="w-10 h-10" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">
+              No Notes Found
+            </h2>
+            <p className="text-gray-600 text-sm">Redirecting you back...</p>
+          </Card>
+        </motion.div>
+      </div>
+    );
   }
 
   // ReactMarkdown components with typed handlers
@@ -155,26 +186,7 @@ export default function LessonNotesPage() {
             <h1 className={`text-2xl font-semibold text-teal-800 ${playfair.className}`}>Lesson Notes</h1>
             <p className="text-sm text-gray-600">Edit and preview your markdown notes.</p>
           </div>
-          <div className="flex gap-2 mt-1">
-            <Button
-              onClick={() => setShowPreview(!showPreview)}
-              variant="outline"
-              className="border-teal-300 text-teal-700 hover:bg-teal-50"
-              disabled={previewOnly}
-            >
-              {showPreview ? <EyeOff className="mr-2 w-4 h-4" /> : <Eye className="mr-2 w-4 h-4" />}
-              {showPreview ? 'Hide Preview' : 'Show Preview'}
-            </Button>
-            <SaveSlideButton title={title} />
-            <Button
-              onClick={() => saveStudyNote(title, markdown)}
-              variant="outline"
-              className="border-teal-300 text-teal-700 hover:bg-teal-50"
-              disabled={previewOnly}
-            >
-              Save
-            </Button>
-          </div>
+         
         </div>
 
         {/* Title Input */}

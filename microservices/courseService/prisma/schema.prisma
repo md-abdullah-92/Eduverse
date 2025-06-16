@@ -77,8 +77,8 @@ model CourseOutcome {
 model Lesson {
   id                Int                @id @default(autoincrement())
   title             String
-  description       String?
-  videoUrl          String?
+  description       String?            @db.Text
+  videoUrl          String?            @db.Text
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   courseId          Int

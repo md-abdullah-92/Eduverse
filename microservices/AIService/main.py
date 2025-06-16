@@ -148,6 +148,7 @@ From the content below, create ONE short-answer (descriptive) question.
 - Do not generate options.
 - Provide a correct answer as a sentence.
 - Add a short explanation and difficulty level.
+- You should not say based on the content, but rather generate a question that can be answered by the content.
 
 Content:
 {content}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,10 @@ import { QuizQuestion } from "@/types/quiz";
 import Sidebar from "../../../../../components/Common-Components/Sidebar";
 import { robotoSlab, raleway } from "@/utils/font";
 import { FiFileText } from "react-icons/fi";
+import { ToastContext } from "@/components/ui_elements/toast";
 
 export default function QuizManagementPage() {
+  const { showToast } = useContext(ToastContext);
   const [numQuestions, setNumQuestions] = useState(5);
   const [questionType, setQuestionType] = useState("mcq");
   const [generatedQuestions, setGeneratedQuestions] = useState<QuizQuestion[]>([]);
@@ -40,7 +42,7 @@ export default function QuizManagementPage() {
 
   const handleGenerateQuiz = async () => {
     if (!pdfFile) {
-      alert("Please upload a PDF file.");
+      showToast("Please upload a PDF file.", "error");
       return;
     }
 
@@ -69,10 +71,10 @@ export default function QuizManagementPage() {
 
       setGeneratedQuestions(data.questions);
       setSelectedQuestions(data.questions.map((q: QuizQuestion) => q.id));
-      alert("✅ Questions generated successfully!");
+      showToast("✅ Questions generated successfully!", "success");
     } catch (error) {
       console.error("Error generating quiz:", error);
-      alert("❌ Failed to generate quiz. Please check the PDF upload and try again.");
+      showToast("❌ Failed to generate quiz. Please check the PDF upload and try again.", "error");
     } finally {
       setIsGenerating(false);
     }
@@ -80,7 +82,7 @@ export default function QuizManagementPage() {
 
   const handleCreateExam = async () => {
     if (!examName || !examDescription || selectedQuestions.length === 0) {
-      alert("Please fill in all required fields and select at least one question.");
+      showToast("Please fill in all required fields and select at least one question.", "error");
       return;
     }
     const userIdNum = parseInt(localStorage.getItem("userId") || "10", 10);
@@ -112,7 +114,7 @@ export default function QuizManagementPage() {
       const result = await response.json();
       console.log("Exam created:", result);
 
-      alert("✅ Exam created successfully!");
+      showToast("✅ Exam created successfully!", "success");
       setExamName("");
       setExamDescription("");
       setDuration(null);
@@ -120,7 +122,7 @@ export default function QuizManagementPage() {
       setGeneratedQuestions([]);
     } catch (error) {
       console.error("Error creating exam:", error);
-      alert("❌ Failed to create exam. Please try again.");
+      showToast("❌ Failed to create exam. Please try again.", "error");
     } finally {
       setIsCreating(false);
     }

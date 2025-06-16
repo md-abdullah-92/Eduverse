@@ -67,8 +67,7 @@ export default function PublishedQuiz() {
   console.log(courses);
 
   const handleDelete = async (id: string) => {
-    const confirm = window.confirm("Are you sure you want to delete this exam?");
-    if (!confirm) return;
+    
 
     try {
       const res = await fetch(`http://localhost:5000/api/quiz/delete/${id}`, {
@@ -82,7 +81,7 @@ export default function PublishedQuiz() {
       } else {
         toast.error(result.message || "Failed to delete exam");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error deleting exam");
     }
   };
@@ -103,7 +102,7 @@ export default function PublishedQuiz() {
     const selectedQuiz = quizzes.find((q) => q.id === selectedQuizId);
 
     if (!selectedQuiz) {
-      alert("Quiz not found!");
+      toast.error("Quiz not found!");
       return;
     }
 
@@ -133,10 +132,10 @@ export default function PublishedQuiz() {
       const result = await response.json();
       console.log("Exam created:", result);
       setOpenDialog(false);
-      alert("✅ Exam created successfully!");
+      toast.success("✅ Exam created successfully!");
     } catch (error) {
       console.error("Error creating exam:", error);
-      alert("❌ Failed to create exam. Please try again.");
+      toast.error("❌ Failed to create exam. Please try again.");
     }
   };
 
