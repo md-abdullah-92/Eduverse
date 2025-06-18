@@ -1,4 +1,5 @@
 "use client";
+import ChatWidget from "@/app/lesson/ChatWidget";
 import CourseForm from "@/app/teachers/[id]/course_update/components/CourseForm";
 import LessonForm from "@/app/teachers/[id]/course_update/components/LessonForm";
 import LessonList from "@/app/teachers/[id]/course_update/components/LessonList";
@@ -136,6 +137,7 @@ export default function CourseDashboard() {
             </button>
           </div>
         </header>
+        <ChatWidget/>
 
         {/* Main Content */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6">

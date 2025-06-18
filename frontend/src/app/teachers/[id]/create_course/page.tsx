@@ -153,7 +153,7 @@ export default function AddCoursePage() {
             </div>
           </div>
         </div>
-
+        <ChatWidget/>
         {/* Main Content Grid */}
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-3 gap-8">
@@ -248,6 +248,7 @@ export default function AddCoursePage() {
                     </div>
                   </div>
                 </div>
+                
 
                 <div className="space-y-2">
                   <label

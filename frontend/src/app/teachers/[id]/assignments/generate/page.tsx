@@ -4,7 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import dynamic from "next/dynamic";
 import { FaTasks } from "react-icons/fa";
 import { FiFileText } from "react-icons/fi";
-import { Type, Eye, EyeOff, Trash2, Loader2 } from "lucide-react";
+import { Type, Eye, EyeOff, Trash2, Loader2, FileText, BookOpen } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,13 @@ export default function GenerateShortQuestionPage() {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(60);
+  
+  // Page selection states
+  const [totalPages, setTotalPages] = useState<number | null>(null);
+  const [startPage, setStartPage] = useState<number>(1);
+  const [endPage, setEndPage] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showPageSelection, setShowPageSelection] = useState(false);
 
   const userId =
     typeof window !== "undefined"
@@ -60,13 +67,54 @@ export default function GenerateShortQuestionPage() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
+  // Handle PDF file upload and get total pages
+  const handlePdfUpload = async (file: File) => {
+    setIsUploading(true);
+    setPdfFile(file);
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("http://localhost:8000/upload/", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      
+      if (data.total_pages) {
+        setTotalPages(data.total_pages);
+        setEndPage(data.total_pages);
+        setShowPageSelection(true);
+        showToast(`PDF uploaded! Total pages: ${data.total_pages}`, "success");
+      } else {
+        showToast("Failed to read PDF pages", "error");
+      }
+    } catch (err) {
+      console.error("PDF upload failed:", err);
+      showToast("Failed to upload PDF", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleGenerateShortQuestions = async () => {
     if (!pdfFile) return showToast("Please upload a PDF file!", "error");
+    
+    // Validate page range
+    if (startPage < 1 || (endPage && startPage > endPage)) {
+      return showToast("Invalid page range!", "error");
+    }
 
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("file", pdfFile);
+      formData.append("start_page", startPage.toString());
+      if (endPage) {
+        formData.append("end_page", endPage.toString());
+      }
 
       const res = await fetch("http://localhost:8000/short-questions/", {
         method: "POST",
@@ -74,17 +122,24 @@ export default function GenerateShortQuestionPage() {
       });
 
       const markdownText = await res.text();
-      setMarkdown(markdownText);
+      
+      if (res.ok) {
+        setMarkdown(markdownText);
 
-      const parsedQuestions = [
-        ...markdownText.matchAll(/^\s*(\d+)\.\s+(.*)$/gm),
-      ].map(([, number, text]) => ({
-        number: parseInt(number),
-        text: text.trim(),
-      }));
+        const parsedQuestions = [
+          ...markdownText.matchAll(/^\s*(\d+)\.\s+(.*)$/gm),
+        ].map(([, number, text]) => ({
+          number: parseInt(number),
+          text: text.trim(),
+        }));
 
-      setQuestions(parsedQuestions);
-      setShowEditor(true);
+        setQuestions(parsedQuestions);
+        setShowEditor(true);
+        showToast(`Generated ${parsedQuestions.length} questions from pages ${startPage}-${endPage || totalPages}`, "success");
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        showToast(errorData.error || "Failed to generate questions", "error");
+      }
     } catch (err) {
       console.error("Short question generation failed:", err);
       showToast("Failed to generate questions.", "error");
@@ -141,6 +196,17 @@ export default function GenerateShortQuestionPage() {
   const generateMarkdownFromQuestions = () =>
     questions.map((q, idx) => `${idx + 1}. ${q.text}`).join("\n");
 
+  const resetUpload = () => {
+    setPdfFile(null);
+    setTotalPages(null);
+    setStartPage(1);
+    setEndPage(null);
+    setShowPageSelection(false);
+    setShowEditor(false);
+    setQuestions([]);
+    setMarkdown("");
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
       <aside className="w-64 bg-white shadow-md p-4">
@@ -161,36 +227,133 @@ export default function GenerateShortQuestionPage() {
             </p>
           </header>
 
-          {/* PDF Upload */}
-          <div className="mt-4 space-y-2 w-full md:w-[400px]">
-            <Label className="flex items-center gap-2 text-[#C084FC] font-semibold">
-              <FiFileText />
-              Upload PDF
-            </Label>
-            <Input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  setPdfFile(e.target.files[0]);
-                }
-              }}
-            />
-            <Button
-              onClick={handleGenerateShortQuestions}
-              disabled={isLoading}
-              className="mt-4 bg-teal-600 hover:bg-yellow-700 text-white flex items-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin w-4 h-4" />
-                  Generating... ({timer}s)
-                </>
-              ) : (
-                "Generate Short Questions"
+          {/* PDF Upload Section */}
+          <Card className="mb-6 p-6 bg-white border border-teal-200 shadow-sm">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2 text-teal-700 font-semibold text-lg">
+                  <FiFileText className="w-5 h-5" />
+                  PDF Upload & Configuration
+                </Label>
+                {pdfFile && (
+                  <Button
+                    onClick={resetUpload}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                  >
+                    Reset
+                  </Button>
+                )}
+              </div>
+
+              {/* File Upload */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-600">Select PDF File</Label>
+                  <Input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handlePdfUpload(e.target.files[0]);
+                      }
+                    }}
+                    disabled={isUploading}
+                    className="file:bg-teal-50 file:text-teal-700 file:border-teal-200"
+                  />
+                  {isUploading && (
+                    <div className="flex items-center gap-2 text-sm text-teal-600">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Analyzing PDF...
+                    </div>
+                  )}
+                </div>
+
+                {/* PDF Info */}
+                {totalPages && (
+                  <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                    <div className="flex items-center gap-2 text-teal-700 font-medium mb-2">
+                      <BookOpen className="w-4 h-4" />
+                      PDF Information
+                    </div>
+                    <div className="text-sm text-teal-600">
+                      <p className="flex items-center gap-2">
+                        <FileText className="w-3 h-3" />
+                        <strong>File:</strong> {pdfFile?.name}
+                      </p>
+                      <p className="flex items-center gap-2 mt-1">
+                        <span className="w-3 h-3 bg-teal-400 rounded-full"></span>
+                        <strong>Total Pages:</strong> {totalPages}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Page Selection */}
+              {showPageSelection && (
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200">
+                  <Label className="text-yellow-700 font-medium mb-3 block">
+                    📄 Page Range Selection
+                  </Label>
+                  <div className="grid md:grid-cols-3 gap-4 items-end">
+                    <div className="space-y-1">
+                      <Label className="text-sm text-gray-600">Start Page</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={totalPages || 1}
+                        value={startPage}
+                        onChange={(e) => setStartPage(parseInt(e.target.value) || 1)}
+                        className="border-yellow-300 focus:border-yellow-500"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm text-gray-600">End Page</Label>
+                      <Input
+                        type="number"
+                        min={startPage}
+                        max={totalPages || 1}
+                        value={endPage || ""}
+                        onChange={(e) => setEndPage(parseInt(e.target.value) || null)}
+                        placeholder={`Max: ${totalPages}`}
+                        className="border-yellow-300 focus:border-yellow-500"
+                      />
+                    </div>
+                    <div className="text-sm text-yellow-700 bg-yellow-100 p-2 rounded border">
+                      <strong>Range:</strong> Page {startPage} to {endPage || totalPages}
+                      <br />
+                      <strong>Total:</strong> {(endPage || totalPages!) - startPage + 1} pages
+                    </div>
+                  </div>
+                </div>
               )}
-            </Button>
-          </div>
+
+              {/* Generate Button */}
+              {pdfFile && totalPages && (
+                <div className="pt-2">
+                  <Button
+                    onClick={handleGenerateShortQuestions}
+                    disabled={isLoading || isUploading}
+                    className="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white flex items-center justify-center gap-2 px-6 py-3"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="animate-spin w-4 h-4" />
+                        Generating Questions... ({timer}s)
+                      </>
+                    ) : (
+                      <>
+                        <FaTasks className="w-4 h-4" />
+                        Generate Short Questions
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </Card>
 
           {showEditor && (
             <>

@@ -1,11 +1,28 @@
+# FastAPI and server dependencies
 fastapi
 uvicorn[standard]
+
+
+# Environment and configuration
 python-dotenv
+
+# PDF processing
 PyPDF2
+
+# Machine learning and vector search
 scikit-learn
 faiss-cpu
 numpy
+
+# LangChain dependencies
 langchain
 langchain-google-genai
-langchain_community
+langchain-community
+langchain-core
+
+# OpenAI API
 openai
+
+# Additional utilities
+requests
+tiktoken
