@@ -90,52 +90,8 @@ EduVerse is a modern, microservices-based education platform that combines AI te
 | Documentation | Swagger | API documentation |
 | Performance | Lighthouse | Performance testing and optimization |
 
-## 👥 Team
 
-### Project Lead
-- **Md Abdullah**
-  - Role: Full Stack Developer & AI Integration
-  - Email: abdullah92@student.sust.edu
-  - GitHub: [md-abdullah-92](https://github.com/md-abdullah-92)
-  - Responsibilities: 
-    - Overall project architecture
-    - AI service integration
-    - Backend development
-    - Frontend development
-    - Database design
-    - API development
 
-### Technical Advisors
-- **Md. Shahriar Hossain**
-  - Role: Technical Mentor
-  - Email: shahriar@ai.edu.bd
-  - GitHub: [shahriarhossain](https://github.com/shahriarhossain)
-  - Responsibilities:
-    - Architecture review
-    - Code quality assurance
-    - Technical guidance
-    - Performance optimization
-
-### Contributors
-- **Md. Rakibul Hasan**
-  - Role: Frontend Developer
-  - Email: rakibul@student.sust.edu
-  - GitHub: [rakibulhasan](https://github.com/rakibulhasan)
-  - Responsibilities:
-    - UI/UX development
-    - Frontend optimization
-    - Component development
-    - Responsive design
-
-- **Md. Tanvir Hossain**
-  - Role: Backend Developer
-  - Email: tanvir@student.sust.edu
-  - GitHub: [tanvirhossain](https://github.com/tanvirhossain)
-  - Responsibilities:
-    - API development
-    - Database management
-    - Security implementation
-    - Performance optimization
 
 ## 📊 Project Statistics
 
