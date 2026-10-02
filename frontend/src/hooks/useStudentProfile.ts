@@ -1,8 +1,21 @@
 import { useEffect, useState } from "react";
+type AnsweredQuestion = {
+  id: string;
+  question: string;
+  correctAnswer?: string;
+  useranswer?: string;
+  userAnswer?: string;
+  options?: string[];
+  explanation?: string;
+  difficulty: string;
+  type: string;
+  quizId?: string;
+  quizResultId: string;
+};
+
 type StudentProfile = {
- 
-  user: { 
-    name: string; 
+  user: {
+    name: string;
     role: string;
     email: string;
     phone?: string;
@@ -19,21 +32,11 @@ type StudentProfile = {
     studentId: string;
     fullmark: number;
     marks: number;
-    answeredQuestions: {
-      id: string;
-      question: string;
-      correctAnswer?: string;
-      userAnswer?: string;
-      options?: string[];
-      explanation?: string;
-      difficulty: string;
-      type: string;
-      quizId?: string;
-      quizResultId: string;
-    }[];
+    answeredquestions?: AnsweredQuestion[];
+    answeredQuestions?: AnsweredQuestion[];
     createdAt: string;
-  }[]; // Made this an array
-}
+  }[];
+};
 
 export function useStudentProfile(userId: string | null) {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
@@ -58,7 +61,20 @@ export function useStudentProfile(userId: string | null) {
         const data = await res.json();
 
         if (!data.studentProfile) throw new Error("Student profile not found");
-        setProfile(data.studentProfile);
+
+        const normalizedProfile = {
+          ...data.studentProfile,
+          quizResults: (data.studentProfile.quizResults || []).map((result: any) => {
+            const answeredquestions = result.answeredquestions ?? result.answeredQuestions ?? [];
+            return {
+              ...result,
+              answeredquestions,
+              answeredQuestions: answeredquestions,
+            };
+          }),
+        };
+
+        setProfile(normalizedProfile);
         setRole(data.studentProfile?.user?.role || "STUDENT");
 
         if (typeof window !== "undefined") {

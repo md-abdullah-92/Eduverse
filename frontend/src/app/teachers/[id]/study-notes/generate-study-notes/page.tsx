@@ -37,11 +37,23 @@ export default function GenerateSlidePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  const isPdfFile = (file: File) => {
+    const mime = (file.type || "").toLowerCase();
+    const name = (file.name || "").toLowerCase();
+
+    return (
+      mime === "application/pdf" ||
+      mime === "application/octet-stream" ||
+      mime === "binary/octet-stream" ||
+      name.endsWith(".pdf")
+    );
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file = e.target.files[0];
-      
-      if (file.type !== "application/pdf") {
+
+      if (!isPdfFile(file)) {
         showToast("Please select a valid PDF file.", "error");
         return;
       }
@@ -212,7 +224,7 @@ export default function GenerateSlidePage() {
               
               <Input 
                 type="file" 
-                accept="application/pdf" 
+                accept=".pdf,application/pdf"
                 onChange={handleFileChange}
                 disabled={isUploading}
                 className="file:bg-teal-100 file:text-teal-700 file:border-0 file:rounded-md file:px-4 file:py-2 file:mr-4"

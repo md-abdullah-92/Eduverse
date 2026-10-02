@@ -166,6 +166,24 @@ EduVerse follows a microservices architecture:
 
 ## 🔧 Installation
 
+### Docker Compose
+
+Docker is the simplest way to run the frontend, all four services, and MySQL together:
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:3000` after the frontend starts. The APIs are published on ports `5000` (users), `5001` (courses), `5002` (purchases), and `8000` (AI). Each Node service runs its checked-in Prisma migrations when its container starts.
+
+Set `MYSQL_ROOT_PASSWORD` before starting Compose if you do not want the development default, and make sure the required API credentials are present in the existing service `.env` files. To stop the stack, run:
+
+```bash
+docker compose down
+```
+
+Add `-v` to the `down` command only when you intentionally want to delete the MySQL volume and all local database data.
+
 ### 1. Clone the Repository
 
 Clone the EduVerse repository from GitHub:

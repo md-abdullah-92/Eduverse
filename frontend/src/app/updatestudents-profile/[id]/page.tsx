@@ -189,7 +189,7 @@ export default function EditProfile() {
           {/* Cover Section */}
           <div className="relative h-64 bg-white group overflow-hidden">
             <Image
-              src={coverImage || "/default-cover.jpg"}
+              src={coverImage || "/logo.png"}
               alt="Cover"
               fill
               className="object-cover"

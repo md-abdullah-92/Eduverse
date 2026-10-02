@@ -1,7 +1,7 @@
 // app/api/review-answer/route.ts
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { sleep } from "@/utils/sleep";
+import { generateWithGroq } from "@/lib/groq";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_BASE = 1000;
@@ -29,9 +29,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
     const prompt = `You are Eduverse AI, a helpful assistant that evaluates student responses to academic questions.
 Evaluate the student's answer based on the following question. 
 
@@ -55,16 +52,16 @@ Suggestion: <short_feedback>
 
     while (retries < MAX_RETRIES) {
       try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const rawText = await response.text();
+        const rawText = await generateWithGroq([
+          { role: "user", content: prompt },
+        ]);
 
         const mark = extractNumericMark(rawText);
         const suggestionMatch = rawText.match(/Suggestion:\s*(.+)/i);
         const suggestion = suggestionMatch ? suggestionMatch[1].trim() : "No suggestion found.";
 
         if (mark === null) {
-          throw new Error("Failed to extract mark from Gemini response.");
+          throw new Error("Failed to extract mark from Groq response.");
         }
 
         return NextResponse.json({ mark, suggestion });
@@ -76,7 +73,7 @@ Suggestion: <short_feedback>
           typeof (error as { status: number }).status === "number" &&
           (error as { status: number }).status === 503
         ) {
-          console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
+          console.warn(`Groq API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
           await sleep(delay);
           delay *= RETRY_DELAY_MULTIPLIER;
           retries++;
@@ -92,7 +89,7 @@ Suggestion: <short_feedback>
     }
 
     return NextResponse.json(
-      { error: "Gemini API is currently unavailable after multiple retries." },
+      { error: "Groq API is currently unavailable after multiple retries." },
       { status: 503 }
     );
   } catch (err) {

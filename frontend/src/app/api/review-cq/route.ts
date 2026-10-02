@@ -1,18 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { sleep } from "@/utils/sleep";
+import { generateWithGroq } from "@/lib/groq";
 
 // Retry config
 const MAX_RETRIES = 3;
 const RETRY_DELAY_BASE = 1000;
 const RETRY_DELAY_MULTIPLIER = 2;
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-// Optional: custom error type for Gemini
-type GeminiError = Error & { status?: number };
+type GroqError = Error & { status?: number };
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,11 +41,11 @@ Respond ONLY with a number (0–5), no explanation or extra text.`;
 
       while (retries < MAX_RETRIES) {
         try {
-          const result = await model.generateContent(prompt);
-          const response = await result.response;
-          const text = response.text().trim();
+          const text = await generateWithGroq([
+            { role: "user", content: prompt },
+          ]);
 
-          console.log(`Gemini raw response for CQ ID ${id}:`, text);
+          console.log(`Groq raw response for CQ ID ${id}:`, text);
 
           const extractedMark = parseFloat(text.match(/\d+(\.\d+)?/)?.[0] || "NaN");
 
@@ -58,13 +53,13 @@ Respond ONLY with a number (0–5), no explanation or extra text.`;
             mark = Math.min(5, Math.max(0, extractedMark)); // Clamp between 0–5
             break;
           } else {
-            throw new Error("Invalid mark format returned by Gemini");
+            throw new Error("Invalid mark format returned by Groq");
           }
         } catch (error: unknown) {
-          const err = error as GeminiError;
+          const err = error as GroqError;
 
           if (err.status === 503) {
-            console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
+            console.warn(`Groq API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
             await sleep(delay);
             delay *= RETRY_DELAY_MULTIPLIER;
             retries++;

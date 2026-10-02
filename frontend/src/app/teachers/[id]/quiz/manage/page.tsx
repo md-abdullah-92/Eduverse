@@ -133,7 +133,7 @@ export default function QuizManagementPage() {
     try {
       const formData = new FormData();
       formData.append("file", pdfFile);
-      formData.append("n_questions", numQuestions.toString());
+      formData.append("num_questions", numQuestions.toString());
       formData.append("question_type", questionType);
       formData.append("start_page", startPage.toString());
       formData.append("end_page", endPage?.toString() || "");
@@ -163,6 +163,32 @@ export default function QuizManagementPage() {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const resolveCorrectOptionText = (question: QuizQuestion) => {
+    if (!question.options || question.type !== "mcq") {
+      return question.correctAnswer || "N/A";
+    }
+
+    const answerLetter = String(question.answerLetter || "").trim().toUpperCase();
+    const normalizedAnswer = String(question.correctAnswer || "").trim();
+    const validLetters = ["A", "B", "C", "D"];
+
+    if (validLetters.includes(answerLetter)) {
+      const index = validLetters.indexOf(answerLetter);
+      return question.options[index] || normalizedAnswer || "N/A";
+    }
+
+    if (validLetters.includes(normalizedAnswer.toUpperCase())) {
+      const index = validLetters.indexOf(normalizedAnswer.toUpperCase());
+      return question.options[index] || normalizedAnswer || "N/A";
+    }
+
+    return (
+      question.options.find(
+        (option) => option.trim().toLowerCase() === normalizedAnswer.trim().toLowerCase()
+      ) || normalizedAnswer || "N/A"
+    );
   };
 
   const handleCreateExam = async () => {
@@ -498,47 +524,51 @@ export default function QuizManagementPage() {
 
                       <Card>
                         <CardContent className="p-6 space-y-6">
-                          {generatedQuestions.map((q, idx) => (
-                            <div
-                              key={q.id}
-                              className="flex items-start gap-4 border-b pb-4"
-                            >
-                              <input
-                                type="checkbox"
-                                className="mt-2"
-                                checked={selectedQuestions.includes(q.id)}
-                                onChange={(e) => {
-                                  setSelectedQuestions((prev) =>
-                                    e.target.checked
-                                      ? [...prev, q.id]
-                                      : prev.filter((id) => id !== q.id)
-                                  );
-                                }}
-                              />
-                              <div className="space-y-2">
-                                <p className="font-semibold text-gray-800">
-                                  Q{idx + 1}: {q.question}
-                                </p>
-                                {q.type === "mcq" &&
-                                  q.options?.map((opt, i) => (
-                                    <div key={i} className="ml-4 text-sm">
-                                      {opt}
-                                    </div>
-                                  ))}
-                                <p className="text-sm text-green-700 font-medium">
-                                  ✅ Correct Answer: {q.correctAnswer}
-                                </p>
-                                {q.explanation && (
-                                  <p className="text-sm italic text-gray-600">
-                                    Explanation: {q.explanation}
+                          {generatedQuestions.map((q, idx) => {
+                            const correctOptionText = resolveCorrectOptionText(q);
+
+                            return (
+                              <div
+                                key={q.id}
+                                className="flex items-start gap-4 border-b pb-4"
+                              >
+                                <input
+                                  type="checkbox"
+                                  className="mt-2"
+                                  checked={selectedQuestions.includes(q.id)}
+                                  onChange={(e) => {
+                                    setSelectedQuestions((prev) =>
+                                      e.target.checked
+                                        ? [...prev, q.id]
+                                        : prev.filter((id) => id !== q.id)
+                                    );
+                                  }}
+                                />
+                                <div className="space-y-2">
+                                  <p className="font-semibold text-gray-800">
+                                    Q{idx + 1}: {q.question}
                                   </p>
-                                )}
-                                <p className="text-sm text-gray-500">
-                                  Difficulty: {q.difficulty}
-                                </p>
+                                  {q.type === "mcq" &&
+                                    q.options?.map((opt, i) => (
+                                      <div key={i} className="ml-4 text-sm">
+                                        <span className="font-medium text-gray-700">{String.fromCharCode(65 + i)}.</span> {opt}
+                                      </div>
+                                    ))}
+                                  <p className="text-sm text-green-700 font-medium">
+                                    ✅ Correct Answer: {correctOptionText}
+                                  </p>
+                                  {q.explanation && (
+                                    <p className="text-sm italic text-gray-600">
+                                      Explanation: {q.explanation}
+                                    </p>
+                                  )}
+                                  <p className="text-sm text-gray-500">
+                                    Difficulty: {q.difficulty}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </CardContent>
                       </Card>
                     </>

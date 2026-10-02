@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { sleep } from "@/utils/sleep";
+import { generateWithGroq } from "@/lib/groq";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_BASE = 1000;
@@ -12,8 +12,67 @@ interface QuizQuestion {
   type: "mcq" | "cq";
   options?: string[];
   correctAnswer?: string;
+  answerLetter?: string;
   explanation: string;
   difficulty: "easy" | "medium" | "hard";
+}
+
+function normalizeGeneratedQuestion(q: any, questionType: string): QuizQuestion {
+  if (questionType === "mcq") {
+    const baseOptions = Array.isArray(q.options)
+      ? q.options.map((opt: unknown) => String(opt).trim()).filter(Boolean)
+      : [];
+
+    const options = [...baseOptions.slice(0, 4)];
+    while (options.length < 4) {
+      options.push(`Option ${options.length + 1}`);
+    }
+
+    const validLetters = ["A", "B", "C", "D"];
+    const rawAnswer = String(
+      q.correctAnswer ?? q.correct_answer ?? q.answer_letter ?? q.answerLetter ?? "A"
+    ).trim();
+    const answerValue = rawAnswer.toUpperCase();
+
+    let answerLetter = validLetters[0];
+    let correctAnswer = options[0] || "Option 1";
+
+    if (validLetters.includes(answerValue)) {
+      answerLetter = answerValue;
+      correctAnswer = options[validLetters.indexOf(answerLetter)] ?? options[0] ?? "Option 1";
+    } else {
+      const matchingIndex = options.findIndex(
+        (opt) => opt.toLowerCase() === rawAnswer.toLowerCase()
+      );
+      if (matchingIndex >= 0) {
+        answerLetter = validLetters[matchingIndex] ?? validLetters[0];
+        correctAnswer = options[matchingIndex] ?? options[0] ?? "Option 1";
+      }
+    }
+
+    return {
+      id: Math.random().toString(36).substring(2, 15),
+      question: String(q.question || "Untitled question").trim(),
+      type: "mcq",
+      options: options.slice(0, 4),
+      correctAnswer,
+      answerLetter,
+      explanation: String(q.explanation || "The correct answer is supported by the source material.").trim(),
+      difficulty: ["easy", "medium", "hard"].includes(String(q.difficulty || "medium").toLowerCase())
+        ? (String(q.difficulty || "medium").toLowerCase() as "easy" | "medium" | "hard")
+        : "medium",
+    };
+  }
+
+  return {
+    id: Math.random().toString(36).substring(2, 15),
+    question: String(q.question || "Untitled question").trim(),
+    type: "cq",
+    explanation: String(q.explanation || "Answer based on the provided content.").trim(),
+    difficulty: ["easy", "medium", "hard"].includes(String(q.difficulty || "medium").toLowerCase())
+      ? (String(q.difficulty || "medium").toLowerCase() as "easy" | "medium" | "hard")
+      : "medium",
+  };
 }
 
 export async function POST(req: Request) {
@@ -26,22 +85,6 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const chat = model.startChat({
-      history: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: "You are Eduverse Assistant, a helpful and friendly chatbot for creating educational quizzes. Generate questions that are challenging yet fair, with clear and concise answers."
-            }
-          ]
-        }
-      ]
-    });
 
     const prompt = `You are a helpful quiz generator. Generate ${numQuestions} ${questionType} questions about "${topic}". For MCQ questions, provide 4 options (A, B, C, D) with clear explanations for the correct answer. For CQ questions, provide detailed answers. Format the output as JSON with the following structure:
     {
@@ -65,9 +108,13 @@ export async function POST(req: Request) {
 
     while (retries < MAX_RETRIES) {
       try {
-        const result = await chat.sendMessage(prompt);
-        const response = await result.response;
-        const markdown = response.text();
+        const markdown = await generateWithGroq([
+          {
+            role: "system",
+            content: "You are Eduverse Assistant, a helpful and friendly chatbot for creating educational quizzes. Generate questions that are challenging yet fair, with clear and concise answers.",
+          },
+          { role: "user", content: prompt },
+        ]);
 
         const cleanedResponse = markdown.trim();
         const jsonStart = cleanedResponse.indexOf('{');
@@ -86,10 +133,9 @@ export async function POST(req: Request) {
             throw new Error('Invalid questions array');
           }
 
-          const questions: QuizQuestion[] = quizData.questions.map((q: Omit<QuizQuestion, "id">) => ({
-            ...q,
-            id: Math.random().toString(36).substring(2, 15)
-          }));
+          const questions: QuizQuestion[] = quizData.questions.map((q: any) =>
+            normalizeGeneratedQuestion(q, questionType)
+          );
 
           return NextResponse.json({ quiz: { questions } });
         } catch (parseError) {
@@ -127,7 +173,7 @@ export async function POST(req: Request) {
         ) {
           const status = (error as { status: number }).status;
           if (status === 503) {
-            console.warn(`Gemini API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
+            console.warn(`Groq API overload. Retrying (${retries + 1}/${MAX_RETRIES})...`);
             await sleep(delay);
             delay *= RETRY_DELAY_MULTIPLIER;
             retries++;

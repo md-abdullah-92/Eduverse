@@ -37,7 +37,7 @@ export default function EditTeacherProfilePage() {
     email: "",
   });
 
-  const [coverImage, setCoverImage] = useState("/default-cover.jpg");
+  const [coverImage, setCoverImage] = useState("/logo.png");
   const [profileImage, setProfileImage] = useState("/profile-icon.png");
 
   const [loading, setLoading] = useState(true);

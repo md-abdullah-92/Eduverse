@@ -73,14 +73,10 @@ exports.getQuizzes = async (req, res) => {
 exports.getQuiz = async (req, res) => {
   try {
     const quiz = await prisma.quiz.findUnique({
-      where: { id: parseInt(req.params.id) },
+      where: { id: req.params.id },
       include: {
         lesson: true,
-        questions: {
-          include: {
-            options: true
-          }
-        }
+        questions: true
       }
     });
 
@@ -115,7 +111,7 @@ exports.updateQuiz = async (req, res) => {
     
     // Check if quiz exists
     const existingQuiz = await prisma.quiz.findUnique({
-      where: { id: parseInt(req.params.id) }
+      where: { id: req.params.id }
     });
 
     if (!existingQuiz) {
@@ -126,7 +122,7 @@ exports.updateQuiz = async (req, res) => {
     }
 
     const updatedQuiz = await prisma.quiz.update({
-      where: { id: parseInt(req.params.id) },
+      where: { id: req.params.id },
       data: {
         title,
         description,
@@ -161,7 +157,7 @@ exports.deleteQuiz = async (req, res) => {
   try {
     // Check if quiz exists
     const existingQuiz = await prisma.quiz.findUnique({
-      where: { id: parseInt(req.params.id) }
+      where: { id: req.params.id }
     });
 
     if (!existingQuiz) {
@@ -173,12 +169,12 @@ exports.deleteQuiz = async (req, res) => {
 
     // Delete related questions and options first
     await prisma.question.deleteMany({
-      where: { quizId: parseInt(req.params.id) }
+      where: { quizId: req.params.id }
     });
 
     // Then delete the quiz
     await prisma.quiz.delete({
-      where: { id: parseInt(req.params.id) }
+      where: { id: req.params.id }
     });
 
     res.status(200).json({
@@ -213,32 +209,26 @@ exports.saveCompleteQuiz = async (req, res) => {
         },
       });
 
-      // Create questions with their options
-      const createdQuestions = await Promise.all(
-        questions.map(async (q) => {
-          const question = await prisma.question.create({
-            data: {
-              question: q.question, // Using 'question' as per Prisma model
-              type: q.type || 'MCQ',
-              explanation: q.explanation || '',
-              difficulty: q.difficulty || 'EASY',
-              quiz: {
-                connect: { lessonId: parseInt(lessonId) }
-              },
-              options: {
-                create: (q.options || []).map(opt => ({
-                  text: opt.text,
-                  isCorrect: opt.isCorrect || false
-                }))
-              }
+      // Create questions and store options as JSON (Question.options is a JSON column)
+      const createdQuestions = [];
+
+      for (const q of (questions || [])) {
+        const qc = await prisma.question.create({
+          data: {
+            question: q.question,
+            correctAnswer: q.correctAnswer || q.answer || null,
+            type: (q.type || 'MCQ').toUpperCase(),
+            explanation: q.explanation || '',
+            difficulty: (q.difficulty || 'EASY').toUpperCase(),
+            quiz: {
+              connect: { id: quiz.id }
             },
-            include: {
-              options: true
-            }
-          });
-          return question;
-        })
-      );
+            options: Array.isArray(q.options) ? q.options : []
+          }
+        });
+
+        createdQuestions.push(qc);
+      }
 
       return { quiz, questions: createdQuestions };
     });
@@ -284,27 +274,20 @@ exports.getQuizzesByLessonId = async (req, res) => {
 exports.createQuestion = async (req, res) => {
   try {
     const { quizId } = req.params;
-    const { text: questionText, type, explanation, difficulty, options } = req.body;
+    const { text: questionText, type, explanation, difficulty, options, correctAnswer } = req.body;
 
     const question = await prisma.question.create({
       data: {
-        question: questionText, // Using 'question' as per Prisma model
-        type: type || 'MCQ',
+        question: questionText,
+        correctAnswer: correctAnswer || null,
+        type: (type || 'MCQ').toUpperCase(),
         explanation: explanation || '',
-        difficulty: difficulty || 'EASY',
+        difficulty: (difficulty || 'EASY').toUpperCase(),
         quiz: {
-          connect: { lessonId: parseInt(quizId) }
+          connect: { id: quizId }
         },
-        options: {
-          create: (options || []).map(opt => ({
-            text: opt.text,
-            isCorrect: opt.isCorrect || false
-          }))
-        }
+        options: Array.isArray(options) ? options : []
       },
-      include: {
-        options: true
-      }
     });
 
     res.status(201).json({
@@ -331,7 +314,7 @@ exports.updateQuestion = async (req, res) => {
 
     // Check if question exists
     const existingQuestion = await prisma.question.findUnique({
-      where: { id: parseInt(questionId) }
+      where: { id: questionId }
     });
 
     if (!existingQuestion) {
@@ -354,11 +337,8 @@ exports.updateQuestion = async (req, res) => {
     }
 
     const updatedQuestion = await prisma.question.update({
-      where: { id: parseInt(questionId) },
+      where: { id: questionId },
       data: updateData,
-      include: {
-        options: true
-      }
     });
 
     res.status(200).json({
@@ -380,10 +360,9 @@ exports.deleteQuestion = async (req, res) => {
   const { questionId } = req.params;
 
   try {
-    await prisma.option.deleteMany({ where: { questionId: parseInt(questionId) } });
-    await prisma.question.delete({ where: { id: parseInt(questionId) } });
+    await prisma.question.delete({ where: { id: questionId } });
 
-    res.json({ message: 'Question and its options deleted successfully' });
+    res.json({ message: 'Question deleted successfully' });
   } catch (error) {
     res.status(500).json({ 
       error: 'Failed to delete question', 

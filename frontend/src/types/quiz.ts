@@ -3,7 +3,8 @@ export interface QuizQuestion {
   question: string;
   type: 'mcq' | 'cq';
   options?: string[]; // Only for MCQ
-  correctAnswer?: string; // Only for MCQ
+  correctAnswer?: string; // actual option text for display/storage
+  answerLetter?: string; // A/B/C/D for grading
   explanation: string;
   difficulty: 'easy' | 'medium' | 'hard';
 }

@@ -75,7 +75,7 @@ export default function QuizResultDetails() {
         {/* Questions */}
         <ScrollArea className="max-h-[70vh] pr-2">
           <div className="space-y-10">
-            {quizResult.answeredquestions?.map((q, idx) => (
+            {(quizResult.answeredquestions || []).map((q, idx) => (
               <Card
                 key={q.id}
                 className="bg-white border shadow rounded-2xl p-8 space-y-6"
@@ -91,11 +91,12 @@ export default function QuizResultDetails() {
                 </div>
 
                 {/* Options (if MCQ) */}
-                {q.options?.length > 0 && (
+                {(q.options ?? []).length > 0 && (
                   <div className="pl-14 space-y-3 text-lg text-gray-800">
-                    {q.options.map((opt, i) => {
+                    {(q.options ?? []).map((opt: string, i: number) => {
                       const isCorrect = opt.trim() === q.correctAnswer?.trim();
-                      const isUserAnswer = opt.trim() === q.userAnswer?.trim();
+                      const userSelected = q.useranswer ?? q.userAnswer ?? "";
+                      const isUserAnswer = opt.trim() === userSelected.trim();
                       return (
                         <div
                           key={i}
@@ -118,10 +119,10 @@ export default function QuizResultDetails() {
                 )}
 
                 {/* User Answer */}
-                {q.useranswer && (
+                {(q.useranswer ?? q.userAnswer) && (
                   <div className="pl-14 text-lg">
                     🧠 <strong>Your Answer:</strong>{" "}
-                    <span className="text-purple-700">{q.useranswer}</span>
+                    <span className="text-purple-700">{q.useranswer ?? q.userAnswer}</span>
                   </div>
                 )}
 

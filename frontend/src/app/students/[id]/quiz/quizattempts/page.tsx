@@ -12,21 +12,11 @@ import Sidebar from "@/components/Common-Components/Sidebar";
 import { playfair, lora } from "@/utils/font";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
 
-type quizResults = {
-  id: number;
-  lessonId: string;
-  courseId: string;
-  title: string;
-  studentId: string;
-  marks: number;
-  answeredQuestions: AnsweredQuestion[];
-  createdAt: string;
-};
-
 type AnsweredQuestion = {
   id: string;
   question: string;
   correctAnswer?: string;
+  useranswer?: string;
   userAnswer?: string;
   options?: string[];
   explanation?: string;
@@ -34,6 +24,18 @@ type AnsweredQuestion = {
   type: string;
   quizId?: string;
   quizResultId: string;
+};
+
+type quizResults = {
+  id: number;
+  lessonId: string;
+  courseId: string;
+  title: string;
+  studentId: string;
+  marks: number;
+  answeredquestions?: AnsweredQuestion[];
+  answeredQuestions?: AnsweredQuestion[];
+  createdAt: string;
 };
 
 export default function SavedQuizResults() {
@@ -48,7 +50,13 @@ export default function SavedQuizResults() {
 
   useEffect(() => {
     if (profile?.quizResults) {
-      setQuizResults(profile.quizResults);
+      setQuizResults(
+        profile.quizResults.map((result) => ({
+          ...result,
+          answeredQuestions: result.answeredQuestions ?? result.answeredquestions ?? [],
+          answeredquestions: result.answeredquestions ?? result.answeredQuestions ?? [],
+        }))
+      );
     }
   }, [profile?.quizResults]);
 

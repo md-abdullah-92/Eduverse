@@ -2,9 +2,9 @@
 fastapi
 uvicorn[standard]
 
-
 # Environment and configuration
 python-dotenv
+python-multipart
 
 # PDF processing
 PyPDF2
@@ -14,15 +14,21 @@ scikit-learn
 faiss-cpu
 numpy
 
-# LangChain dependencies
-langchain
-langchain-google-genai
-langchain-community
-langchain-core
+# Anthropic API
+anthropic
 
-# OpenAI API
+# Groq API
+groq
+
+# OpenAI Responses API
 openai
+
+# Google Gemini API
+google-genai
+
+# Text chunking and document models
+langchain-core
+langchain-text-splitters
 
 # Additional utilities
 requests
-tiktoken

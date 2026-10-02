@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateWithGroq } from "@/lib/groq";
 
 export async function POST(req: Request) {
   try {
@@ -10,27 +10,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ reply: "Invalid message input." }, { status: 400 });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const chat = model.startChat({
-      history: [
-        {
-          role: "user",
-          parts: [
-            { text: "You are Eduverse Assistant, a helpful and friendly chatbot for students and teachers." },
-          ],
-        },
-      ],
-    });
-
-    const result = await chat.sendMessage(userMessage);
-    const response = await result.response;
-    const text = response.text();
+    const text = await generateWithGroq([
+      {
+        role: "system",
+        content: "You are Eduverse Assistant, a helpful and friendly chatbot for students and teachers.",
+      },
+      { role: "user", content: userMessage },
+    ]);
 
     return NextResponse.json({ reply: text });
   } catch (error) {
-    console.error("Gemini API error:", error);
-    return NextResponse.json({ reply: "Server error contacting Gemini assistant." }, { status: 500 });
+    console.error("Groq API error:", error);
+    return NextResponse.json({ reply: "Server error contacting Groq assistant." }, { status: 500 });
   }
 }

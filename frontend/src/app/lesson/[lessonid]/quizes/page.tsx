@@ -18,6 +18,7 @@ type Question = {
   type: "mcq" | "cq";
   options?: string[];
   correctAnswer?: string;
+  answerLetter?: string;
   explanation?: string;
   difficulty: "easy" | "medium" | "hard";
 };
@@ -60,8 +61,33 @@ export default function StudentExamPage() {
       try {
         const res = await fetch(`http://localhost:5001/api/quizes/lesson/${lessonId}`);
         const data = await res.json();
+        const normalizedQuestions = (data[0]?.questions || []).map((q: any) => {
+          const optionList = Array.isArray(q.options) ? q.options : [];
+          const correctText = String(q.correctAnswer || q.correct_answer || "").trim();
+          const answerLetter =
+            String(q.answer_letter || "").trim().toUpperCase() ||
+            (correctText && /^[A-D]$/i.test(correctText)
+              ? correctText.toUpperCase()
+              : (() => {
+                  const index = optionList.findIndex(
+                    (option: string) =>
+                      String(option).trim().toLowerCase() === correctText.toLowerCase()
+                  );
+                  return index >= 0 ? String.fromCharCode(65 + index) : "";
+                })());
+
+          return {
+            ...q,
+            type: String(q.type || "mcq").toLowerCase(),
+            options: optionList,
+            correctAnswer: correctText || null,
+            answerLetter: answerLetter || null,
+            difficulty: String(q.difficulty || "medium").toLowerCase(),
+          };
+        });
+
          setTitle(data[0]?.title || "Quiz");
-        setQuestions(data[0]?.questions || []);
+        setQuestions(normalizedQuestions);
         setDuration(data[0]?.duration || 0);
         setDescription(data[0]?.description || '');
       } catch (err) {
@@ -131,7 +157,9 @@ export default function StudentExamPage() {
     const userAns = answersRef.current[q.id]?.trim();
 
     if (q.type.toLowerCase() === "mcq") {
-      if (userAns?.toUpperCase() === q.correctAnswer?.toUpperCase()) {
+      const userLetter = userAns?.toUpperCase() || "";
+      const correctLetter = (q.answerLetter || "").toUpperCase();
+      if (userLetter && userLetter === correctLetter) {
         total++;
       }
     } else {
@@ -299,7 +327,7 @@ export default function StudentExamPage() {
                     {q.type === "mcq" && q.options?.map((opt, i) => {
                       const optionLetter = String.fromCharCode(65 + i);
                       const isSelected = userAnswer === optionLetter;
-                      const isCorrect = q.correctAnswer === optionLetter;
+                      const isCorrect = (q.answerLetter || "").toUpperCase() === optionLetter;
 
                       return (
                         <div
@@ -346,7 +374,9 @@ export default function StudentExamPage() {
                       <div className="pl-12 space-y-2 text-sm text-gray-700">
                         {q.type === "mcq" && (
                           <div className="text-green-700 font-medium">
-                            ✅ Correct Answer: {q.correctAnswer}
+                            ✅ Correct Answer: {q.answerLetter || ""} - {q.options?.[
+                              ((q.answerLetter || "A").toUpperCase().charCodeAt(0) - 65 + 26) % 26
+                            ] || q.correctAnswer || "N/A"}
                           </div>
                         )}
                         {q.explanation && (

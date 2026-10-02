@@ -191,11 +191,15 @@ exports.updateUserProfile = async (req, res) => {
 
 // Get user profile by ID (role-specific)
 exports.getProfileById = async (req, res) => {
-  const userId = parseInt(req.params.id, 10);
+    const userId = parseInt(req.params.id, 10);
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    if (Number.isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid or missing user id parameter" });
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
       include: {
         studentProfile: {
           include: { user: true ,

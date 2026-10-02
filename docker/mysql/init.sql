@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS eduverse_users;
+CREATE DATABASE IF NOT EXISTS eduverse_courses;
+CREATE DATABASE IF NOT EXISTS eduverse_purchases;
