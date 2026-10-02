@@ -1,5 +1,4 @@
 const multer = require('multer');
-const minioService = require('../services/minioService.js');
 
 class VideoController {
   constructor() {
@@ -23,61 +22,10 @@ class VideoController {
   }
 
   async uploadVideo(req, res) {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'No file uploaded' 
-        });
-      }
-
-      const { courseId, lessonId } = req.body;
-      
-      if (!courseId || !lessonId) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Course ID and Lesson ID are required' 
-        });
-      }
-
-      // Generate unique filename
-      const timestamp = Date.now();
-      const originalName = req.file.originalname;
-      const uniqueFileName = `course-${courseId}/lesson-${lessonId}/${timestamp}-${originalName}`;
-
-      // Set metadata
-      const metadata = {
-        'Content-Type': req.file.mimetype,
-        'X-Amz-Meta-Original-Name': originalName,
-        'X-Amz-Meta-Upload-Date': new Date().toISOString(),
-        'X-Amz-Meta-Course-Id': courseId,
-        'X-Amz-Meta-Lesson-Id': lessonId
-      };
-
-      // Upload to MinIO
-      const result = await minioService.uploadVideo(
-        req.file.buffer,
-        uniqueFileName,
-        metadata
-      );
-
-      res.status(200).json({
-        success: true,
-        data: {
-          ...result,
-          originalName,
-          courseId,
-          lessonId
-        }
-      });
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      res.status(500).json({ 
-        success: false,
-        error: error.message || 'Upload failed' 
-      });
-    }
+    res.status(410).json({
+      success: false,
+      error: 'Video uploads now use Firebase Storage from the frontend.'
+    });
   }
 
   async getVideoUrl(req, res) {
@@ -87,12 +35,15 @@ class VideoController {
 
       if (secure === 'true') {
         // Generate presigned URL for secure access
-        const presignedUrl = await minioService.getPresignedUrl(filename);
-        res.json({ success: true, url: presignedUrl });
+        return res.status(410).json({
+          success: false,
+          error: 'Video URLs are resolved directly by Firebase Storage.'
+        });
       } else {
-        // Return direct URL
-        const url = minioService.getVideoUrl(filename);
-        res.json({ success: true, url });
+        return res.status(410).json({
+          success: false,
+          error: 'Video URLs are resolved directly by Firebase Storage.'
+        });
       }
 
     } catch (error) {
@@ -108,11 +59,9 @@ class VideoController {
     try {
       const { filename } = req.params;
       
-      await minioService.deleteVideo(filename);
-      
-      res.json({ 
-        success: true, 
-        message: 'Video deleted successfully' 
+      return res.status(410).json({
+        success: false,
+        error: 'Video deletion now uses Firebase Storage from the frontend.'
       });
 
     } catch (error) {

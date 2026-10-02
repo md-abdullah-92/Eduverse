@@ -38,7 +38,7 @@ const errorHandler = (error, req, res, next) => {
     });
   }
 
-  // Handle MinIO specific errors
+  // Handle storage provider errors
   if (error.code === 'NoSuchBucket') {
     return res.status(404).json({
       success: false,

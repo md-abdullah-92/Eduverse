@@ -61,8 +61,11 @@ interface LessonListProps {
             ref={provided.innerRef}
             className="space-y-3"
           >
-            {sortedLessons.map((lesson, index) => (
-              <Draggable key={lesson.id} draggableId={lesson.id.toString()} index={index}>
+            {sortedLessons.map((lesson, index) => {
+              const draggableId = String(lesson.id ?? `new-lesson-${index}`);
+
+              return (
+              <Draggable key={draggableId} draggableId={draggableId} index={index}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
@@ -129,7 +132,8 @@ interface LessonListProps {
                   </div>
                 )}
               </Draggable>
-            ))}
+              );
+            })}
             {provided.placeholder}
           </div>
         )}

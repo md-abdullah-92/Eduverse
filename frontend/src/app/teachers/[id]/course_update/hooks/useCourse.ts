@@ -379,7 +379,7 @@ export function useCourse({ courseId, instructorId }: UseCourseProps) {
             const nextOrderIndex = courseData.lessons.length;
             const newLesson: Lesson = {
               ...currentLesson,
-              id: parseInt(CourseUtils.generateId()),
+              id: -Date.now(),
               orderIndex: nextOrderIndex,
               videoUrl: finalVideoUrl,
             };

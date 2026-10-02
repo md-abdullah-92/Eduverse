@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: process.env.DOCKER_BUILD === "true",
   },
   images: {
+    // Firebase download URLs already provide their own CDN delivery and tokenized access.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",

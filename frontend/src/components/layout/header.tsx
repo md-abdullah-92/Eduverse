@@ -22,7 +22,7 @@ const Header = () => {
     console.log("userPhoto", photo);
 
     setIsLoggedIn(!!token);
-    setUserPhoto(photo || "/profile.png");
+    setUserPhoto(photo || "/logo.png");
     setRole(role || "STUDENT");
     setUserId(userId || "");
   }, [pathname]);

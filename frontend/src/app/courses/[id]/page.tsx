@@ -554,7 +554,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                     currentStudent={{
                       id: user?.id || 1,
                       name: localStorage.getItem("userName") || "Guest",
-                      photoUrl: localStorage.getItem("userPhoto")||'/profile.png',
+                      photoUrl: localStorage.getItem("userPhoto") || "/logo.png",
                    }}
 
                   />
@@ -565,7 +565,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                     teacher={{
                       id: user?.id || 1,
                       name: localStorage.getItem("userName") || "Guest",
-                      photoUrl: localStorage.getItem("userPhoto")||'/profile.png',
+                      photoUrl: localStorage.getItem("userPhoto") || "/logo.png",
                    }}
                   />
                   )}
