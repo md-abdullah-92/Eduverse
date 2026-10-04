@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+const USER_API_URL =
+  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+
 type AnsweredQuestion = {
   id: string;
   question: string;
@@ -53,7 +56,7 @@ export function useStudentProfile(userId: string | null) {
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+        const res = await fetch(`${USER_API_URL}/profile/${userId}`, {
           credentials: "include",
         });
 

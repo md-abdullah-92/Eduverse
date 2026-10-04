@@ -1,6 +1,9 @@
 import { TeacherStats } from "@/utils/types";
 import { useCallback, useEffect, useState } from "react";
 
+const USER_API_URL =
+  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+
 export type TeacherProfile = {
   user: {
     name: string;
@@ -65,7 +68,7 @@ export const useTeacherProfile = (userId: string | number | undefined) => {
       setLoading(true);
       setError(null);
 
-      const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+      const res = await fetch(`${USER_API_URL}/profile/${userId}`, {
         credentials: "include",
       });
 
