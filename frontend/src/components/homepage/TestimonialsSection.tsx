@@ -4,20 +4,20 @@ import Image from "next/image";
 
 const testimonials = [
   {
-    name: "Beth Luna",
-    image: "/beth.jpg",
+    name: "Rahat Hossain",
+    image: "/avatar-1.png",
     stars: 5,
     text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took",
   },
   {
-    name: "Belinda Gomez",
-    image: "/belinda.jpg",
+    name: "Imran Ahmed",
+    image: "/avatar-3.png",
     stars: 5,
     text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took",
   },
   {
-    name: "Howard Clayton",
-    image: "/howard.jpg",
+    name: "Farhan Kabir",
+    image: "/avatar-4.png",
     stars: 5,
     text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took",
   },
@@ -63,10 +63,10 @@ export default function TestimonialsSection() {
             <div className="flex items-center gap-3">
               <Image
                 src={testimonial.image}
-                alt={testimonial.name}
-                width={40}
-                height={40}
-                className="rounded-full"
+                alt={`${testimonial.name}, student`}
+                width={48}
+                height={48}
+                className="size-12 shrink-0 rounded-full object-cover"
               />
               <div>
                 <p className="font-semibold text-sm">{testimonial.name}</p>

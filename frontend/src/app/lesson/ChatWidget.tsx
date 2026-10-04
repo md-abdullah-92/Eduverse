@@ -39,7 +39,7 @@ export default function ChatWidget({
     return [];
   });
 
-  const [isOpen, setIsOpen] = useState(() => {
+  const [isOpen, setIsOpen] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return JSON.parse(localStorage.getItem("eduverse_chat_open") || "false");
     }
@@ -51,20 +51,6 @@ export default function ChatWidget({
 
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const widgetRef = useRef<HTMLDivElement>(null);
-
-  const [position, setPosition] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return { 
-        x: Math.max(20, window.innerWidth - 100), // 500px from right or 20px from left if screen is too small
-        y: Math.max(20, window.innerHeight - 100) // 100px from bottom or 20px from top
-      };
-    }
-    
-    return { x: 20, y: 20 }; // Fallback position
-  });
-  const [dragging, setDragging] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   // Save messages to localStorage on update
   useEffect(() => {
@@ -85,33 +71,6 @@ export default function ChatWidget({
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
-
-  // Mouse dragging behavior for widget repositioning
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (dragging) {
-        setPosition({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-      }
-    };
-
-    const handleMouseUp = () => setDragging(false);
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [dragging, offset]);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    const rect = widgetRef.current?.getBoundingClientRect();
-    if (rect) {
-      setOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-      setDragging(true);
-    }
-  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -202,16 +161,7 @@ export default function ChatWidget({
 
   return (
     <div
-      ref={widgetRef}
-      onMouseDown={handleMouseDown}
-      style={{
-        position: "fixed",
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        zIndex: 150,
-        cursor: dragging ? "grabbing" : "grab",
-        userSelect: "none",
-      }}
+      className="fixed bottom-4 right-4 z-[150] sm:bottom-6 sm:right-6"
     >
       <AnimatePresence>
         {isOpen && (
@@ -220,19 +170,19 @@ export default function ChatWidget({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ type: "spring", stiffness: 240, damping: 20 }}
-            className="absolute bottom-full right-0 mb-4 w-[500px] h-[600px] flex flex-col rounded-2xl border border-gray-300 bg-white shadow-lg"
+            className="fixed bottom-[5.25rem] left-3 right-3 z-[150] flex h-[min(70dvh,38rem)] min-h-72 w-auto max-w-[31.25rem] flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-lg sm:bottom-24 sm:left-auto sm:right-6 sm:w-[min(31.25rem,calc(100vw-3rem))]"
           >
             {/* Header */}
-            <div className="bg-gray-100 px-4 py-2 border-b flex justify-between items-center">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 border-b bg-gray-100 px-3 py-2 sm:px-4">
+              <div className="flex min-w-0 items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 text-white flex items-center justify-center">
                   <MessageSquare size={16} />
                 </div>
-                <span className="font-medium text-gray-800 text-sm">
+                <span className="truncate text-sm font-medium text-gray-800">
                   {title}
                 </span>
               </div>
-              <div className="flex gap-2 text-gray-600 text-xs">
+              <div className="flex shrink-0 items-center gap-2 text-xs text-gray-600">
                 <button onClick={exportToPDF} title="Download PDF">
                   <Download size={16} />
                 </button>
@@ -251,7 +201,7 @@ export default function ChatWidget({
             {/* Chat Content */}
             <div
               ref={chatRef}
-              className="flex-1 overflow-y-auto px-4 py-3 space-y-4 text-sm bg-white"
+              className="min-h-0 flex-1 space-y-4 overflow-x-hidden overflow-y-auto bg-white px-3 py-3 text-sm sm:px-4"
             >
               {messages.map((msg, idx) => (
                 <div
@@ -261,7 +211,7 @@ export default function ChatWidget({
                   }`}
                 >
                   <div
-                    className={`relative max-w-[80%] px-3 py-2 rounded-md shadow-sm whitespace-pre-wrap ${
+                    className={`relative min-w-0 max-w-[88%] overflow-hidden break-words whitespace-pre-wrap rounded-md px-3 py-2 shadow-sm sm:max-w-[80%] ${
                       msg.from === "user"
                         ? "bg-blue-200 text-blue-900"
                         : "bg-gray-200 text-gray-800 rounded-bl-none"
@@ -345,7 +295,7 @@ export default function ChatWidget({
             </div>
 
             {/* Input Bar */}
-            <div className="border-t border-gray-200 p-3 bg-white flex gap-2">
+            <div className="flex gap-2 border-t border-gray-200 bg-white p-2 sm:p-3">
               <input
                 ref={inputRef}
                 value={input}
@@ -353,7 +303,7 @@ export default function ChatWidget({
                 onKeyDown={handleKeyDown}
                 type="text"
                 placeholder="Type your message..."
-                className="flex-1 p-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="min-w-0 flex-1 rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <Send
                 className="text-purple-600 hover:text-purple-800 cursor-pointer"
@@ -369,8 +319,8 @@ export default function ChatWidget({
       <motion.button
         whileTap={{ scale: 0.95 }}
         whileHover={{ scale: 1.04 }}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="absolute bottom-0 right-0 bg-gradient-to-br from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 text-white p-3 rounded-full shadow-xl"
+        onClick={() => setIsOpen(!isOpen)}
+        className="inline-flex size-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-purple-700 p-3 text-white shadow-xl hover:from-purple-600 hover:to-purple-800"
         aria-label="Toggle Chat"
       >
         <MessageCircle size={20} />

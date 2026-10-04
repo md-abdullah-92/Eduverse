@@ -92,26 +92,26 @@ export default function AllCoursesByInstructorPage({
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-b from-white to-teal-50 pb-20 ${poppins.className}`}
+      className={`min-h-screen min-w-0 overflow-x-hidden bg-gradient-to-b from-white to-teal-50 pb-20 ${poppins.className}`}
     >
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-purple-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-14">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="text-center md:text-left">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-14">
+          <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
+            <div className="min-w-0 text-center md:text-left">
               <h1
-                className={`text-4xl md:text-5xl font-bold mb-4 ${raleway.className}`}
+                className={`mb-4 text-3xl font-bold sm:text-4xl md:text-5xl ${raleway.className}`}
               >
                 Instructor Dashboard
               </h1>
-              <p className="text-teal-100 text-lg max-w-xl">
+              <p className="mx-auto max-w-xl text-base text-teal-100 sm:text-lg md:mx-0">
                 Manage your courses, track student engagement, and monitor your
                 teaching progress.
               </p>
             </div>
 
             {/* Quick Stats Card */}
-            <div className="mt-8 md:mt-0 bg-white/10 backdrop-blur-sm rounded-2xl p-6 min-w-[280px]">
+            <div className="w-full max-w-sm rounded-2xl bg-white/10 p-4 backdrop-blur-sm sm:p-6 md:mt-0 md:w-auto md:min-w-[17.5rem]">
               <div className="flex items-center justify-center mb-4">
                 <BookOpen className="h-12 w-12 text-white" />
               </div>
@@ -135,9 +135,9 @@ export default function AllCoursesByInstructorPage({
       </div>
 
       {/* Progress Overview Card */}
-      <div className="max-w-7xl mx-auto px-4 -mt-8 relative z-10">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
-          <div className="grid md:grid-cols-3 gap-6">
+      <div className="relative z-10 mx-auto -mt-5 w-full max-w-7xl px-3 sm:-mt-8 sm:px-6">
+        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-xl sm:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 sm:gap-6">
             <div className="flex items-center space-x-4">
               <div className="bg-teal-100 rounded-full p-3">
                 <GraduationCap className="w-6 h-6 text-teal-600" />
@@ -178,8 +178,8 @@ export default function AllCoursesByInstructorPage({
       </div>
 
       {/* Search & Filter */}
-      <div className="max-w-7xl mx-auto px-4 mt-12">
-        <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-4">
+      <div className="mx-auto mt-8 w-full max-w-7xl px-3 sm:mt-12 sm:px-6">
+        <div className="flex flex-col gap-3 rounded-xl bg-white p-4 shadow-lg sm:gap-4 sm:p-6 md:flex-row">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -192,11 +192,11 @@ export default function AllCoursesByInstructorPage({
           </div>
 
           {topics.length > 1 && (
-            <div className="relative">
+            <div className="relative w-full md:w-auto md:min-w-48">
               <select
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
-                className="appearance-none bg-gray-50 border border-gray-200 rounded-lg py-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 py-3 pl-10 pr-10 focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 {topics.map((topic, index) => (
                   <option key={`topic-${index}`} value={topic}>
@@ -212,10 +212,10 @@ export default function AllCoursesByInstructorPage({
       </div>
 
       {/* Course Grid */}
-      <div className="max-w-7xl mx-auto px-4 mt-12">
-        <div className="flex justify-between items-center mb-8">
+      <div className="mx-auto mt-8 w-full max-w-7xl px-3 sm:mt-12 sm:px-6">
+        <div className="mb-6 flex flex-col items-start justify-between gap-2 sm:mb-8 sm:flex-row sm:items-center">
           <h2
-            className={`text-2xl font-bold text-gray-800 ${raleway.className}`}
+            className={`text-xl font-bold text-gray-800 sm:text-2xl ${raleway.className}`}
           >
             {filteredCourses.length}{" "}
             {filteredCourses.length === 1 ? "Course" : "Courses"}
@@ -245,7 +245,7 @@ export default function AllCoursesByInstructorPage({
             </Link>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-8">
             {filteredCourses.map((course) => (
               <CourseCard key={course.id} course={course} isEnrolled={false} />
             ))}

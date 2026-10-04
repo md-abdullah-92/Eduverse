@@ -7,6 +7,7 @@ import { raleway, jaro } from "@/utils/font";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import Footer from "@/components/layout/footer";
+import Image from "next/image";
 
 import { useContext } from "react";
 import { ToastContext } from "@/components/ui_elements/toast"; // adjust path as needed
@@ -117,33 +118,35 @@ export default function OtpVerification() {
 
   return (
     <div>
-      <div className="min-h-screen flex items-center justify-center bg-[#0F4C5C] px-4">
-        <div className="flex w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl bg-[#0F4C5C] text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#0F4C5C] px-3 py-6 sm:px-4 sm:py-10">
+        <div className="flex w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-[#0F4C5C] text-white shadow-2xl md:flex-row">
           {/* Branding */}
-          <div className="w-1/2 p-10 flex flex-col justify-center items-center border-r border-white/20">
-            <img
+          <div className="flex w-full flex-col items-center justify-center border-b border-white/20 px-5 py-6 sm:px-10 sm:py-8 md:w-1/2 md:border-b-0 md:border-r md:p-10">
+            <Image
               src="/images/logo_w.png"
               alt="EduVerse Logo"
-              className="w-44 h-44 object-contain mb-6"
+              width={176}
+              height={176}
+              className="mb-3 h-24 w-24 object-contain sm:mb-6 sm:h-36 sm:w-36 md:h-44 md:w-44"
             />
             <h1
-              className={`text-6xl font-extrabold tracking-wider ${jaro.className}`}
+              className={`text-4xl font-extrabold sm:text-5xl md:text-6xl ${jaro.className}`}
             >
               EduVerse
             </h1>
           </div>
 
           {/* OTP Section */}
-          <div className="w-1/2 p-10">
-            <h2 className={`text-3xl font-semibold mb-4 ${raleway.className}`}>
+          <div className="w-full min-w-0 px-5 py-7 sm:px-10 sm:py-9 md:w-1/2 md:p-10">
+            <h2 className={`mb-4 text-2xl font-semibold sm:text-3xl ${raleway.className}`}>
               OTP Verification
             </h2>
-            <p className="text-gray-300 mb-6 text-sm">
+            <p className="mb-6 break-words text-sm text-gray-300">
               Enter the 6-digit code sent to{" "}
               <span className="text-orange-300">{email || "your email"}</span>.
             </p>
 
-            <div className="flex gap-3 justify-center mb-6">
+            <div className="mb-6 flex justify-center gap-2 sm:gap-3">
               {otp.map((digit, index) => (
                 <input
                   key={index}
@@ -156,7 +159,7 @@ export default function OtpVerification() {
                   }}
                   onChange={(e) => handleChange(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  className="w-12 h-12 text-center text-2xl font-semibold bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="h-10 w-9 rounded bg-white/10 text-center text-lg font-semibold text-white focus:outline-none focus:ring-2 focus:ring-orange-400 sm:h-12 sm:w-12 sm:text-2xl"
                 />
               ))}
             </div>
