@@ -42,6 +42,9 @@ jobs:
           cd "$HOME/Eduverse-source"
           git pull --ff-only
 
+          # Remove containers from the former manual Compose project without deleting volumes.
+          docker compose -p eduverse-source down --remove-orphans || true
+
           if [ -f .env ]; then
             docker compose --env-file .env --env-file frontend/.env.local -p eduverse up -d --build
           else
