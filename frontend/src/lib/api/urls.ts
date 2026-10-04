@@ -1,29 +1,22 @@
-const browserOrigin = () => "https://eduversebd.tech";
-
-const apiBase = (path: string) => `${browserOrigin()}${path}`;
-
-const browserApiUrl = (port: number) => {
-  return `${browserOrigin()}:${port}/api`;
+const browserOrigin = () => {
+  if (typeof window === "undefined") return "";
+  return `${window.location.protocol}//${window.location.hostname}`;
 };
 
 export const API_URLS = {
   get user() {
-<<<<<<< HEAD
-    return process.env.NEXT_PUBLIC_USER_API_URL || apiBase("/api");
+    return process.env.NEXT_PUBLIC_USER_API_URL || `${browserOrigin()}:5000/api`;
   },
   get course() {
-    return process.env.NEXT_PUBLIC_API_BASE_URL || apiBase("/api");
-=======
-    return process.env.NEXT_PUBLIC_USER_API_URL || browserApiUrl(5000);
-  },
-  get course() {
-    return process.env.NEXT_PUBLIC_API_BASE_URL || browserApiUrl(5001);
->>>>>>> 3276608 (update the url)
+    return process.env.NEXT_PUBLIC_API_BASE_URL || `${browserOrigin()}:5001/api`;
   },
   get purchase() {
-    return process.env.NEXT_PUBLIC_PURCHASE_API_URL || apiBase("/api/purchase");
+    return (
+      process.env.NEXT_PUBLIC_PURCHASE_API_URL ||
+      `${browserOrigin()}:5002/api/purchase`
+    );
   },
   get ai() {
-    return process.env.NEXT_PUBLIC_AI_API_URL || "https://eduversebd.tech";
+    return process.env.NEXT_PUBLIC_AI_API_URL || `${browserOrigin()}:8000`;
   },
 };
