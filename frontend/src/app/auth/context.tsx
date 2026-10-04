@@ -19,6 +19,8 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const USER_API_URL =
+  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -33,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setToken(storedToken);
 
-        const response = await fetch("http://localhost:5000/api/user/me", {
+        const response = await fetch(`${USER_API_URL}/user/me`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,
           },

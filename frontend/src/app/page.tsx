@@ -11,6 +11,9 @@ import StatsSection from "@/components/homepage/StatsSection";
 import TestimonialsSection from "@/components/homepage/TestimonialsSection";
 import Footer from "@/components/layout/footer";
 
+const USER_API_URL =
+  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+
 export default function Home() {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -21,7 +24,7 @@ export default function Home() {
       if (!token) return;
 
       try {
-        const res = await fetch("http://localhost:5000/api/user/me", {
+        const res = await fetch(`${USER_API_URL}/user/me`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
