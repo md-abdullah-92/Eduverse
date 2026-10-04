@@ -1,0 +1,52 @@
+name: Deploy to Azure VM
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-vm-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare SSH authentication
+        env:
+          AZURE_VM_SSH_KEY: ${{ secrets.AZURE_VM_SSH_KEY }}
+          AZURE_VM_KNOWN_HOSTS: ${{ secrets.AZURE_VM_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d "$RUNNER_TEMP/azure-ssh"
+          printf '%s\n' "$AZURE_VM_SSH_KEY" > "$RUNNER_TEMP/azure-ssh/id_ed25519"
+          printf '%s\n' "$AZURE_VM_KNOWN_HOSTS" > "$RUNNER_TEMP/azure-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/azure-ssh/id_ed25519" "$RUNNER_TEMP/azure-ssh/known_hosts"
+
+      - name: Pull and deploy on the VM
+        env:
+          AZURE_VM_HOST: ${{ secrets.AZURE_VM_HOST }}
+          AZURE_VM_USER: ${{ secrets.AZURE_VM_USER }}
+        run: |
+          ssh \
+            -i "$RUNNER_TEMP/azure-ssh/id_ed25519" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$RUNNER_TEMP/azure-ssh/known_hosts" \
+            "$AZURE_VM_USER@$AZURE_VM_HOST" 'bash -se' <<'REMOTE'
+          set -eu
+          cd "$HOME/Eduverse-source"
+          git pull --ff-only
+
+          if [ -f .env ]; then
+            docker compose --env-file .env --env-file frontend/.env.local -p eduverse up -d --build
+          else
+            docker compose --env-file frontend/.env.local -p eduverse up -d --build
+          fi
+
+          docker compose -p eduverse ps
+          REMOTE

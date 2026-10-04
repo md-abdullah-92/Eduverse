@@ -190,6 +190,17 @@ docker compose down
 
 Add `-v` to the `down` command only when you intentionally want to delete the MySQL volume and all local database data.
 
+### GitHub Actions Deployment to Azure VM
+
+The workflow at `.github/workflows/deploy-azure-vm.yml` deploys on pushes to `main` and can also be started manually from the Actions tab. Add these repository Actions secrets before enabling it:
+
+- `AZURE_VM_HOST`: the VM public IP or DNS name.
+- `AZURE_VM_USER`: the SSH deployment account, such as `azureuser`.
+- `AZURE_VM_SSH_KEY`: the private key matching a public key in that account's `~/.ssh/authorized_keys`.
+- `AZURE_VM_KNOWN_HOSTS`: the verified SSH host-key line for the VM.
+
+The VM must have Git, Docker Compose, and access to the repository. Keep `~/Eduverse-source/.env`, `~/Eduverse-source/frontend/.env.local`, and each service's `.env` files on the VM; the workflow does not transfer or print them. The SSH deployment account needs Docker permissions. Docker access grants broad host privileges, so use a dedicated account and protect the private key and GitHub Actions secrets. The deployment reuses the `eduverse` Compose project and does not remove volumes.
+
 ### 1. Clone the Repository
 
 Clone the EduVerse repository from GitHub:
