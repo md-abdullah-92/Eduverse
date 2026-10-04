@@ -201,14 +201,12 @@ export default function GenerateSlidePage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
-      </aside>
-      <main className="ml-20 p-5 flex-1">
-        <div className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 flex flex-col ${merriweather.className}`}>
-          <header className="mb-6 pt-8">
-            <h1 className="text-4xl font-bold text-teal-800 flex items-center gap-3">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
+      <Sidebar role="TEACHER" userId={userId} />
+      <main className="min-w-0 flex-1 p-4 pt-20 sm:p-6 md:pt-6">
+        <div className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-3 pb-8 sm:px-6 sm:pb-10 flex flex-col ${merriweather.className}`}>
+          <header className="mb-6 pt-4 sm:pt-8">
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-teal-800 sm:text-3xl lg:text-4xl">
               <FaFileAlt />
               Generate Study Notes
             </h1>
@@ -242,11 +240,11 @@ export default function GenerateSlidePage() {
               )}
 
               {selectedFile && totalPages && (
-                <div className="mt-4 p-4 bg-teal-50 rounded-lg border border-teal-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
+                <div className="mt-4 min-w-0 rounded-lg border border-teal-200 bg-teal-50 p-3 sm:p-4">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
                       <FileText className="text-teal-600" size={20} />
-                      <span className="font-medium text-teal-800">{selectedFile.name}</span>
+                      <span className="break-all font-medium text-teal-800">{selectedFile.name}</span>
                     </div>
                     <Badge variant="secondary" className="bg-teal-100 text-teal-700">
                       {totalPages} pages
@@ -334,7 +332,7 @@ export default function GenerateSlidePage() {
             <>
               {/* Title and Controls */}
               <Card className="p-4 mb-6 bg-white">
-                <div className="flex flex-col lg:flex-row items-start lg:items-end gap-4">
+                <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:items-end">
                   <div className="flex-1 space-y-2">
                     <Label htmlFor="title" className="flex items-center gap-2 text-teal-700 font-semibold">
                       <Type size={16} />
@@ -349,11 +347,11 @@ export default function GenerateSlidePage() {
                     />
                   </div>
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 lg:w-auto">
                     <Button
                       onClick={() => setShowPreview(!showPreview)}
                       variant="outline"
-                      className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                      className="min-w-0 flex-1 border-teal-300 text-teal-700 hover:bg-teal-50 sm:flex-none"
                     >
                       {showPreview ? <EyeOff className="mr-2 w-4 h-4" /> : <Eye className="mr-2 w-4 h-4" />}
                       {showPreview ? "Hide Preview" : "Show Preview"}
@@ -363,7 +361,7 @@ export default function GenerateSlidePage() {
                     
                     <Button
                       onClick={() => saveStudyNote(title, markdown)}
-                      className="bg-teal-600 hover:bg-teal-700 text-white"
+                      className="min-w-0 flex-1 bg-teal-600 text-white hover:bg-teal-700 sm:flex-none"
                       disabled={!title.trim() || !markdown.trim()}
                     >
                       Save Study Note
@@ -373,16 +371,16 @@ export default function GenerateSlidePage() {
               </Card>
 
               {/* Editor and Preview */}
-              <div className={`flex-1 grid ${showPreview ? "lg:grid-cols-2" : "grid-cols-1"} gap-6`}>
+              <div className={`grid min-w-0 flex-1 ${showPreview ? "xl:grid-cols-2" : "grid-cols-1"} gap-4 sm:gap-6`}>
                 {/* MARKDOWN EDITOR */}
-                <Card className="h-[calc(100vh-300px)] flex flex-col bg-white rounded-xl border border-teal-200 shadow-md overflow-hidden">
+                <Card className="flex h-[min(65vh,38rem)] min-h-80 min-w-0 flex-col overflow-hidden rounded-xl border border-teal-200 bg-white shadow-md sm:h-[min(70vh,42rem)]">
                   <div className="p-4 border-b border-teal-100">
                     <h2 className="text-lg font-semibold text-teal-700 flex items-center gap-2">
                       <FiFileText />
                       Markdown Editor
                     </h2>
                   </div>
-                  <ScrollArea className="flex-1 overflow-auto px-4 py-2">
+                  <ScrollArea className="min-h-0 flex-1 overflow-auto px-3 py-2 sm:px-4">
                     <SimpleMDE
                       value={markdown}
                       onChange={setMarkdown}
@@ -403,14 +401,14 @@ export default function GenerateSlidePage() {
 
                 {/* MARKDOWN PREVIEW */}
                 {showPreview && (
-                  <Card id="slide-preview" className="h-[calc(100vh-300px)] flex flex-col bg-white rounded-xl border border-teal-200 shadow-md overflow-hidden">
+                  <Card id="slide-preview" className="flex h-[min(65vh,38rem)] min-h-80 min-w-0 flex-col overflow-hidden rounded-xl border border-teal-200 bg-white shadow-md sm:h-[min(70vh,42rem)]">
                     <div className="p-4 border-b border-teal-100">
                       <h2 className="text-lg font-semibold text-teal-700 flex items-center gap-2">
                         <Eye />
                         Study Note Preview
                       </h2>
                     </div>
-                    <ScrollArea className="flex-1 overflow-auto px-6 py-4">
+                    <ScrollArea className="min-h-0 flex-1 overflow-auto px-3 py-4 sm:px-6">
                       {title && <h1 className="text-3xl font-bold text-teal-800 mb-6">{title}</h1>}
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}

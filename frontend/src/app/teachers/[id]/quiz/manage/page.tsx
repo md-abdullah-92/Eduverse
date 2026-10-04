@@ -241,18 +241,16 @@ export default function QuizManagementPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
+    <div className="flex min-h-screen min-w-0 bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
       {userId ? (
         <>
-          <aside className="w-64 bg-white shadow-md p-4">
-            <Sidebar role="TEACHER" userId={userId} />
-          </aside>
-          <main className="ml-20 p-5 flex-1">
+          <Sidebar role="TEACHER" userId={userId} />
+          <main className="min-w-0 flex-1 p-4 pt-20 sm:p-6 md:pt-6">
             <div className={`${raleway.className} text-gray-800`}>
               <div
-                className={`${robotoSlab.className} flex flex-col lg:flex-row gap-6 max-w-screen-xl mx-auto w-full`}
+                className={`${robotoSlab.className} mx-auto flex w-full max-w-screen-xl min-w-0 flex-col gap-4 sm:gap-6 lg:flex-row`}
               >
-                <div className="w-full lg:w-[55%] flex flex-col space-y-6">
+                <div className="flex min-w-0 w-full flex-col space-y-6 lg:w-[55%]">
                   {generatedQuestions.length === 0 && (
                     <>
                       <div>
@@ -398,7 +396,7 @@ export default function QuizManagementPage() {
                                     </span>
                                   )}
                                 </Label>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                   <div className="space-y-2">
                                     <Label htmlFor="startPage" className="text-sm text-gray-600">
                                       Start Page
@@ -511,7 +509,7 @@ export default function QuizManagementPage() {
                   )}
                 </div>
 
-                <div className="w-full lg:w-[45%] space-y-6 max-h-[85vh] overflow-y-auto pr-2">
+                <div className="max-h-none min-w-0 w-full space-y-6 overflow-y-visible pr-0 lg:max-h-[85vh] lg:w-[45%] lg:overflow-y-auto lg:pr-2">
                   {generatedQuestions.length > 0 && (
                     <>
                       <div>
@@ -531,7 +529,7 @@ export default function QuizManagementPage() {
                             return (
                               <div
                                 key={q.id}
-                                className="flex items-start gap-4 border-b pb-4"
+                                className="flex min-w-0 items-start gap-3 border-b pb-4 sm:gap-4"
                               >
                                 <input
                                   type="checkbox"
@@ -545,7 +543,7 @@ export default function QuizManagementPage() {
                                     );
                                   }}
                                 />
-                                <div className="space-y-2">
+                                <div className="min-w-0 space-y-2 break-words">
                                   <p className="font-semibold text-gray-800">
                                     Q{idx + 1}: {q.question}
                                   </p>

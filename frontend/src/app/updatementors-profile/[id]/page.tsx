@@ -176,20 +176,18 @@ export default function EditTeacherProfilePage() {
    const id = userId as string;
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={id} />
-      </aside>
+    <div className="flex min-h-screen min-w-0 bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
+      <Sidebar role="TEACHER" userId={id} />
 
-      <main className="ml-20 p-5 flex-1">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+      <main className="min-w-0 flex-1 p-4 pt-20 sm:p-6 md:pt-6">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl sm:rounded-3xl">
           {/* Cover Section */}
-          <div className="relative h-80 group overflow-hidden">
+          <div className="group relative h-40 overflow-hidden sm:h-56 lg:h-80">
             <Image src={coverImage} alt="Cover" fill className="object-cover" />
             <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
               <button
                 onClick={() => coverInputRef.current?.click()}
-                className="bg-white/90 backdrop-blur-sm text-gray-800 px-6 py-3 rounded-full shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 flex items-center gap-3 font-medium"
+                className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white hover:shadow-xl sm:gap-3 sm:px-6 sm:py-3 sm:text-base"
               >
                 <Camera size={20} />
                 Change Cover Photo
@@ -205,8 +203,8 @@ export default function EditTeacherProfilePage() {
           </div>
 
           {/* Profile Image */}
-          <div className="relative px-8">
-            <div className="relative w-44 h-44 -mt-20 border-8 border-white rounded-full shadow-xl bg-white group overflow-hidden">
+          <div className="relative px-4 sm:px-8">
+            <div className="group relative -mt-12 h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-white shadow-xl sm:-mt-16 sm:h-36 sm:w-36 sm:border-8 lg:-mt-20 lg:h-44 lg:w-44">
               <Image
                 src={profileImage}
                 alt="Profile"
@@ -232,10 +230,10 @@ export default function EditTeacherProfilePage() {
           </div>
 
           {/* Form Section */}
-          <div className="px-8 pt-8 pb-12 space-y-8">
+          <div className="space-y-8 px-4 pb-8 pt-6 sm:px-8 sm:pb-12 sm:pt-8">
             {/* Basic Information */}
             <div className="space-y-6">
-              <div className="flex items-center space-x-3 mb-6">
+              <div className="mb-6 flex items-center space-x-3">
                 <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-indigo-600" />
                 </div>
@@ -246,7 +244,7 @@ export default function EditTeacherProfilePage() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                 <div className="space-y-2">
                   <label
                     className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
@@ -289,7 +287,7 @@ export default function EditTeacherProfilePage() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                 <div className="space-y-2">
                   <label
                     className={`${raleway.className} flex items-center space-x-2 text-sm font-medium text-gray-700`}
@@ -388,10 +386,10 @@ export default function EditTeacherProfilePage() {
             </div>
 
             {/* Save Button */}
-            <div className="flex justify-end pt-8 border-t border-gray-100">
+            <div className="flex justify-stretch border-t border-gray-100 pt-6 sm:justify-end sm:pt-8">
               <button
                 onClick={handleSubmit}
-                className="bg-teal-700 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-indigo-700 hover:to-teal-700 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center space-x-2"
+                className="flex w-full items-center justify-center space-x-2 rounded-xl bg-teal-700 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl sm:w-auto sm:px-8 sm:py-4"
               >
                 <span className={reemKufi.className}>Save Changes</span>
               </button>

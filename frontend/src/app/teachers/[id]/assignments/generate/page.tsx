@@ -210,16 +210,14 @@ export default function GenerateShortQuestionPage() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
-      </aside>
+      <Sidebar role="TEACHER" userId={userId} />
 
-      <main className="ml-20 p-5 flex-1">
+      <main className="min-w-0 flex-1 p-4 pt-20 sm:p-6 md:pt-6">
         <div
-          className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 ${merriweather.className}`}
+          className={`min-h-screen min-w-0 bg-gradient-to-br from-teal-50 to-white px-3 pb-8 sm:px-6 sm:pb-10 ${merriweather.className}`}
         >
-          <header className="mb-6 pt-8">
-            <h1 className="text-4xl font-bold text-teal-700 flex items-center gap-3">
+          <header className="mb-6 pt-4 sm:pt-8">
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-teal-700 sm:text-3xl lg:text-4xl">
               <FaTasks />
               Generate Short Questions
             </h1>
@@ -358,8 +356,8 @@ export default function GenerateShortQuestionPage() {
 
           {showEditor && (
             <>
-              <div className="flex flex-col md:flex-row items-start md:items-end gap-4 mt-10 mb-6">
-                <div className="w-full md:w-auto flex items-center gap-2 bg-white border border-yellow-300 rounded-lg shadow-sm px-4 py-2">
+              <div className="mt-10 mb-6 flex flex-col items-stretch gap-4 md:flex-row md:items-end">
+                <div className="flex w-full min-w-0 items-center gap-2 rounded-lg border border-yellow-300 bg-white px-4 py-2 shadow-sm md:w-auto md:flex-1">
                   <Type className="text-yellow-600 w-5 h-5" />
                   <Input
                     className="border-none focus-visible:ring-0 text-lg placeholder:text-gray-400"
@@ -369,11 +367,11 @@ export default function GenerateShortQuestionPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:gap-3 md:w-auto">
                   <Button
                     onClick={() => setShowPreview(!showPreview)}
                     variant="outline"
-                    className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                    className="min-w-0 flex-1 border-yellow-300 text-yellow-700 hover:bg-yellow-50 sm:flex-none"
                   >
                     {showPreview ? (
                       <EyeOff className="mr-2 w-4 h-4" />
@@ -403,7 +401,7 @@ export default function GenerateShortQuestionPage() {
                         generateMarkdownFromQuestions()
                       )
                     }
-                    className="bg-teal-800 hover:bg-teal-500 text-white"
+                    className="min-w-0 flex-1 bg-teal-800 text-white hover:bg-teal-500 sm:flex-none"
                   >
                     Save
                   </Button>
@@ -411,18 +409,18 @@ export default function GenerateShortQuestionPage() {
               </div>
 
               <div
-                className={`flex-1 grid ${
-                  showPreview ? "md:grid-cols-2" : "grid-cols-1"
-                } gap-6`}
+                className={`grid min-w-0 flex-1 ${
+                  showPreview ? "xl:grid-cols-2" : "grid-cols-1"
+                } gap-4 sm:gap-6`}
               >
                 {/* Markdown Editor */}
-                <Card className="h-[calc(100vh-300px)] bg-white border border-yellow-200">
+                <Card className="h-[min(65vh,38rem)] min-h-80 min-w-0 overflow-hidden border-yellow-200 bg-white sm:h-[min(70vh,42rem)]">
                   <div className="p-4 border-b border-yellow-100">
                     <h2 className="text-lg font-semibold text-yellow-700">
                       Short Question Editor
                     </h2>
                   </div>
-                  <ScrollArea className="flex-1 overflow-auto px-4 py-2">
+                  <ScrollArea className="min-h-0 flex-1 overflow-auto px-3 py-2 sm:px-4">
                     <SimpleMDE
                       value={generateMarkdownFromQuestions()}
                       onChange={(val) => setMarkdown(val)}
@@ -449,13 +447,13 @@ export default function GenerateShortQuestionPage() {
 
                 {/* Preview */}
                 {showPreview && (
-                  <Card className="h-[calc(100vh-300px)] bg-white border border-yellow-200">
+                  <Card className="h-[min(65vh,38rem)] min-h-80 min-w-0 overflow-hidden border-yellow-200 bg-white sm:h-[min(70vh,42rem)]">
                     <div className="p-4 border-b border-yellow-100">
                       <h2 className="text-lg font-semibold text-yellow-700">
                         Preview
                       </h2>
                     </div>
-                    <ScrollArea className="flex-1 overflow-auto px-4 py-2">
+                    <ScrollArea className="min-h-0 flex-1 overflow-auto px-3 py-2 sm:px-4">
                       <h2 className="text-2xl font-bold text-yellow-700 mb-4">
                         {selectedTitle}
                       </h2>
