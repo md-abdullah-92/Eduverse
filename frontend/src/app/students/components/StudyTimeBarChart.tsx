@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
-import { useStudentProfile } from '@/hooks/useStudentProfile';
 import ChartCard from '../components/ChartCard';
+import type { StudentProfile } from '@/hooks/useStudentProfile';
 
 const radius = 90;
 const circumference = 2 * Math.PI * radius;
@@ -18,37 +16,16 @@ function getGrade(score: number): string {
   return 'F';
 }
 
-const userId =
-  typeof window !== 'undefined' ? localStorage.getItem('userId') || 'default' : 'default';
-
-export default function StudyTimeBarChart() {
-  const { profile, loading } = useStudentProfile(userId);
-  const [average, setAverage] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [attempts, setAttempts] = useState(0);
-
-  const refreshData = () => {
-    if (profile?.quizResults?.length) {
-      const quizzes = profile.quizResults;
-      const percentages = quizzes.map((q) => (q.marks / q.fullmark) * 100);
-      const avg = percentages.reduce((a, b) => a + b, 0) / percentages.length;
-
-      setAverage(avg);
-      setAttempts(quizzes.length);
-
-      // animate
-      setProgress(0);
-      setTimeout(() => {
-        setProgress((circumference * avg) / 100);
-      }, 300);
-    }
-  };
-
-  useEffect(() => {
-    if (profile?.quizResults?.length) {
-      refreshData();
-    }
-  }, [profile]);
+export default function StudyTimeBarChart({ profile }: { profile: StudentProfile }) {
+  const quizzes = (profile.quizResults ?? []).filter(
+    (quiz) => quiz.fullmark > 0 && Number.isFinite(quiz.marks)
+  );
+  const average = quizzes.length
+    ? quizzes.reduce((total, quiz) => total + (quiz.marks / quiz.fullmark) * 100, 0) /
+      quizzes.length
+    : 0;
+  const progress = (circumference * Math.min(Math.max(average, 0), 100)) / 100;
+  const attempts = quizzes.length;
 
   const grade = getGrade(average);
 
@@ -56,21 +33,14 @@ export default function StudyTimeBarChart() {
     <ChartCard
       title="Average Score & Grade"
       description="Overall performance based on your quiz attempts"
-      action={
-        <button
-          onClick={refreshData}
-          className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
-        >
-          <RotateCcw className="w-4 h-4" />
-          Refresh
-        </button>
-      }
     >
-      {loading ? (
-        <div className="text-center py-10 text-gray-500">Loading average data...</div>
+      {attempts === 0 ? (
+        <div className="flex h-full items-center justify-center text-center text-gray-500">
+          No graded exam results yet.
+        </div>
       ) : (
-        <div className="relative w-72 h-72 mx-auto">
-          <svg className="w-full h-full transform -rotate-90">
+        <div className="relative mx-auto aspect-square w-full max-w-[18rem]">
+          <svg viewBox="0 0 240 240" className="h-full w-full -rotate-90">
             <defs>
               <linearGradient id="avgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#6366F1" />
@@ -79,16 +49,16 @@ export default function StudyTimeBarChart() {
             </defs>
 
             <circle
-              cx="50%"
-              cy="50%"
+              cx="120"
+              cy="120"
               r={radius}
               stroke="#E5E7EB"
               strokeWidth="18"
               fill="transparent"
             />
             <circle
-              cx="50%"
-              cy="50%"
+              cx="120"
+              cy="120"
               r={radius}
               stroke="url(#avgGradient)"
               strokeWidth="18"

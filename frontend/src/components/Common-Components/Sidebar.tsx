@@ -8,21 +8,31 @@ import {
   LayoutDashboard,
   Lightbulb,
   LogOut,
+  Menu,
   Package,
   Save,
-  Star,
   User,
   BadgeCheck,
   ShoppingCart,
   ListChecks,
+  X,
 } from "lucide-react";
 import { dmSerif, poppins } from "@/utils/font";
 import SidebarItem from "@/components/Common-Components/SidebarItem";
 import LogoutModal from "@/components/Common-Components/LogoutModal";
 import type { MenuItem } from "@/types/ui";
 
-const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
+const Sidebar = ({
+  role,
+  userId,
+  desktopBreakpoint = "md",
+}: {
+  role: string;
+  userId: string;
+  desktopBreakpoint?: "md" | "xl";
+}) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loadingLabel, setLoadingLabel] = useState<string | null>(null);
   const [enrolledCount, setEnrolledCount] = useState(0);
 
@@ -32,7 +42,8 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   useEffect(() => {
     const enrolled_course = localStorage.getItem("totalEnrolledCourses");
     setEnrolledCount(enrolled_course ? parseInt(enrolled_course) : 0);
-  }, []);
+    setSidebarOpen(false);
+  }, [pathname]);
 
   const handleClick = async (label: string) => {
     if (loadingLabel) return;
@@ -149,11 +160,31 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
   ];
 
   const menuItems = role === "TEACHER" ? teacherMenu : studentMenu;
+  const desktopClasses =
+    desktopBreakpoint === "xl"
+      ? {
+          overlay: "xl:hidden",
+          aside: "xl:static xl:top-auto xl:z-auto xl:h-auto xl:max-w-none xl:translate-x-0 xl:border-r xl:bg-white xl:px-5 xl:py-5 xl:shadow-none",
+          toggle: "xl:hidden",
+        }
+      : {
+          overlay: "md:hidden",
+          aside: "md:static md:top-auto md:z-auto md:h-auto md:max-w-none md:translate-x-0 md:border-r md:bg-white md:px-5 md:py-5 md:shadow-none",
+          toggle: "md:hidden",
+        };
 
   return (
     <>
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close portal navigation"
+          className={`fixed inset-x-0 bottom-0 top-16 z-30 bg-black/40 ${desktopClasses.overlay}`}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
       <aside
-        className={`w-72 h-screen fixed top-0 left-0 bg-white backdrop-blur-xl border-r border-gray-200/50 px-6 py-8 space-y-8 shadow-lg z-20 ${poppins.className}`}
+        className={`fixed left-0 top-16 z-40 h-[calc(100dvh-4rem)] w-72 max-w-[calc(100vw-3rem)] space-y-8 overflow-y-auto border-r border-gray-200/50 bg-white px-6 py-6 shadow-lg backdrop-blur-xl transition-transform ${desktopClasses.aside} ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} ${poppins.className}`}
       >
         <div className="h-7" />
         <div className="flex items-center space-x-3 pb-6 border-b border-gray-100">
@@ -182,6 +213,16 @@ const Sidebar = ({ role, userId }: { role: string; userId: string }) => {
           ))}
         </nav>
       </aside>
+
+      <button
+        type="button"
+        aria-label={sidebarOpen ? "Close portal navigation" : "Open portal navigation"}
+        aria-expanded={sidebarOpen}
+        className={`fixed bottom-20 left-4 z-40 inline-flex size-12 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg hover:bg-teal-800 ${desktopClasses.toggle}`}
+        onClick={() => setSidebarOpen((open) => !open)}
+      >
+        {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+      </button>
 
       <LogoutModal
         isOpen={showLogoutModal}

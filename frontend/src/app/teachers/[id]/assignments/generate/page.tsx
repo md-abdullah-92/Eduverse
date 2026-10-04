@@ -76,7 +76,7 @@ export default function GenerateShortQuestionPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://localhost:8000/upload/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/upload/`, {
         method: "POST",
         body: formData,
       });
@@ -116,7 +116,7 @@ export default function GenerateShortQuestionPage() {
         formData.append("end_page", endPage.toString());
       }
 
-      const res = await fetch("http://localhost:8000/short-questions/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/short-questions/`, {
         method: "POST",
         body: formData,
       });
@@ -208,12 +208,10 @@ export default function GenerateShortQuestionPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
-      </aside>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 md:flex-row">
+      <Sidebar role="TEACHER" userId={userId} />
 
-      <main className="ml-20 p-5 flex-1">
+      <main className="flex-1 p-3 sm:p-5 lg:p-6">
         <div
           className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 ${merriweather.className}`}
         >

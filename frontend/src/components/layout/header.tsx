@@ -37,13 +37,13 @@ const Header = () => {
       : "/";
 
   return (
-    <header className="bg-white shadow-sm px-8 py-4 flex items-center justify-between border-b border-gray-200 sticky top-0 z-50">
+    <header className="sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-6 sm:py-4 lg:px-8">
       {/* Logo */}
-      <div className="flex items-center space-x-2">
+      <div className="flex min-w-0 items-center space-x-2">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/logo_t.png" alt="EduVerse Logo" className="h-10 w-auto" />
+          <img src="/logo_t.png" alt="EduVerse Logo" className="h-8 w-auto shrink-0 sm:h-10" />
           <span
-            className={`text-3xl font-bold text-sky-900 tracking-wide ${jaro.className}`}
+            className={`text-2xl font-bold text-sky-900 sm:text-3xl ${jaro.className}`}
           >
             EduVerse
           </span>
@@ -54,7 +54,7 @@ const Header = () => {
       <Navigation />
 
       {/* Right-side */}
-      <div className="flex items-center space-x-4">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4">
         {isLoggedIn ? (
           <Link
             href={profileLink}
@@ -63,7 +63,7 @@ const Header = () => {
             <img
               src={userPhoto}
               alt="User Profile"
-              className="w-10 h-10 rounded-full object-cover border-2 border-sky-900 cursor-pointer"
+              className="size-9 cursor-pointer rounded-full border-2 border-sky-900 object-cover sm:size-10"
             />
           </Link>
         ) : (
@@ -71,13 +71,13 @@ const Header = () => {
             <>
               <Link
                 href="/auth/login?tab=login"
-                className={`bg-[#1A5B6D] text-white px-6 py-2 rounded-xl font-semibold text-base hover:bg-[#154C5B] transition-colors ${poppins.className}`}
+                className={`rounded-lg bg-[#1A5B6D] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#154C5B] sm:px-5 sm:text-base ${poppins.className}`}
               >
                 Login
               </Link>
               <Link
                 href="/auth/login?tab=register"
-                className={`bg-[#1A5B6D] text-white px-6 py-2 rounded-xl font-semibold text-base hover:bg-[#154C5B] transition-colors ${poppins.className}`}
+                className={`hidden rounded-lg bg-[#1A5B6D] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#154C5B] sm:inline-flex sm:px-5 sm:text-base ${poppins.className}`}
               >
                 Get Started
               </Link>

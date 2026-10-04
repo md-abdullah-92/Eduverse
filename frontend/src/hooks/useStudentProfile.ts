@@ -13,7 +13,7 @@ type AnsweredQuestion = {
   quizResultId: string;
 };
 
-type StudentProfile = {
+export type StudentProfile = {
   user: {
     name: string;
     role: string;
@@ -58,13 +58,13 @@ export function useStudentProfile(userId: string | null) {
         });
 
         if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
+        const data: { studentProfile?: StudentProfile } = await res.json();
 
         if (!data.studentProfile) throw new Error("Student profile not found");
 
         const normalizedProfile = {
           ...data.studentProfile,
-          quizResults: (data.studentProfile.quizResults || []).map((result: any) => {
+          quizResults: (data.studentProfile.quizResults || []).map((result) => {
             const answeredquestions = result.answeredquestions ?? result.answeredQuestions ?? [];
             return {
               ...result,
@@ -89,8 +89,8 @@ export function useStudentProfile(userId: string | null) {
         }
 
         console.log("Profile data:", data.studentProfile);
-      } catch (err: any) {
-        setError(err.message || "Something went wrong");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
         console.error("Profile fetch error:", err);
       } finally {
         setLoading(false);

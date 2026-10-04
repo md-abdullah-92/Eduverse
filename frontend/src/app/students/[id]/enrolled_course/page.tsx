@@ -1,6 +1,7 @@
 "use client";
 
 import CourseCard from "@/app/courses/components/courseCard";
+import Sidebar from "@/components/Common-Components/Sidebar";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { poppins, raleway } from "@/utils/font";
 import { Enrollment } from "@/utils/types";
@@ -9,11 +10,11 @@ import {
   ChevronDown,
   Filter,
   GraduationCap,
-  Link,
   Search,
   TrendingUp,
 } from "lucide-react";
 import { use, useEffect, useState } from "react";
+import NextLink from "next/link";
 
 export default function StudentEnrolledCoursesPage({
   params,
@@ -95,14 +96,23 @@ export default function StudentEnrolledCoursesPage({
   ).length;
 
   if (loading) {
-    return <LoadingIndicator text="Loading your enrolled courses..." />;
+    return (
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <Sidebar userId={String(userId)} role="STUDENT" />
+        <main className="flex min-w-0 flex-1 items-center justify-center">
+          <LoadingIndicator text="Loading your enrolled courses..." />
+        </main>
+      </div>
+    );
   }
 
   return (
     // Main Container
     <div
-      className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
+      className={`flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 md:flex-row ${poppins.className}`}
     >
+      <Sidebar userId={String(userId)} role="STUDENT" />
+      <main className="min-w-0 flex-1">
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-teal-700 via-teal-600 to-purple-600 text-white">
         <div className="max-w-7xl mx-auto px-4 py-14">
@@ -242,12 +252,12 @@ export default function StudentEnrolledCoursesPage({
               Try adjusting your search or filter criteria, or enroll in new
               courses
             </p>
-            <Link
+            <NextLink
               href="/courses/explore"
               className="mt-6 inline-block px-6 py-3 bg-teal-600 text-white font-medium rounded-md hover:bg-teal-700 transition-colors"
             >
               Explore Available Courses
-            </Link>
+            </NextLink>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 ">
@@ -263,6 +273,7 @@ export default function StudentEnrolledCoursesPage({
           </div>
         )}
       </div>
+      </main>
     </div>
   );
 }

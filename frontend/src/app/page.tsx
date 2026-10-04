@@ -11,13 +11,6 @@ import StatsSection from "@/components/homepage/StatsSection";
 import TestimonialsSection from "@/components/homepage/TestimonialsSection";
 import Footer from "@/components/layout/footer";
 
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
-
-const stripePromise: Promise<Stripe | null> = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
-
 export default function Home() {
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -56,7 +49,6 @@ export default function Home() {
   }, [router]);
 
   return (
-    <Elements stripe={stripePromise}>
       <main className="min-h-screen bg-[#F9FAFC]">
         {message && (
           <div className="text-center p-4 text-red-600 font-medium bg-red-100">
@@ -71,6 +63,5 @@ export default function Home() {
         <TestimonialsSection />
          <Footer/>
       </main>
-    </Elements>
   );
 }

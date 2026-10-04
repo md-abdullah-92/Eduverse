@@ -131,12 +131,10 @@ export default function SavedAssignments() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
-      </aside>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative md:flex-row">
+      <Sidebar role="TEACHER" userId={userId} />
 
-      <main className={`flex-1 p-5 ml-20 ${lora.className}`}>
+      <main className={`flex-1 p-3 sm:p-5 lg:p-6 ${lora.className}`}>
         <h1 className={`text-3xl font-bold text-teal-800 mb-6 ${playfair.className}`}>
           Saved Short Questions
         </h1>

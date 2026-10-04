@@ -22,7 +22,6 @@ import {
   FiEdit3,
   FiLoader,
   FiMaximize,
-  FiMenu,
   FiPause,
   FiPlay,
   FiSkipBack,
@@ -200,9 +199,6 @@ export default function LearnPage() {
 
   // State
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notes, setNotes] = useState("");
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingButton, setLoadingButton] = useState<
     "notes" | "assignments" | null
@@ -352,13 +348,6 @@ export default function LearnPage() {
     // Do not setIsLoading(false) here — handled after route change
   }, [currentLesson?.id, profile?.quizResults, router]);
 
-  const formatTime = useCallback((seconds: number) => {
-    if (isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  }, []);
-
   // Loading state
   if (loading) {
     return <LoadingIndicator />;
@@ -391,53 +380,38 @@ export default function LearnPage() {
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
+      className={`flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden pb-20 ${poppins.className}`}
     >
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-lg fixed left-0 top-0 h-full z-40">
-        <div className="p-6">
-          <Sidebar userId={user?.id || ""} role={user?.role || "STUDENT"} />
-        </div>
-      </aside>
-
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      <Sidebar
+        userId={user?.id || ""}
+        role={user?.role || "STUDENT"}
+        desktopBreakpoint="xl"
+      />
       <ChatWidget />
 
-      {/* Main Content Area */}
-      <main className="flex-1 ml-90">
+      <main className="flex-1 min-w-0 xl:ml-0">
         {/* Learning Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
           <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="lg:hidden text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <FiMenu className="h-5 w-5" />
-                </button>
+              <div className="flex h-16 items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-2 sm:gap-4">
                 <button
                   onClick={() =>
                     router.push(
                       `/courses/${course.id}?enrolled=${enrollment.id}`
                     )
                   }
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="shrink-0 text-gray-500 transition-colors hover:text-gray-700"
+                  aria-label="Back to course"
                 >
                   <FiArrowLeft className="h-5 w-5" />
                 </button>
-                <h1 className="text-lg font-semibold text-gray-900 truncate max-w-md">
+                <h1 className="min-w-0 truncate text-sm font-semibold text-gray-900 sm:text-lg sm:max-w-md">
                   {course.title}
                 </h1>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex shrink-0 items-center space-x-4">
                 <div className="hidden md:flex items-center space-x-3 text-sm text-gray-600">
                   <span>{completionStats.completionPercentage}% Complete</span>
                   <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -455,9 +429,9 @@ export default function LearnPage() {
         </div>
 
         {/* Content with Course Sidebar on Right */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col xl:flex-row xl:overflow-hidden">
           {/* Main Content */}
-          <div className="flex-1 min-w-0 p-6 overflow-y-auto">
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto p-3 sm:p-6">
             <div className="bg-white rounded-lg border border-teal-300 overflow-hidden mb-6">
               {/* Video Player */}
               <div ref={playerContainerRef} className="relative bg-black">
@@ -505,8 +479,8 @@ export default function LearnPage() {
                         </video>
 
                         {/* Video Controls */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                          <div className="flex items-center space-x-4">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-4">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap sm:gap-4">
                             <button
                               onClick={
                                 videoState.isPlaying
@@ -539,8 +513,8 @@ export default function LearnPage() {
                               compact
                             />
 
-                            <div className="flex-1 flex items-center space-x-2">
-                              <span className="text-sm text-white">
+                            <div className="order-last flex min-w-0 basis-full flex-1 items-center space-x-2 sm:order-none sm:basis-auto">
+                              <span className="text-[10px] text-white sm:text-sm">
                                 {VideoUtils.formatTime(videoState.currentTime)}
                               </span>
                               <div
@@ -558,7 +532,7 @@ export default function LearnPage() {
                                   }}
                                 />
                               </div>
-                              <span className="text-sm text-white">
+                              <span className="text-[10px] text-white sm:text-sm">
                                 {VideoUtils.formatTime(videoState.duration)}
                               </span>
                             </div>
@@ -572,7 +546,7 @@ export default function LearnPage() {
                                 step="0.1"
                                 value={videoState.volume}
                                 onChange={handleVolumeChange}
-                                className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer"
+                                className="h-1 w-12 cursor-pointer appearance-none rounded-lg bg-gray-600 sm:w-16"
                               />
                             </div>
 
@@ -608,9 +582,9 @@ export default function LearnPage() {
             {/* Lesson Content */}
             <div className="bg-white rounded-lg border-1 border-teal-300 p-6 mb-6">
               <div className="mb-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h1 className="mb-2 break-words text-xl font-bold text-gray-900 sm:text-2xl">
                       {currentLesson.title}
                     </h1>
                     {currentLesson.description && (
@@ -621,7 +595,7 @@ export default function LearnPage() {
                   </div>
 
                   {/* Lesson completion status */}
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex items-center space-x-2 sm:ml-4">
                     {currentProgress?.completed ? (
                       <div className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
                         <FiCheckCircle className="h-4 w-4 mr-1" />
@@ -690,7 +664,7 @@ export default function LearnPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+              <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                 {/* Notes Button */}
                 <button
                   onClick={() => {
@@ -796,7 +770,7 @@ export default function LearnPage() {
               </div>
 
               {/* Navigation */}
-              <div className="flex justify-between items-center pt-6 border-t border-gray-200 mt-6">
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-6">
                 <NavigationButton
                   direction="previous"
                   lesson={previousLesson}
@@ -817,8 +791,8 @@ export default function LearnPage() {
           </div>
 
           {/* Course Content Sidebar */}
-          <div className="w-80 flex-shrink-0 p-6 pl-0 overflow-y-auto">
-            <div className="bg-white rounded-lg border-1 border-teal-200 h-full flex flex-col sticky top-24">
+          <div className="w-full min-w-0 p-3 sm:p-6 xl:w-80 xl:flex-shrink-0 xl:overflow-y-auto xl:pl-0">
+            <div className="flex max-h-[28rem] flex-col overflow-hidden rounded-lg border-1 border-teal-200 bg-white xl:sticky xl:top-24 xl:h-full xl:max-h-[calc(100vh-7rem)]">
               <div className="p-4 border-b border-gray-200 flex-shrink-0">
                 <h2 className="font-semibold text-gray-900">Course Content</h2>
                 <div className="mt-2 text-xs text-gray-500">

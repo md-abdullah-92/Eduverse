@@ -10,6 +10,8 @@ import Footer from "@/components/layout/footer";
 import { useContext } from "react";
 import { ToastContext } from "@/components/ui_elements/toast"; // adjust path as needed
 
+const USER_API_URL = process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+
 export default function OtpVerification() {
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [email, setEmail] = useState("");
@@ -67,7 +69,7 @@ export default function OtpVerification() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/verify-email",
+        `${USER_API_URL}/auth/verify-email`,
         {
           email,
           otp: finalOtp,
@@ -94,7 +96,7 @@ export default function OtpVerification() {
     setIsResending(true);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/resend-otp",
+        `${USER_API_URL}/auth/resend-otp`,
         {
           email,
         }

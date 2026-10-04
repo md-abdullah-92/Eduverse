@@ -10,7 +10,6 @@ import { Loader2 } from "lucide-react";
 
 import Sidebar from "@/components/Common-Components/Sidebar";
 import { playfair, lora } from "@/utils/font";
-import { useStudentProfile } from "@/hooks/useStudentProfile";
 
 type AnsweredQuestion = {
   id: string;
@@ -42,23 +41,49 @@ export default function SavedQuizResults() {
   const router = useRouter();
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("userId") || "12345" : "12345";
-  const { profile, loading, error } = useStudentProfile(userId);
-
   const [quizResults, setQuizResults] = useState<quizResults[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loadingQuizId, setLoadingQuizId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile?.quizResults) {
-      setQuizResults(
-        profile.quizResults.map((result) => ({
+    const controller = new AbortController();
+
+    async function fetchQuizResults() {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(
+          `http://localhost:5000/api/result/student/${encodeURIComponent(userId)}`,
+          { cache: "no-store", signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to load quiz results.");
+        }
+
+        const results: quizResults[] = await response.json();
+        setQuizResults(
+          results.map((result) => ({
           ...result,
           answeredQuestions: result.answeredQuestions ?? result.answeredquestions ?? [],
           answeredquestions: result.answeredquestions ?? result.answeredQuestions ?? [],
-        }))
-      );
+          }))
+        );
+      } catch (fetchError) {
+        if (!controller.signal.aborted) {
+          setError("Failed to load quiz results.");
+          console.error("Quiz results fetch error:", fetchError);
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
     }
-  }, [profile?.quizResults]);
+
+    fetchQuizResults();
+    return () => controller.abort();
+  }, [userId]);
 
   const handleView = (id: number) => {
     setLoadingQuizId(id);
@@ -70,12 +95,10 @@ export default function SavedQuizResults() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-purple-100 relative">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="STUDENT" userId={userId} />
-      </aside>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-purple-50 to-purple-100 relative md:flex-row">
+      <Sidebar role="STUDENT" userId={userId} />
 
-      <main className={`flex-1 p-5 ml-20 ${lora.className}`}>
+      <main className={`flex-1 p-3 sm:p-5 lg:p-6 ${lora.className}`}>
         <h1 className={`text-3xl font-bold text-purple-800 mb-6 ${playfair.className}`}>
           Saved Quiz Results
         </h1>

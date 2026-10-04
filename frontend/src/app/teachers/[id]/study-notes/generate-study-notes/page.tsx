@@ -66,7 +66,7 @@ export default function GenerateSlidePage() {
         const formData = new FormData();
         formData.append("file", file);
         
-        const res = await fetch("http://localhost:8000/upload/", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/upload/`, {
           method: "POST",
           body: formData,
         });
@@ -126,7 +126,7 @@ export default function GenerateSlidePage() {
       formData.append("start_page", startPage.toString());
       formData.append("end_page", endPage?.toString() || totalPages?.toString() || "");
 
-      const res = await fetch("http://localhost:8000/generate-study-notes/", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/generate-study-notes/`, {
         method: "POST",
         body: formData,
       });
@@ -200,15 +200,13 @@ export default function GenerateSlidePage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
-      </aside>
-      <main className="ml-20 p-5 flex-1">
-        <div className={`min-h-screen bg-gradient-to-br from-teal-50 to-white px-6 pb-10 flex flex-col ${merriweather.className}`}>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden md:flex-row">
+      <Sidebar role="TEACHER" userId={userId} />
+      <main className="min-w-0 flex-1 p-3 sm:p-5 lg:p-6">
+        <div className={`flex min-h-screen flex-col bg-gradient-to-br from-teal-50 to-white px-3 pb-10 sm:px-6 ${merriweather.className}`}>
           <header className="mb-6 pt-8">
-            <h1 className="text-4xl font-bold text-teal-800 flex items-center gap-3">
-              <FaFileAlt />
+            <h1 className="flex items-center gap-3 text-2xl font-bold text-teal-800 sm:text-4xl">
+              <FaFileAlt className="shrink-0" />
               Generate Study Notes
             </h1>
             <p className="text-gray-600 mt-2 text-base">Upload a PDF and generate structured study notes from selected pages.</p>
@@ -315,7 +313,7 @@ export default function GenerateSlidePage() {
                 onClick={handleGenerateMarkdown}
                 disabled={isLoading}
                 size="lg"
-                className="bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-3 px-8 py-3"
+                className="flex w-full items-center justify-center gap-3 bg-teal-600 px-4 py-3 text-white hover:bg-teal-700 sm:w-auto sm:px-8"
               >
                 {isLoading && (
                   <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
@@ -333,7 +331,7 @@ export default function GenerateSlidePage() {
             <>
               {/* Title and Controls */}
               <Card className="p-4 mb-6 bg-white">
-                <div className="flex flex-col lg:flex-row items-start lg:items-end gap-4">
+                <div className="flex min-w-0 flex-col items-stretch gap-4 lg:flex-row lg:items-end">
                   <div className="flex-1 space-y-2">
                     <Label htmlFor="title" className="flex items-center gap-2 text-teal-700 font-semibold">
                       <Type size={16} />
@@ -348,21 +346,23 @@ export default function GenerateSlidePage() {
                     />
                   </div>
                   
-                  <div className="flex items-center gap-3">
+                  <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3 lg:w-auto lg:flex-nowrap">
                     <Button
                       onClick={() => setShowPreview(!showPreview)}
                       variant="outline"
-                      className="border-teal-300 text-teal-700 hover:bg-teal-50"
+                      className="w-full border-teal-300 text-teal-700 hover:bg-teal-50 sm:w-auto"
                     >
                       {showPreview ? <EyeOff className="mr-2 w-4 h-4" /> : <Eye className="mr-2 w-4 h-4" />}
                       {showPreview ? "Hide Preview" : "Show Preview"}
                     </Button>
 
-                    <SaveSlideButton title={title} />
-                    
+                    <div className="w-full sm:w-auto">
+                      <SaveSlideButton title={title} />
+                    </div>
+
                     <Button
                       onClick={() => saveStudyNote(title, markdown)}
-                      className="bg-teal-600 hover:bg-teal-700 text-white"
+                      className="w-full bg-teal-600 text-white hover:bg-teal-700 sm:w-auto"
                       disabled={!title.trim() || !markdown.trim()}
                     >
                       Save Study Note

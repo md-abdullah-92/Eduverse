@@ -82,11 +82,11 @@ export default function CourseDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg">
+      <div className="flex min-h-screen flex-col bg-gray-50 md:flex-row">
+        <div className="w-full bg-white shadow-lg md:w-64 md:shrink-0">
           <Sidebar role="TEACHER" userId={instructorId} />
         </div>
-        <div className="ml-64 flex items-center justify-center min-h-screen">
+        <div className="flex flex-1 items-center justify-center min-h-screen">
           <LoadingIndicator text="Loading course details..." />
         </div>
       </div>
@@ -95,11 +95,11 @@ export default function CourseDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg">
+      <div className="flex min-h-screen flex-col bg-gray-50 md:flex-row">
+        <div className="w-full bg-white shadow-lg md:w-64 md:shrink-0">
           <Sidebar role="TEACHER" userId={instructorId} />
         </div>
-        <div className="ml-64 flex items-center justify-center min-h-screen p-4">
+        <div className="flex flex-1 items-center justify-center min-h-screen p-4">
           <ErrorDisplay
             title="Error loading course details"
             description={error}
@@ -110,16 +110,14 @@ export default function CourseDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg">
+    <div className="flex min-h-screen flex-col bg-gray-50 md:flex-row">
+      <div className="w-full bg-white shadow-lg md:w-64 md:shrink-0">
         <Sidebar role="TEACHER" userId={instructorId} />
       </div>
 
-      {/* Main Content Area */}
-      <div className="ml-64 flex flex-col min-h-screen">
+      <div className="flex flex-1 min-h-screen flex-col">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 pl-20 sm:pl-[80px] lg:pl-[80px] pr-4 sm:pr-6 lg:pr-8 py-6 sticky top-0 z-40 shadow-sm">
+        <header className="bg-white border-b border-gray-200 px-4 py-6 pr-4 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-14">
             <h1 className="text-2xl sm:text-3xl font-bold text-teal-800">
               Course Dashboard

@@ -1,9 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useStudentProfile } from "@/hooks/useStudentProfile";
 import { Button } from "@/components/ui/button";
 import {
   dmSerif,
@@ -11,6 +11,29 @@ import {
   raleway,
 } from "@/utils/font";
 import ChatWidget from "@/app/lesson/ChatWidget";
+
+type AnsweredQuestion = {
+  id: string | number;
+  question: string;
+  correctAnswer?: string;
+  useranswer?: string;
+  userAnswer?: string;
+  options?: string[];
+  explanation?: string;
+  difficulty?: string;
+  type?: string;
+};
+
+type QuizResult = {
+  id: number;
+  title: string;
+  studentId: number;
+  courseId: number;
+  lessonId: number;
+  marks: number;
+  createdAt: string;
+  answeredquestions: AnsweredQuestion[];
+};
 
 
 
@@ -23,15 +46,45 @@ export default function QuizResultDetails() {
       ? resultid[0]
       : "";
 
-  const userId =
-    typeof window !== "undefined"
-      ? localStorage.getItem("userId") || "2"
-      : "2";
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const { profile, error, loading } = useStudentProfile(userId);
-  const quizResult = profile?.quizResults?.find(
-    (q) => String(q.id) === quizResultId
-  );
+  useEffect(() => {
+    if (!quizResultId) return;
+
+    const controller = new AbortController();
+
+    async function fetchQuizResult() {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(
+          `http://localhost:5000/api/result/${encodeURIComponent(quizResultId)}`,
+          { cache: "no-store", signal: controller.signal }
+        );
+
+        if (!response.ok) {
+          throw new Error(response.status === 404 ? "Quiz result not found." : "Failed to load quiz result.");
+        }
+
+        const result: QuizResult = await response.json();
+        setQuizResult({
+          ...result,
+          answeredquestions: result.answeredquestions ?? [],
+        });
+      } catch (fetchError) {
+        if (!controller.signal.aborted) {
+          setError(fetchError instanceof Error ? fetchError.message : "Failed to load quiz result.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+
+    fetchQuizResult();
+    return () => controller.abort();
+  }, [quizResultId]);
 
   if (loading) return <div className="p-6 text-gray-600">Loading...</div>;
   if (error || !quizResult)

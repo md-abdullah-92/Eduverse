@@ -7,6 +7,8 @@ import { raleway, jaro } from "@/utils/font"; // Assuming these are font imports
 import { AxiosError } from "axios";
 import Footer from "@/components/layout/footer"; // Adjust the import path as needed
 import { ToastContext } from "@/components/ui_elements/toast";
+
+const USER_API_URL = process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
 import { useContext } from "react";
 
 export default function LoginRegister() {
@@ -52,7 +54,7 @@ export default function LoginRegister() {
 
     try {
       if (activeTab === "login") {
-        const res = await fetch(`http://localhost:5000/api/auth/login`, {
+        const res = await fetch(`${USER_API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -93,7 +95,7 @@ export default function LoginRegister() {
           role: isTutor ? "TEACHER" : "STUDENT",
         };
 
-        const res = await fetch("http://localhost:5000/api/auth/register", {
+        const res = await fetch(`${USER_API_URL}/auth/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -127,29 +129,29 @@ export default function LoginRegister() {
 
   return (
     <div>
-      <div className="min-h-screen flex items-center justify-center bg-[#0F4C5C] px-4">
-        <div className="flex w-full max-w-6xl transition-all duration-500 rounded-2xl shadow-2xl overflow-hidden bg-[#0F4C5C] text-white scale-100 hover:scale-[1.02]">
+      <div className="min-h-screen bg-[#0F4C5C] px-3 pb-6 pt-10 sm:px-4 sm:pt-12 lg:px-6 lg:pt-16">
+        <div className="mx-auto flex w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-[#0F4C5C] text-white shadow-2xl transition-all duration-500 lg:flex-row lg:hover:scale-[1.01]">
           {/* Branding */}
-          <div className="w-1/2 p-10 flex flex-col justify-center items-center border-r border-white/20">
+          <div className="flex w-full flex-col items-center justify-center border-b border-white/20 p-6 text-center sm:p-8 lg:w-1/2 lg:border-r lg:border-b-0 lg:p-10">
             <img
               src="/images/logo_w.png"
               alt="EduVerse Logo"
-              className="w-56 h-56 object-contain mb-6"
+              className="mb-6 h-24 w-24 object-contain sm:h-32 sm:w-32 lg:h-56 lg:w-56"
             />
             <h1
-              className={`text-7xl font-extrabold tracking-wider ${jaro.className}`}
+              className={`text-4xl font-extrabold tracking-wider sm:text-5xl lg:text-7xl ${jaro.className}`}
             >
               EduVerse
             </h1>
           </div>
 
           {/* Auth Panel */}
-          <div className="w-1/2 p-10">
+          <div className="w-full p-5 sm:p-8 lg:w-1/2 lg:p-10">
             {/* Tabs */}
-            <div className="flex space-x-8 mb-8 border-b border-white/20 pb-2">
+            <div className="mb-8 flex gap-4 border-b border-white/20 pb-2 sm:gap-8">
               <button
                 onClick={() => handleTabChange("login")}
-                className={`text-sm pb-1 transition border-b-2 ${
+                className={`pb-1 text-sm transition border-b-2 ${
                   activeTab === "login"
                     ? "text-white border-orange-400"
                     : "text-gray-400 border-transparent hover:text-white"
@@ -159,7 +161,7 @@ export default function LoginRegister() {
               </button>
               <button
                 onClick={() => handleTabChange("register")}
-                className={`text-sm pb-1 transition border-b-2 ${
+                className={`pb-1 text-sm transition border-b-2 ${
                   activeTab === "register"
                     ? "text-white border-orange-400"
                     : "text-gray-400 border-transparent hover:text-white"
@@ -171,7 +173,9 @@ export default function LoginRegister() {
 
             {/* Greeting */}
             <div className={`mb-6 ${raleway.className}`}>
-              <h2 className="text-2xl font-semibold">Welcome to EduVerse</h2>
+              <h2 className="text-xl font-semibold sm:text-2xl">
+                Welcome to EduVerse
+              </h2>
               <p className="text-sm text-gray-300">
                 {activeTab === "login"
                   ? "Thank you for coming back!"
@@ -181,7 +185,7 @@ export default function LoginRegister() {
 
             {/* Message */}
             {message && (
-              <div className="mb-4 text-sm text-center px-4 py-2 rounded bg-white/10 text-orange-300">
+              <div className="mb-4 rounded bg-white/10 px-4 py-2 text-center text-sm text-orange-300">
                 {message}
               </div>
             )}
@@ -193,7 +197,7 @@ export default function LoginRegister() {
             >
               {activeTab === "register" && (
                 <div>
-                  <label htmlFor="fullname" className="block text-sm mb-1">
+                  <label htmlFor="fullname" className="mb-1 block text-sm">
                     Full Name
                   </label>
                   <input
@@ -204,13 +208,13 @@ export default function LoginRegister() {
                     onChange={(e) => setFullName(e.target.value)}
                     autoComplete="name"
                     required
-                    className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    className="w-full rounded bg-white/10 px-4 py-2.5 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
                   />
                 </div>
               )}
 
               <div>
-                <label htmlFor="email" className="block text-sm mb-1">
+                <label htmlFor="email" className="mb-1 block text-sm">
                   Your Email
                 </label>
                 <input
@@ -221,12 +225,12 @@ export default function LoginRegister() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                   required
-                  className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="w-full rounded bg-white/10 px-4 py-2.5 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
               </div>
 
               <div className="relative">
-                <label htmlFor="password" className="block text-sm mb-1">
+                <label htmlFor="password" className="mb-1 block text-sm">
                   Password
                 </label>
                 <input
@@ -239,12 +243,13 @@ export default function LoginRegister() {
                     activeTab === "login" ? "current-password" : "new-password"
                   }
                   required
-                  className="w-full px-4 py-2 bg-white/10 text-white rounded focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="w-full rounded bg-white/10 px-4 py-2.5 pr-11 text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-9 right-4 text-white/70 hover:text-white"
+                  className="absolute right-4 top-9 text-white/70 transition hover:text-white"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -252,26 +257,26 @@ export default function LoginRegister() {
 
               {activeTab === "login" ? (
                 <>
-                  <div className="flex items-center justify-between text-sm text-gray-300">
+                  <div className="flex flex-col gap-3 text-sm text-gray-300 sm:flex-row sm:items-center sm:justify-between">
                     <label className="flex items-center gap-2">
                       <input type="checkbox" className="accent-orange-400" />
                       Remember me
                     </label>
-                    <a href="#" className="hover:underline text-gray-200">
+                    <a href="#" className="text-gray-200 hover:underline">
                       Forgot Password?
                     </a>
                   </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2 bg-white text-[#0F4C5C] font-semibold rounded hover:bg-gray-100 transition"
+                    className="w-full rounded bg-white py-2.5 font-semibold text-[#0F4C5C] transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {loading ? "Logging in..." : "Login"}
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-4 text-sm text-gray-300">
+                  <div className="flex flex-col gap-3 text-sm text-gray-300 sm:flex-row sm:items-center sm:gap-4">
                     <label className="flex items-center gap-2">
                       <input
                         type="radio"
@@ -296,7 +301,7 @@ export default function LoginRegister() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2 bg-orange-500 text-white font-semibold rounded hover:bg-orange-400 transition"
+                    className="w-full rounded bg-orange-500 py-2.5 font-semibold text-white transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {loading
                       ? "Registering..."

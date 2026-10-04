@@ -164,12 +164,10 @@ export default function PublishedQuiz() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="TEACHER" userId={userId} />
-      </aside>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 md:flex-row">
+      <Sidebar role="TEACHER" userId={userId} />
 
-      <main className="ml-20 p-6 flex-1">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className={`${robotoSlab.className} text-gray-800 max-w-5xl mx-auto`}>
           <h1 className="text-4xl font-bold mb-8 text-teal-700">📋 Published Exams</h1>
 

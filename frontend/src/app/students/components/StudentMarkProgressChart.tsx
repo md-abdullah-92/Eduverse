@@ -11,8 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import ChartCard from "../components/ChartCard";
-import { useStudentProfile } from "@/hooks/useStudentProfile";
-import { useEffect, useState } from "react";
+import type { StudentProfile } from "@/hooks/useStudentProfile";
 
 type QuizPerformance = {
   title: string;
@@ -22,9 +21,10 @@ type QuizPerformance = {
 
 const extractRecentQuizPerformance = (profile: StudentProfile): QuizPerformance[] => {
   if (!profile.quizResults) return [];
-  return profile.quizResults
+  return [...profile.quizResults]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
+    .filter((result) => result.fullmark > 0)
     .map((result) => ({
       title: result.title,
       marksObtained: result.marks,
@@ -32,7 +32,14 @@ const extractRecentQuizPerformance = (profile: StudentProfile): QuizPerformance[
     }));
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: {
+    payload: { exam: string; marksObtained: number; totalMarks: number };
+  }[];
+};
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload?.length) {
     const { exam, marksObtained, totalMarks } = payload[0].payload;
     return (
@@ -50,34 +57,24 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const userId =
-  typeof window !== "undefined" ? localStorage.getItem("userId") || "default" : "default";
-
-const StudentMarkProgressChart = () => {
-  const { profile, isLoading } = useStudentProfile(userId);
-  const [chartData, setChartData] = useState<
-    { exam: string; marksObtained: number; totalMarks: number }[]
-  >([]);
-
-  useEffect(() => {
-    if (profile?.quizResults) {
-      const recentPerformance = extractRecentQuizPerformance(profile);
-      const formattedData = recentPerformance.map((quiz) => ({
-        exam: quiz.title,
-        marksObtained: quiz.marksObtained,
-        totalMarks: quiz.totalMarks,
-      }));
-      setChartData(formattedData.reverse());
-    }
-  }, [profile]);
+const StudentMarkProgressChart = ({ profile }: { profile: StudentProfile }) => {
+  const chartData = extractRecentQuizPerformance(profile)
+    .map((quiz) => ({
+      exam: quiz.title,
+      marksObtained: quiz.marksObtained,
+      totalMarks: quiz.totalMarks,
+    }))
+    .reverse();
 
   return (
     <ChartCard
       title="Academic Performance Overview"
       description="Compare your obtained scores to the full marks in your recent assessments."
     >
-      {isLoading ? (
-        <div className="text-center py-10 text-gray-500">Loading performance data...</div>
+      {chartData.length === 0 ? (
+        <div className="flex h-full items-center justify-center text-center text-gray-500">
+          No graded exam results yet.
+        </div>
       ) : (
         <ResponsiveContainer width="100%" height="100%">
           <BarChart

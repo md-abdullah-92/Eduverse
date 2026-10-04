@@ -36,12 +36,10 @@ export default function ModernStudentDashboard() {
   const userInfo = student.user || {};
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden font-[${Roboto_Slab.style.fontFamily}]">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar userId={String(userId)} role={role || "STUDENT"} />
-      </aside>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden md:flex-row font-[${Roboto_Slab.style.fontFamily}]">
+      <Sidebar userId={String(userId)} role={role || "STUDENT"} />
 
-      <main className="ml-20 p-5 flex-1">
+      <main className="flex-1 p-3 sm:p-5 lg:p-6">
         <div className="flex justify-between items-center px-6 py-4">
           <div>
             <h1
@@ -58,7 +56,7 @@ export default function ModernStudentDashboard() {
         </div>
         <ProfileCard student={student} userInfo={userInfo} />
         <StatGrid studentId={String(userId)} />
-        <ChartGrid />
+        <ChartGrid profile={student} />
         <div className="fixed bottom-15 right-8 z-50"></div>
 
         <RecentCourses userId={String(userId)} />

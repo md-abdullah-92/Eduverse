@@ -137,17 +137,17 @@ export default function AddCoursePage() {
     >
       <Sidebar role="TEACHER" userId={userId} />
 
-      <main className="flex-1 ml-72 p-6 lg:p-8 relative z-10">
+      <main className="relative z-10 min-w-0 flex-1 p-3 sm:p-5 lg:p-8">
         {/* Page Header */}
         <div className="mb-8">
           <div className="text-center mb-2">
             <div>
               <h1
-                className={`text-4xl md:text-5xl font-medium mb-4 ${playfair.className}`}
+                className={`mb-4 text-3xl font-medium sm:text-4xl xl:text-5xl ${playfair.className}`}
               >
                 Create New Course
               </h1>
-              <p className={`text-gray-600 text-lg ${poppins.className}`}>
+              <p className={`text-sm text-gray-600 sm:text-base xl:text-lg ${poppins.className}`}>
                 Share your knowledge and create engaging learning experiences
               </p>
             </div>
@@ -155,10 +155,10 @@ export default function AddCoursePage() {
         </div>
         <ChatWidget/>
         {/* Main Content Grid */}
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-3 gap-8">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-3 xl:gap-8">
             {/* Course Form Section */}
-            <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm p-6 lg:p-8 rounded-2xl shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-300">
+            <div className="min-w-0 rounded-2xl border border-white/50 bg-white/80 p-4 shadow-xl backdrop-blur-sm transition-all duration-300 hover:shadow-2xl sm:p-6 lg:p-8 xl:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
                 <h2
                   className={`text-xl lg:text-2xl font-semibold mb-4 ${playfair.className}`}
@@ -168,7 +168,7 @@ export default function AddCoursePage() {
               </div>
 
               <div className="space-y-4 lg:space-y-6">
-                <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6">
                   <div className="space-y-2">
                     <label
                       htmlFor="topic"
@@ -417,7 +417,7 @@ export default function AddCoursePage() {
             </div>
 
             {/* Preview Section */}
-            <div className="bg-white/80 backdrop-blur-sm p-6 lg:p-8 rounded-2xl shadow-xl border border-white/50">
+            <div className="min-w-0 rounded-2xl border border-white/50 bg-white/80 p-4 shadow-xl backdrop-blur-sm sm:p-6 lg:p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <h2
                   className={`text-xl lg:text-2xl font-bold text-gray-800 ${playfair.className}`}

@@ -52,6 +52,14 @@ AI_PROVIDER = os.getenv("AI_PROVIDER", "").lower()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
 AI_REASONING_EFFORT = os.getenv("AI_REASONING_EFFORT")
+AI_CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "AI_CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
 
 if AI_PROVIDER == "groq":
     if not GROQ_API_KEY:
@@ -120,10 +128,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=AI_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -2069,12 +2074,31 @@ async def health_check():
     Detailed health check.
     """
 
+    if AI_MODEL.startswith("gemini"):
+        active_provider = "gemini"
+        active_model = GEMINI_MODEL
+        provider_configured = bool(GEMINI_API_KEY)
+    elif AI_PROVIDER == "groq":
+        active_provider = "groq"
+        active_model = GROQ_MODEL
+        provider_configured = bool(GROQ_API_KEY)
+    elif AI_MODEL in {"gpt-6-astra", "glm-5.3"}:
+        active_provider = "openai-compatible"
+        active_model = AI_MODEL
+        provider_configured = bool(OPENAI_API_KEY)
+    else:
+        active_provider = "anthropic"
+        active_model = ANTHROPIC_MODEL
+        provider_configured = bool(ANTHROPIC_API_KEY)
+
     return {
         "status": "healthy",
+        "provider": active_provider,
+        "provider_configured": provider_configured,
+        "model": active_model,
         "anthropic_configured": bool(
             ANTHROPIC_API_KEY
         ),
-        "model": AI_MODEL,
         "endpoints": [
             "/",
             "/health",

@@ -82,14 +82,10 @@ export default function CompletedCoursesList() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar userId={String(user?.id)} role={user?.role || "STUDENT"} />
-      </aside>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 font-sans md:flex-row">
+      <Sidebar userId={String(user?.id)} role={user?.role || "STUDENT"} />
 
-      {/* Main Content */}
-      <main className="flex-1 px-6 py-10 overflow-auto">
+      <main className="flex-1 overflow-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {loading ? (
           <LoadingIndicator text="Loading completed courses..." />
         ) : error ? (
