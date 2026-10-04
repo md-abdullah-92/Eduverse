@@ -105,16 +105,18 @@ Keep environment files on the VM. They are not transferred by the workflow and m
 The frontend file needs these deployment settings; use the real deployment host and keep each URL aligned with the Nginx/API topology:
 
 ```dotenv
-NEXT_PUBLIC_API_URL=http://20.40.48.234:5001/api
-NEXT_PUBLIC_USER_API_URL=http://20.40.48.234:5000/api
-NEXT_PUBLIC_API_BASE_URL=http://20.40.48.234:5001/api
-NEXT_PUBLIC_BASE_URL=http://20.40.48.234:5001/api/
-NEXT_PUBLIC_PURCHASE_API_URL=http://20.40.48.234:5002/api/purchase
-NEXT_PUBLIC_AI_API_URL=http://20.40.48.234:8000
-FRONTEND_ORIGIN=http://eduversebd.tech
+NEXT_PUBLIC_API_URL=https://eduversebd.tech:5001/api
+NEXT_PUBLIC_USER_API_URL=https://eduversebd.tech:5000/api
+NEXT_PUBLIC_API_BASE_URL=https://eduversebd.tech:5001/api
+NEXT_PUBLIC_BASE_URL=https://eduversebd.tech:5001/api/
+NEXT_PUBLIC_PURCHASE_API_URL=https://eduversebd.tech:5002/api/purchase
+NEXT_PUBLIC_AI_API_URL=https://eduversebd.tech:8000
+FRONTEND_ORIGIN=https://eduversebd.tech,https://eduversebd.tech/
 ```
 
-These are examples matching the current direct-port arrangement. `NEXT_PUBLIC_*` values are inserted into the browser bundle during `next build`; setting them only in a running container is too late. After changing them, rebuild the frontend. When serving the site over HTTPS, change the API architecture too: browsers block plain-HTTP API calls from an HTTPS page as mixed content. Prefer HTTPS Nginx routing for APIs and matching `https://eduversebd.tech` origin settings.
+These URLs replace only the IP address; the service ports remain `5000`, `5001`, `5002`, and `8000`. Each service must be reachable over HTTPS on its existing port, or the HTTPS gateway must terminate TLS while preserving these public port URLs. Rebuild the frontend after changing these values.
+
+`NEXT_PUBLIC_*` values are inserted into the browser bundle during `next build`; setting them only in a running container is too late. After changing them, rebuild the frontend. Browsers block plain-HTTP API calls from an HTTPS page as mixed content, so use `https://` on these domain-and-port URLs.
 
 Firebase `NEXT_PUBLIC_*` web configuration is visible to browsers by design. Do not put private API keys, passwords, mail credentials, Stripe secrets, or database credentials in `NEXT_PUBLIC_*` variables. Rotate credentials immediately if they are accidentally exposed.
 

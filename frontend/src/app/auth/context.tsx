@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const fetchUserData = async () => {
       try {
         const storedToken = localStorage.getItem("token");
-        if (!storedToken) throw new Error("No token found");
+        if (!storedToken) return;
 
         setToken(storedToken);
 
