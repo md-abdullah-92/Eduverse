@@ -265,7 +265,7 @@ export default function LearnPage() {
     const lessonId = currentLesson.id;
 
     const quizResult = profile.quizResults
-      .filter((result) => result.lessonId === lessonId)
+      .filter((result) => String(result.lessonId) === String(lessonId))
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -325,7 +325,7 @@ export default function LearnPage() {
     const quizResults = profile?.quizResults ?? []; // ensure it's an array
 
     const quizResult = quizResults
-      .filter((result) => result.lessonId === lessonId)
+      .filter((result) => String(result.lessonId) === String(lessonId))
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

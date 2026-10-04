@@ -178,10 +178,12 @@ export default function EditProfile() {
   const id = userId as string;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden md:flex-row">
-      <Sidebar role="STUDENT" userId={id} />
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
+      <aside className="w-64 bg-white shadow-md p-4">
+        <Sidebar role="STUDENT" userId={id} />
+      </aside>
 
-      <main className="flex-1 p-3 sm:p-5 lg:p-6">
+      <main className="ml-20 p-5 flex-1">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
           {/* Cover Section */}

@@ -76,7 +76,7 @@ export default function QuizManagementPage() {
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/upload/`, {
+      const response = await fetch("http://localhost:8000/upload/", {
         method: "POST",
         body: formData,
       });
@@ -138,7 +138,7 @@ export default function QuizManagementPage() {
       formData.append("start_page", startPage.toString());
       formData.append("end_page", endPage?.toString() || "");
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/quiz/`, {
+      const response = await fetch("http://localhost:8000/quiz/", {
         method: "POST",
         body: formData,
       });
@@ -240,11 +240,13 @@ export default function QuizManagementPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden md:flex-row">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
       {userId ? (
         <>
-          <Sidebar role="TEACHER" userId={userId} />
-          <main className="flex-1 p-3 sm:p-5 lg:p-6">
+          <aside className="w-64 bg-white shadow-md p-4">
+            <Sidebar role="TEACHER" userId={userId} />
+          </aside>
+          <main className="ml-20 p-5 flex-1">
             <div className={`${raleway.className} text-gray-800`}>
               <div
                 className={`${robotoSlab.className} flex flex-col lg:flex-row gap-6 max-w-screen-xl mx-auto w-full`}
