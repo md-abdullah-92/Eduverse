@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Footer from "@/components/layout/footer";
@@ -64,7 +65,7 @@ export default function MentorsPage() {
   useEffect(() => {
    const fetchMentors = async () => {
   try {
-    const res = await fetch("http://localhost:5000/api/profile/teacher/all");
+    const res = await fetch(`${API_URLS.user}/profile/teacher/all`);
 
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);

@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useState, useEffect, useContext } from "react";
 import dynamic from "next/dynamic";
 import { FaTasks } from "react-icons/fa";
@@ -76,7 +77,7 @@ export default function GenerateShortQuestionPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://localhost:8000/upload/", {
+      const res = await fetch(`${API_URLS.ai}/upload/`, {
         method: "POST",
         body: formData,
       });
@@ -116,7 +117,7 @@ export default function GenerateShortQuestionPage() {
         formData.append("end_page", endPage.toString());
       }
 
-      const res = await fetch("http://localhost:8000/short-questions/", {
+      const res = await fetch(`${API_URLS.ai}/short-questions/`, {
         method: "POST",
         body: formData,
       });
@@ -165,7 +166,7 @@ export default function GenerateShortQuestionPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/assignment", {
+      const res = await fetch(`${API_URLS.user}/assignment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,3 +1,4 @@
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState } from "react";
 
 export type Lesson = {
@@ -31,7 +32,7 @@ export function useInstructorCourses(instructorId?: string) {
     setError(null);
 
     try {
-      const res = await fetch(`http://localhost:5001/api/courses/getByInstructorId/${instructorId}`);
+      const res = await fetch(`${API_URLS.course}/courses/getByInstructorId/${instructorId}`);
       const data = await res.json();
 
       if (!res.ok) {

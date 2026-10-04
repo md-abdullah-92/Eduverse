@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -63,7 +64,7 @@ export default function SavedAssignments() {
   const handleDelete = async (id: number) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/assignment/delete/${id}`,
+        `${API_URLS.user}/assignment/delete/${id}`,
         {
           method: "DELETE",
         }
@@ -100,7 +101,7 @@ export default function SavedAssignments() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5001/api/assignment`, {
+      const res = await fetch(`${API_URLS.course}/assignment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

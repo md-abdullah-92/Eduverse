@@ -1,4 +1,5 @@
 "use client";
+import { API_URLS } from "@/lib/api/urls";
 import { useAuth } from "@/app/auth/context";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useToast } from "@/components/ui_elements/toast";
@@ -274,7 +275,7 @@ const EduverseCart = () => {
 
       // Call your API to create payment intent
       const response = await fetch(
-        "http://localhost:5002/api/purchase/payment-intent",
+        `${API_URLS.purchase}/payment-intent`,
         {
           method: "POST",
           headers: {

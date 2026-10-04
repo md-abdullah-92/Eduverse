@@ -1,6 +1,7 @@
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState } from "react";
 const USER_API_URL =
-  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_USER_API_URL || `${API_URLS.user}`;
 
 type AnsweredQuestion = {
   id: string;

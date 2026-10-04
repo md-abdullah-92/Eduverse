@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import CourseCard from "@/app/courses/components/courseCard";
 import { CourseData, TeacherStats } from "@/utils/types";
 import {
@@ -32,7 +33,7 @@ export default function AllCoursesByInstructorPage({
     const fetchCourses = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5001/api/courses/getByInstructorId/${userId}`
+          `${API_URLS.course}/courses/getByInstructorId/${userId}`
         );
         const data: CourseData[] = await res.json();
         setCourses(data);
@@ -46,7 +47,7 @@ export default function AllCoursesByInstructorPage({
     const fetchTeacherStats = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5001/api/enrollments/stats/teacher/${userId!}`
+          `${API_URLS.course}/enrollments/stats/teacher/${userId!}`
         );
         const stats = await res.json();
         const data: TeacherStats = stats.data;

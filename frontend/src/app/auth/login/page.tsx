@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -8,7 +9,7 @@ import { AxiosError } from "axios";
 import Footer from "@/components/layout/footer"; // Adjust the import path as needed
 import { ToastContext } from "@/components/ui_elements/toast";
 
-const USER_API_URL = process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+const USER_API_URL = process.env.NEXT_PUBLIC_USER_API_URL || `${API_URLS.user}`;
 import { useContext } from "react";
 
 export default function LoginRegister() {

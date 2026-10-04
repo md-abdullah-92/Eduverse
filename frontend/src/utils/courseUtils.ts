@@ -1,3 +1,4 @@
+import { API_URLS } from "@/lib/api/urls";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { storage } from "@/firebaseConfig";
 import { CourseData, CourseFormData, Lesson, Outcome } from "@/utils/types";
@@ -5,7 +6,7 @@ import axios from "axios";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL || `${API_URLS.course}`;
 
 export interface CourseUtilsConfig {
   userId: string;

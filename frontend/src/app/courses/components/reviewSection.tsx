@@ -1,6 +1,7 @@
 // components/reviews/ReviewSection.tsx
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useAuth } from "@/app/auth/context";
 import { useToast } from "@/components/ui_elements/toast";
 import { playfair } from "@/utils/font";
@@ -29,7 +30,7 @@ export function ReviewSection({ courseId, isEnrolled }: ReviewSectionProps) {
   const [showReviewForm, setShowReviewForm] = useState(false);
 
   const BASE_URL =
-    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5001/api/";
+    process.env.NEXT_PUBLIC_BASE_URL || `${API_URLS.course}/`;
 
   const getAuthHeaders = () => {
     const headers: HeadersInit = {

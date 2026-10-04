@@ -1,4 +1,5 @@
 "use client";
+import { API_URLS } from "@/lib/api/urls";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,7 +39,7 @@ export default function AssignmentViewPage() {
     async function fetchAssignment() {
       try {
         const res = await fetch(
-          `http://localhost:5001/api/assignment/lesson/${lessonId}`
+          `${API_URLS.course}/assignment/lesson/${lessonId}`
         );
         const data = await res.json();
         const description = data[0]?.description || "";

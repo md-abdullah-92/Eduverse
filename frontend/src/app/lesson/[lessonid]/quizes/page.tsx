@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState, useRef, useContext } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ export default function StudentExamPage() {
   useEffect(() => {
     async function fetchNote() {
       try {
-        const res = await fetch(`http://localhost:5001/api/quizes/lesson/${lessonId}`);
+        const res = await fetch(`${API_URLS.course}/quizes/lesson/${lessonId}`);
         const data = await res.json();
         const normalizedQuestions = (data[0]?.questions || []).map((q: any) => {
           const optionList = Array.isArray(q.options) ? q.options : [];
@@ -206,7 +207,7 @@ export default function StudentExamPage() {
   }));
 
   try {
-    await fetch("http://localhost:5000/api/result", {
+    await fetch(`${API_URLS.user}/result`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

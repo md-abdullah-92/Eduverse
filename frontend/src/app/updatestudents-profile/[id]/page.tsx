@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import Sidebar from "@/components/Common-Components/Sidebar";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { storage } from "@/firebaseConfig";
@@ -50,7 +51,7 @@ export default function EditProfile() {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+        const res = await fetch(`${API_URLS.user}/profile/${userId}`, {
           credentials: "include",
         });
 
@@ -105,7 +106,7 @@ export default function EditProfile() {
   const handleSubmit = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/profile/student`, {
+      const res = await fetch(`${API_URLS.user}/profile/student`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

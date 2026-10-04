@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -55,7 +56,7 @@ export default function SavedQuizResults() {
         setLoading(true);
         setError(null);
         const response = await fetch(
-          `http://localhost:5000/api/result/student/${encodeURIComponent(userId)}`,
+          `${API_URLS.user}/result/student/${encodeURIComponent(userId)}`,
           { cache: "no-store", signal: controller.signal }
         );
 

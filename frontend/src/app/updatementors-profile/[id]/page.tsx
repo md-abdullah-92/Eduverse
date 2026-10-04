@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import Sidebar from "@/components/Common-Components/Sidebar";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { storage } from "@/firebaseConfig";
@@ -49,7 +50,7 @@ export default function EditTeacherProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/profile/${userId}`, {
+        const res = await fetch(`${API_URLS.user}/profile/${userId}`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Fetch failed");
@@ -98,7 +99,7 @@ export default function EditTeacherProfilePage() {
   const handleSubmit = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:5000/api/profile/teacher`, {
+      const res = await fetch(`${API_URLS.user}/profile/teacher`, {
         method: "PUT",
         credentials: "include",
         headers: {

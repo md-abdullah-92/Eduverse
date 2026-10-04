@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,7 +71,7 @@ export default function PublishedQuiz() {
     
 
     try {
-      const res = await fetch(`http://localhost:5000/api/quiz/delete/${id}`, {
+      const res = await fetch(`${API_URLS.user}/quiz/delete/${id}`, {
         method: "DELETE",
       });
       const result = await res.json();
@@ -117,7 +118,7 @@ export default function PublishedQuiz() {
     try {
       console.log("Creating exam:", examData);
 
-      const response = await fetch("http://localhost:5001/api/quizes", {
+      const response = await fetch(`${API_URLS.course}/quizes`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

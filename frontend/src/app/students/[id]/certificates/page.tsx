@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useAuth } from "@/app/auth/context";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
@@ -56,7 +57,7 @@ export default function CompletedCoursesList() {
       setLoading(true);
       setError("");
       const response = await fetch(
-        `http://localhost:5001/api/enrollments/stats/${user.id}`
+        `${API_URLS.course}/enrollments/stats/${user.id}`
       );
 
       if (!response.ok) {

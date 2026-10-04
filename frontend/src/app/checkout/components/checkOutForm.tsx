@@ -1,3 +1,4 @@
+import { API_URLS } from "@/lib/api/urls";
 // PaymentForm.tsx
 import { useAuth } from "@/app/auth/context";
 import { PaymentConfirmResponse } from "@/utils/types";
@@ -70,7 +71,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   const confirmWithBackend = async (): Promise<void> => {
     try {
       const response = await fetch(
-        "http://localhost:5002/api/purchase/confirm-payment",
+        `${API_URLS.purchase}/confirm-payment`,
         {
           method: "POST",
           headers: {

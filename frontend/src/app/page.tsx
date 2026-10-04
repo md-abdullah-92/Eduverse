@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -12,7 +13,7 @@ import TestimonialsSection from "@/components/homepage/TestimonialsSection";
 import Footer from "@/components/layout/footer";
 
 const USER_API_URL =
-  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_USER_API_URL || `${API_URLS.user}`;
 
 export default function Home() {
   const router = useRouter();

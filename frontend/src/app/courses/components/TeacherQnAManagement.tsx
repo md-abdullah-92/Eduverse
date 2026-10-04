@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState } from "react";
 import { FiUser, FiSend } from "react-icons/fi";
 
@@ -38,7 +39,7 @@ export const TeacherQnAManagement = ({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/qna/courses/${courseId}/questions`);
+        const res = await fetch(`${API_URLS.course}/qna/courses/${courseId}/questions`);
         const data: Question[] = await res.json();
         setQuestions(data);
       } catch (err) {
@@ -56,7 +57,7 @@ export const TeacherQnAManagement = ({
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5001/api/qna/answers", {
+      const res = await fetch(`${API_URLS.course}/qna/answers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

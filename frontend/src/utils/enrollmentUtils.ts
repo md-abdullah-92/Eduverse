@@ -1,7 +1,8 @@
+import { API_URLS } from "@/lib/api/urls";
 import { Enrollment } from "@/utils/types";
 import axios from "axios";
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL || `${API_URLS.course}`;
 
 export interface EnrollmentUtilsConfig {
   userId: string;

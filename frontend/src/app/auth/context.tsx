@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
@@ -20,7 +21,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const USER_API_URL =
-  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_USER_API_URL || `${API_URLS.user}`;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

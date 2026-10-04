@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import { API_URLS } from "@/lib/api/urls";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || `${API_URLS.course}`;
 
 // Helper method to get auth headers
 const getAuthHeaders = () => {

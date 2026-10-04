@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useState, useContext } from "react";
 import dynamic from "next/dynamic";
 import { FaFileAlt, FaFileUpload } from "react-icons/fa";
@@ -66,7 +67,7 @@ export default function GenerateSlidePage() {
         const formData = new FormData();
         formData.append("file", file);
         
-        const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/upload/`, {
+        const res = await fetch(`${API_URLS.ai}/upload/`, {
           method: "POST",
           body: formData,
         });
@@ -126,7 +127,7 @@ export default function GenerateSlidePage() {
       formData.append("start_page", startPage.toString());
       formData.append("end_page", endPage?.toString() || totalPages?.toString() || "");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL || "http://localhost:8000"}/generate-study-notes/`, {
+      const res = await fetch(`${API_URLS.ai}/generate-study-notes/`, {
         method: "POST",
         body: formData,
       });
@@ -162,7 +163,7 @@ export default function GenerateSlidePage() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/studynote`, {
+      const res = await fetch(`${API_URLS.user}/studynote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, description, teacherId: parseInt(userId) }),

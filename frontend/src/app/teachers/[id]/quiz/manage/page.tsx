@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useState, useEffect, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,7 +77,7 @@ export default function QuizManagementPage() {
       const formData = new FormData();
       formData.append("file", file);
       
-      const response = await fetch("http://localhost:8000/upload/", {
+      const response = await fetch(`${API_URLS.ai}/upload/`, {
         method: "POST",
         body: formData,
       });
@@ -138,7 +139,7 @@ export default function QuizManagementPage() {
       formData.append("start_page", startPage.toString());
       formData.append("end_page", endPage?.toString() || "");
 
-      const response = await fetch("http://localhost:8000/quiz/", {
+      const response = await fetch(`${API_URLS.ai}/quiz/`, {
         method: "POST",
         body: formData,
       });
@@ -210,7 +211,7 @@ export default function QuizManagementPage() {
     try {
       console.log("Creating exam:", examData);
 
-      const response = await fetch("http://localhost:5000/api/quiz", {
+      const response = await fetch(`${API_URLS.user}/quiz`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

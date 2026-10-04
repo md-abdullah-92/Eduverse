@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState, useContext } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
@@ -67,7 +68,7 @@ export default function SavedStudyNotes() {
     if (noteIdToDelete === null) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/studynote/delete/${noteIdToDelete}`, {
+      const res = await fetch(`${API_URLS.user}/studynote/delete/${noteIdToDelete}`, {
         method: "DELETE",
       });
 
@@ -111,7 +112,7 @@ export default function SavedStudyNotes() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5001/api/studynote`, {
+      const res = await fetch(`${API_URLS.course}/studynote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,3 +1,4 @@
+import { API_URLS } from "@/lib/api/urls";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import {
@@ -29,7 +30,7 @@ export default function StatGrid({ studentId }: { studentId: string }) {
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const BASE_URL = "http://localhost:5001/api/";
+  const BASE_URL = `${API_URLS.course}/`;
 
   useEffect(() => {
     const fetchStats = async () => {

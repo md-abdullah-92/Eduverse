@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useAuth } from "@/app/auth/context";
 import CourseCard from "@/app/courses/components/courseCard";
 import Footer from "@/components/layout/footer";
@@ -29,7 +30,7 @@ export default function AllCoursesPage() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/courses/all`);
+        const res = await fetch(`${API_URLS.course}/courses/all`);
         if (!res.ok) {
           throw new Error(`Server responded with status: ${res.status}`);
         }
@@ -57,7 +58,7 @@ export default function AllCoursesPage() {
       setEnrollmentLoading(true);
       try {
         const res = await fetch(
-          `http://localhost:5001/api/enrollments/student/${user.id}`
+          `${API_URLS.course}/enrollments/student/${user.id}`
         );
         if (res.ok) {
           const enrollments = await res.json();

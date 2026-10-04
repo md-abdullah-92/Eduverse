@@ -1,5 +1,6 @@
 'use client';
 
+import { API_URLS } from "@/lib/api/urls";
 import React, { useEffect, useState, ReactNode, HTMLAttributes } from 'react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -76,7 +77,7 @@ export default function LessonNotesPage() {
   useEffect(() => {
     async function fetchNote() {
       try {
-        const res = await fetch(`http://localhost:5001/api/studynote/lesson/${lessonId}`);
+        const res = await fetch(`${API_URLS.course}/studynote/lesson/${lessonId}`);
         const data = await res.json();
         setTitle(data[0]?.title || '');
         setMarkdown(data[0]?.description || '');

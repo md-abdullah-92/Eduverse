@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import CourseCard from "@/app/courses/components/courseCard";
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { Enrollment } from "@/utils/types";
@@ -23,7 +24,7 @@ const RecentCourses: React.FC<RecentCoursesProps> = ({ userId }) => {
         console.log(userId);
         // Fetch enrollments for the student
         const res = await fetch(
-          `http://localhost:5001/api/enrollments/student/${userId}`
+          `${API_URLS.course}/enrollments/student/${userId}`
         );
         const enrollments = await res.json();
         localStorage.setItem(

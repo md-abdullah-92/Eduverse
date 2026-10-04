@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { raleway, jaro } from "@/utils/font";
@@ -10,7 +11,7 @@ import Footer from "@/components/layout/footer";
 import { useContext } from "react";
 import { ToastContext } from "@/components/ui_elements/toast"; // adjust path as needed
 
-const USER_API_URL = process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+const USER_API_URL = process.env.NEXT_PUBLIC_USER_API_URL || `${API_URLS.user}`;
 
 export default function OtpVerification() {
   const [otp, setOtp] = useState(Array(6).fill(""));

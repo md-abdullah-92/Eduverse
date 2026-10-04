@@ -171,10 +171,16 @@ EduVerse follows a microservices architecture:
 Docker is the simplest way to run the frontend, all four services, and MySQL together:
 
 ```bash
-docker compose up --build
+docker compose --env-file frontend/.env.local up --build
 ```
 
-Open `http://localhost:3000` after the frontend starts. The APIs are published on ports `5000` (users), `5001` (courses), `5002` (purchases), and `8000` (AI). Each Node service runs its checked-in Prisma migrations when its container starts.
+Set `NEXT_PUBLIC_USER_API_URL`, `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_PURCHASE_API_URL`, `NEXT_PUBLIC_AI_API_URL`, and `FRONTEND_ORIGIN` in `frontend/.env.local` before building. For a VM deployment, use the public frontend/API host and ensure the VM firewall allows the required ports. Compose reads these values during the build; changing the frontend container's runtime environment alone does not update the browser bundle. Keep this file out of Git and do not put server secrets in `NEXT_PUBLIC_*` variables.
+
+Open `http://localhost:3000` after the frontend starts. The APIs are published on ports `5000` (users), `5001` (courses), `5002` (purchases), and `8000` (AI). Each Node service runs its checked-in Prisma migrations when its container starts. Rebuild the frontend after changing its public API URLs:
+
+```bash
+docker compose --env-file frontend/.env.local up -d --build frontend
+```
 
 Set `MYSQL_ROOT_PASSWORD` before starting Compose if you do not want the development default, and make sure the required API credentials are present in the existing service `.env` files. To stop the stack, run:
 

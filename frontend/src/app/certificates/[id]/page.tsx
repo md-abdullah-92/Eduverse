@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { Button } from "@/components/ui/button";
 import { ErrorDisplay } from "@/components/ui_elements/ErrorDisplay";
 import { cookie, dmSerif, jaro, notoSerif, raleway } from "@/utils/font";
@@ -22,7 +23,7 @@ export default function CourseCertificatePage() {
     try {
       console.log(id);
       const response = await fetch(
-        `http://localhost:5001/api/courses/get/${id}`
+        `${API_URLS.course}/courses/get/${id}`
       );
       const data = await response.json();
       setCourse(data);

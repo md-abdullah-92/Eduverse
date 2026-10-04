@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,7 +61,7 @@ export default function QuizResultDetails() {
         setLoading(true);
         setError(null);
         const response = await fetch(
-          `http://localhost:5000/api/result/${encodeURIComponent(quizResultId)}`,
+          `${API_URLS.user}/result/${encodeURIComponent(quizResultId)}`,
           { cache: "no-store", signal: controller.signal }
         );
 

@@ -1,8 +1,9 @@
+import { API_URLS } from "@/lib/api/urls";
 import { TeacherStats } from "@/utils/types";
 import { useCallback, useEffect, useState } from "react";
 
 const USER_API_URL =
-  process.env.NEXT_PUBLIC_USER_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_USER_API_URL || `${API_URLS.user}`;
 
 export type TeacherProfile = {
   user: {
@@ -118,7 +119,7 @@ export const useTeacherProfile = (userId: string | number | undefined) => {
     const fetchTeacherStats = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5001/api/enrollments/stats/teacher/${userId!}`
+          `${API_URLS.course}/enrollments/stats/teacher/${userId!}`
         );
         const stats = await res.json();
         const data: TeacherStats = stats.data;

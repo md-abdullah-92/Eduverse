@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import React, { useEffect, useState } from "react";
 import { FiMessageSquare, FiSend, FiUser } from "react-icons/fi";
 
@@ -44,7 +45,7 @@ export const QnASection = ({ courseId, currentStudent }: QnASectionProps) => {
       setError(null);
 
       try {
-        const res = await fetch(`http://localhost:5001/api/qna/courses/${courseId}/questions`);
+        const res = await fetch(`${API_URLS.course}/qna/courses/${courseId}/questions`);
         if (!res.ok) throw new Error("Failed to fetch questions");
         const data: Question[] = await res.json();
         setQuestions(data);
@@ -76,7 +77,7 @@ export const QnASection = ({ courseId, currentStudent }: QnASectionProps) => {
         courseId,
       };
      console.log("Submitting question:", payload);
-      const res = await fetch("http://localhost:5001/api/qna/questions", {
+      const res = await fetch(`${API_URLS.course}/qna/questions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

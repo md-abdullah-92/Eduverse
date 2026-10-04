@@ -1,5 +1,6 @@
 'use client';
 
+import { API_URLS } from "@/lib/api/urls";
 import React, { useEffect, useState } from 'react';
 import ChartCard from '@/app/students/components/ChartCard';
 import {
@@ -59,7 +60,7 @@ const TeacherStatsPage = ({ teacherId }: { teacherId: string }) => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/teacher-stats/${teacherId}`);
+        const res = await fetch(`${API_URLS.course}/teacher-stats/${teacherId}`);
         const data = await res.json();
         if (data.success) {
           setStats(data.data);

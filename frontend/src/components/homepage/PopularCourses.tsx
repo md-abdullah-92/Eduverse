@@ -1,5 +1,6 @@
 "use client";
 
+import { API_URLS } from "@/lib/api/urls";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +20,7 @@ export default function PopularCourses() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/courses/all`);
+        const res = await fetch(`${API_URLS.course}/courses/all`);
         const data: Course[] = await res.json();
   
         // Sort by rating (descending) and take top 6
