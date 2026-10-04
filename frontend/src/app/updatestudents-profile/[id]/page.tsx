@@ -179,16 +179,13 @@ export default function EditProfile() {
   const id = userId as string;
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100 relative overflow-hidden">
-      <aside className="w-64 bg-white shadow-md p-4">
-        <Sidebar role="STUDENT" userId={id} />
-      </aside>
+    <div className="flex min-h-screen min-w-0 bg-gradient-to-br from-slate-50 via-teal-50 to-teal-100">
+      <Sidebar role="STUDENT" userId={id} />
 
-      <main className="ml-20 p-5 flex-1">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+      <main className="min-w-0 flex-1 p-4 pt-20 sm:p-6 md:pt-6">
+        <div className="min-w-0 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-2xl sm:rounded-3xl">
           {/* Cover Section */}
-          <div className="relative h-64 bg-white group overflow-hidden">
+          <div className="group relative h-36 overflow-hidden bg-white sm:h-52 lg:h-64">
             <Image
               src={coverImage || "/logo.png"}
               alt="Cover"
@@ -196,10 +193,10 @@ export default function EditProfile() {
               className="object-cover"
             />
             <div className="absolute inset-0 bg-teal-600/20"></div>
-            <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 transition-all duration-300 group-hover:opacity-100">
               <button
                 onClick={() => coverInputRef.current?.click()}
-                className="bg-white/90 backdrop-blur-sm text-gray-800 px-6 py-3 rounded-full shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 flex items-center gap-3 font-medium"
+                className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-800 shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white hover:shadow-xl sm:gap-3 sm:px-6 sm:py-3 sm:text-base"
               >
                 <Camera size={20} />
                 Change Cover Photo
@@ -215,15 +212,15 @@ export default function EditProfile() {
           </div>
 
           {/* Profile Image */}
-          <div className="relative px-8">
-            <div className="relative w-44 h-44 -mt-20 border-8 border-white rounded-full shadow-xl bg-white group overflow-hidden">
+          <div className="relative px-4 sm:px-8">
+            <div className="group relative -mt-10 h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-white shadow-xl sm:-mt-16 sm:h-36 sm:w-36 sm:border-8 lg:-mt-20 lg:h-44 lg:w-44">
               <Image
                 src={profileImage || "/default-profile.jpg"}
                 alt="Profile"
                 fill
                 className="rounded-full object-cover"
               />
-              <div className="absolute inset-0 bg-teal-600/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-teal-600/40 opacity-0 transition-all duration-300 group-hover:opacity-100">
                 <button
                   onClick={() => profileInputRef.current?.click()}
                   className="text-white bg-black/70 p-3 rounded-full hover:bg-black/90 transition-colors duration-300"
@@ -242,10 +239,10 @@ export default function EditProfile() {
           </div>
 
           {/* Form Section */}
-          <div className="px-8 pt-8 pb-12 space-y-8">
+          <div className="space-y-8 px-4 pb-8 pt-6 sm:px-8 sm:pb-12 sm:pt-8">
             {/* Basic Information */}
             <div className="space-y-6">
-              <div className="flex items-center space-x-3 mb-6">
+              <div className="mb-6 flex items-center space-x-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                   <User className="w-5 h-5 text-blue-600" />
                 </div>
@@ -254,7 +251,7 @@ export default function EditProfile() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
                     <User size={16} />
@@ -293,7 +290,7 @@ export default function EditProfile() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
                     <Building size={16} />
@@ -336,7 +333,7 @@ export default function EditProfile() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
                     <Users size={16} />
@@ -393,7 +390,7 @@ export default function EditProfile() {
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
                     <Calendar size={16} />
@@ -464,23 +461,22 @@ export default function EditProfile() {
             )}
 
             {/* Save Button */}
-            <div className="flex justify-end pt-8 border-t border-gray-100">
+            <div className="flex justify-stretch border-t border-gray-100 pt-6 sm:justify-end sm:pt-8">
               <button
                 onClick={handleSubmit}
-                className="bg-teal-600 text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300 flex items-center space-x-2"
+                className="flex w-full items-center justify-center space-x-2 rounded-xl bg-teal-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl sm:w-auto sm:px-8 sm:py-4"
               >
                 <span>Save Changes</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
 
       {/* Success Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300">
-            <div className="p-8 text-center">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl transition-all duration-300 sm:rounded-3xl">
+            <div className="p-5 text-center sm:p-8">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-lg">✓</span>
@@ -498,7 +494,7 @@ export default function EditProfile() {
                   setShowModal(false);
                   history.back();
                 }}
-                className="bg-teal-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-700 transform hover:-translate-y-0.5 transition-all duration-300"
+                className="w-full rounded-xl bg-teal-600 px-8 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl sm:w-auto"
               >
                 Continue
               </button>

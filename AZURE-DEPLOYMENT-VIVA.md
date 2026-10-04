@@ -51,7 +51,7 @@ From the computer that has the Azure private key, connect to the VM with:
 
 ```bash
 chmod 600 ~/Downloads/edverseVM_key.pem
-ssh -i ~/Downloads/edverseVM_key.pem azureuser@20.40.48.234
+ssh -i ~/Downloads/edverseVM_key.pem azureuser@Public-IP
 ```
 
 Replace the key path, username, and IP if Azure assigned different values. The first connection may ask you to trust the host key; verify the fingerprint using a trusted Azure/VM channel before accepting it. When connected, the prompt should resemble `azureuser@edverseVM:~$`. Log out with `exit`.
