@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import LogoutModal from "../app/students/components/LogoutModel";
-import SidebarItem from "../app/students/components/SidebarItem";
+import LogoutModal from "@/components/Common-Components/LogoutModal";
+import SidebarItem from "@/components/Common-Components/SidebarItem";
 
 // Fonts
 import { dmSerif, poppins } from "@/utils/font"; // adjust import path if needed

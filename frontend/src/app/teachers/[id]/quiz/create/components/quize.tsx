@@ -14,6 +14,10 @@ interface QuizQuestion {
   answer?: string;
 }
 
+interface GeneratedQuizSectionProps {
+  quiz: string[];
+}
+
 const mockQuizData: QuizQuestion[] = [
   {
     id: "q1",
@@ -40,11 +44,21 @@ const mockQuizData: QuizQuestion[] = [
   },
 ];
 
-export default function GeneratedQuizSection() {
+export default function GeneratedQuizSection({
+  quiz,
+}: GeneratedQuizSectionProps) {
   const [showTypes, setShowTypes] = useState({ MCQ: true, CQ: true });
   const [filterText, setFilterText] = useState("");
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
-  const [questions, setQuestions] = useState<QuizQuestion[]>(mockQuizData);
+  const [questions, setQuestions] = useState<QuizQuestion[]>(() =>
+    quiz.length > 0
+      ? quiz.map((question, index) => ({
+          id: `generated-${index}`,
+          type: "CQ",
+          question,
+        }))
+      : mockQuizData
+  );
 
   const toggleType = (type: "MCQ" | "CQ") => {
     setShowTypes((prev) => ({ ...prev, [type]: !prev[type] }));

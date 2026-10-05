@@ -101,7 +101,7 @@ export function useVideoPlayer({
   );
 
   const toggleFullscreen = useCallback(
-    (containerRef: RefObject<HTMLDivElement>) => {
+    (containerRef: RefObject<HTMLDivElement | null>) => {
       if (containerRef.current) {
         if (!document.fullscreenElement) {
           containerRef.current.requestFullscreen();

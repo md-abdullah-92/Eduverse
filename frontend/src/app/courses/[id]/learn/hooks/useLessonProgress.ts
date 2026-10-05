@@ -11,6 +11,8 @@ interface LessonProgress {
     lastWatched: Date;
     quizCompleted: boolean;
     quizScore?: number;
+    notesViewed?: boolean;
+    assignmentCompleted?: boolean;
   };
 }
 
@@ -147,11 +149,11 @@ export function useLessonProgress({
   );
 
   const markQuizCompleted = useCallback(
-    (lessonId: string, score: number) => {
+    (lessonId: number, score: number) => {
       const quizCompleted = score >= 60;
 
       setLessonProgress((prev) => {
-        const updated = {
+        const updated: LessonProgress = {
           ...prev,
           [lessonId]: {
             ...prev[lessonId],
@@ -169,7 +171,7 @@ export function useLessonProgress({
         // For lessons with video: check if video is also completed
         // For text-only lessons: quiz completion is sufficient
         const shouldComplete = hasVideo
-          ? updated[lessonId].videoCompleted && quizCompleted
+          ? updated[String(lessonId)].videoCompleted && quizCompleted
           : quizCompleted;
 
         if (shouldComplete) {

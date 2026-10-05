@@ -276,7 +276,7 @@ export default function AllCoursesPage() {
                     key={course.id}
                     course={course}
                     isEnrolled={!!enrollment}
-                    progress={Number(enrollment?.progress?.toFixed(2)) || 0}
+                    progress={enrollment?.progress?.toFixed(2) || "0"}
                     enrollmentId={enrollment?.enrollmentId}
                   />
                 );

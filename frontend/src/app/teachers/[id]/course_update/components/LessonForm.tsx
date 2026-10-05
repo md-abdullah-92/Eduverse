@@ -13,10 +13,10 @@ interface VideoState {
 
 interface LessonFormProps {
   initialData: Lesson;
-  editingId: string | null;
+  editingId: number | null;
   courseId: string;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;

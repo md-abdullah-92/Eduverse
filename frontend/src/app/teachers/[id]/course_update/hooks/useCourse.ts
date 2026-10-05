@@ -32,6 +32,7 @@ const INITIAL_COURSE_DATA: CourseData = {
   averageRating: 0.0,
   outcomes: [],
   lessons: [],
+  enrollments: [],
 };
 
 const INITIAL_LESSON_DATA: Lesson = {

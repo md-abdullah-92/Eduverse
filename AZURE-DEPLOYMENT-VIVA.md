@@ -105,12 +105,12 @@ Keep environment files on the VM. They are not transferred by the workflow and m
 The frontend file needs these deployment settings; use the real deployment host and keep each URL aligned with the Nginx/API topology:
 
 ```dotenv
-NEXT_PUBLIC_API_URL=https://eduversebd.tech:5001/api
-NEXT_PUBLIC_USER_API_URL=https://eduversebd.tech:5000/api
-NEXT_PUBLIC_API_BASE_URL=https://eduversebd.tech:5001/api
-NEXT_PUBLIC_BASE_URL=https://eduversebd.tech:5001/api/
-NEXT_PUBLIC_PURCHASE_API_URL=https://eduversebd.tech:5002/api/purchase
-NEXT_PUBLIC_AI_API_URL=https://eduversebd.tech:8000
+NEXT_PUBLIC_API_URL=https://eduversebd.tech/course-api/api
+NEXT_PUBLIC_USER_API_URL=https://eduversebd.tech/user-api/api
+NEXT_PUBLIC_API_BASE_URL=https://eduversebd.tech/course-api/api
+NEXT_PUBLIC_BASE_URL=https://eduversebd.tech
+NEXT_PUBLIC_PURCHASE_API_URL=https://eduversebd.tech/purchase-api/api/purchase
+NEXT_PUBLIC_AI_API_URL=https://eduversebd.tech/ai-api
 FRONTEND_ORIGIN=https://eduversebd.tech,https://eduversebd.tech/
 ```
 

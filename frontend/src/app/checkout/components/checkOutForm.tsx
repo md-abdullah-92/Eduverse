@@ -109,18 +109,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     options: {
       layout: "tabs",
     },
-    appearance: {
-      theme: "stripe",
-      variables: {
-        colorPrimary: "#6366f1",
-        colorBackground: "#ffffff",
-        colorText: "#1f2937",
-        colorDanger: "#ef4444",
-        fontFamily: "Inter, system-ui, sans-serif",
-        spacingUnit: "4px",
-        borderRadius: "8px",
-      },
-    },
   };
 
   return (

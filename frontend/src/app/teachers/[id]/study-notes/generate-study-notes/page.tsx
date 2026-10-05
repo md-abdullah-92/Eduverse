@@ -425,9 +425,10 @@ export default function GenerateSlidePage() {
                           em: (props) => <em className="italic text-teal-600" {...props} />,
                           del: (props) => <del className="line-through opacity-75" {...props} />,
                           a: (props) => <a className="text-teal-600 hover:text-teal-800 hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />,
-                          code({ inline, className, children, ...props }) {
+                          code({ className, children, ...props }: any) {
+                            const isInline = "inline" in props && Boolean((props as any).inline);
                             const match = /language-(\w+)/.exec(className || "");
-                            return !inline && match ? (
+                            return !isInline && match ? (
                               <SyntaxHighlighter style={oneLight} language={match[1]} PreTag="div" className="rounded-lg my-4 border border-gray-200" {...props}>
                                 {String(children).replace(/\n$/, "")}
                               </SyntaxHighlighter>

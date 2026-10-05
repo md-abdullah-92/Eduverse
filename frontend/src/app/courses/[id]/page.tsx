@@ -552,7 +552,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                    <QnASection
                     courseId={parseInt(resolvedParams.id)}
                     currentStudent={{
-                      id: user?.id || 1,
+                      id: user?.id ? Number(user.id) : 1,
                       name: localStorage.getItem("userName") || "Guest",
                       photoUrl: localStorage.getItem("userPhoto") || "/logo.png",
                    }}
@@ -563,7 +563,7 @@ export default function CourseDetails({ params }: CourseDetailsProps) {
                    <TeacherQnAManagement
                     courseId={parseInt(resolvedParams.id)}
                     teacher={{
-                      id: user?.id || 1,
+                      id: user?.id ? Number(user.id) : 1,
                       name: localStorage.getItem("userName") || "Guest",
                       photoUrl: localStorage.getItem("userPhoto") || "/logo.png",
                    }}

@@ -54,9 +54,10 @@ export default function StudyNote() {
                   strong: (props) => <strong className="font-bold text-teal-600" {...props} />,
                   em: (props) => <em className="italic" {...props} />,
                   del: (props) => <del className="line-through" {...props} />,
-                  code({ inline, className, children, ...props }) {
+                  code({ className, children, ...props }: any) {
+                    const isInline = "inline" in props && Boolean((props as any).inline);
                     const match = /language-(\w+)/.exec(className || "");
-                    return !inline && match ? (
+                    return !isInline && match ? (
                       <SyntaxHighlighter
                         style={oneLight}
                         language={match[1]}

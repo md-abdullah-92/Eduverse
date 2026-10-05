@@ -47,7 +47,7 @@ const Code: React.FC<CodeProps> = ({ inline, className, children, ...props }) =>
   if (!inline && match) {
     return (
       <SyntaxHighlighter
-        style={getSyntaxHighlighterStyle(oneLight)}
+        style={getSyntaxHighlighterStyle(oneLight) as any}
         language={match[1]}
         PreTag="div"
         className="rounded-md my-2"
