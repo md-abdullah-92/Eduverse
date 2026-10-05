@@ -12,7 +12,7 @@ import {
   Search,
   TrendingUp,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 import LoadingIndicator from "@/components/ui_elements/loadingIndicator";
 import { poppins, raleway } from "@/utils/font";
@@ -20,9 +20,9 @@ import { poppins, raleway } from "@/utils/font";
 export default function AllCoursesByInstructorPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const userId = params.id;
+  const { id: userId } = use(params);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -61,7 +61,7 @@ export default function AllCoursesByInstructorPage({
 
     fetchCourses();
     fetchTeacherStats();
-  }, [userId, courses]);
+  }, [userId]);
 
   // Extract unique topics from courses
   const topics = ["All Topics"];

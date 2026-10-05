@@ -23,7 +23,7 @@ from google import genai
 from google.genai import types
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 
 # ============================================================

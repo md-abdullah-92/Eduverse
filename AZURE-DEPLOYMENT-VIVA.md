@@ -177,6 +177,9 @@ server {
     listen [::]:80;
     server_name eduversebd.tech;
 
+    # Required for PDF upload requests from the AI generator pages.
+    client_max_body_size 50M;
+
     location ^~ /.well-known/acme-challenge/ {
         root /var/www/letsencrypt;
         default_type text/plain;
@@ -227,6 +230,8 @@ sudo certbot renew --dry-run
 ```
 
 Do not claim HTTPS is active until `curl -Ik` succeeds and the browser shows a valid certificate. Site TLS and API TLS are separate; direct browser calls to `http://20.40.48.234:5000` and other HTTP API ports will fail as mixed content from an HTTPS page. Before using the HTTPS site fully, proxy the API routes through HTTPS Nginx (or another TLS gateway), update the frontend API base URLs and `FRONTEND_ORIGIN` to `https://eduversebd.tech`, then rebuild the frontend image. Never solve mixed content by disabling browser security.
+
+For PDF uploads routed through the AI service, set `client_max_body_size 50M;` (or larger if needed) in the active Nginx `server` block. This prevents 413 errors when uploading large study-note or quiz PDFs.
 
 ## 5. GitHub Actions CI/CD
 

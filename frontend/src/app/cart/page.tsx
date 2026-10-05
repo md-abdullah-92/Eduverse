@@ -233,7 +233,7 @@ const EduverseCart = () => {
       const response = await cartService.getCart(user.id);
 
       if (response.success) {
-        setCartItems(response.data.items);
+        setCartItems(Array.isArray(response.data?.items) ? response.data.items : []);
       }
     } catch (error) {
       console.error("Error fetching cart:", error);
@@ -255,7 +255,11 @@ const EduverseCart = () => {
       const response = await cartService.removeFromCart(user.id, courseId);
 
       if (response.success) {
-        setCartItems((prev) => prev.filter((item) => item.id !== courseId));
+        setCartItems((prev) =>
+          prev.filter(
+            (item) => item.courseId !== courseId && item.course.id !== courseId
+          )
+        );
         showToast("Course removed from cart", "success");
       }
     } catch (error) {
@@ -316,7 +320,7 @@ const EduverseCart = () => {
   };
 
   const subtotal = calculateSubtotal(cartItems);
-  const userId = localStorage.getItem("userId")||'default';
+  const userId = user?.id ?? "default";
 
   if (loading) {
     return <LoadingIndicator />;
